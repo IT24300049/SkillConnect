@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 
 @Entity
 @Table(name = "jobs")
@@ -37,9 +36,6 @@ public class Job {
     @Column(name = "job_description", nullable = false, columnDefinition = "TEXT")
     private String jobDescription;
 
-    @Column(name = "location_address")
-    private String locationAddress;
-
     private String city;
     private String district;
 
@@ -53,21 +49,12 @@ public class Job {
     @Column(name = "budget_max")
     private BigDecimal budgetMax;
 
-    @Column(name = "estimated_duration_hours")
-    private Integer estimatedDurationHours;
-
     @Column(name = "preferred_start_date")
     private LocalDate preferredStartDate;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "job_status")
     private JobStatus jobStatus = JobStatus.active;
-
-    @Column(name = "expiry_date")
-    private LocalDate expiryDate;
-
-    @Column(name = "views_count")
-    private Integer viewsCount = 0;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

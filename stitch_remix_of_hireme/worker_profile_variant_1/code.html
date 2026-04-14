@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Worker Profile: Variant 1</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2463eb",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111621",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<!-- Navigation Bar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 md:px-20 py-3 sticky top-0 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3 text-primary">
+<div class="size-6">
+<svg fill="currentColor" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M24 4C25.7818 14.2173 33.7827 22.2182 44 24C33.7827 25.7818 25.7818 33.7827 24 44C22.2182 33.7827 14.2173 25.7818 4 24C14.2173 22.2182 22.2182 14.2173 24 4Z"></path>
+</svg>
+</div>
+<h2 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-tight">SkilledWorker</h2>
+</div>
+<div class="hidden md:flex">
+<label class="flex flex-col min-w-40 h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full">
+<div class="text-slate-500 flex border-none bg-slate-100 dark:bg-slate-800 items-center justify-center pl-4 rounded-l-lg border-r-0">
+<span class="material-symbols-outlined text-lg">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 border-none bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-0 h-full placeholder:text-slate-400 px-4 rounded-r-lg pl-2 text-sm" placeholder="Find services..." value=""/>
+</div>
+</label>
+</div>
+</div>
+<div class="flex flex-1 justify-end gap-6 items-center">
+<div class="hidden lg:flex items-center gap-6">
+<a class="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Find Work</a>
+<a class="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Hire Workers</a>
+<a class="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Messages</a>
+</div>
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-10 px-5 bg-primary text-white text-sm font-bold transition-all hover:bg-primary/90">
+                        Sign In
+                    </button>
+<div class="bg-slate-200 dark:bg-slate-700 bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border border-slate-200 dark:border-slate-800" data-alt="Small circular user profile picture" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDjPHvtWtMKa6C43sMvZu7Cic_dKxBEDd46OIlcEoo1j11iRnmjUaBProYdpn-I1G59WmWPjxgtaKq9rqn6LQ3RawmnGlqnN_SwMLfQAqsnuM_4VooYwUzt2M---Ief3h7EVcm_WaakpF4dsW9duKgOmLMTPb6nwP84kxhw53lNHPv3uqJ2zdOCXufigLlgWmzEYYun0WGShn7xI8DzmQVw0AQRlLZEAdtWg-jqbSnagzHeWi2vIT7m7yklCT3v3gQ8cvV-tita0_c");'></div>
+</div>
+</header>
+<main class="flex flex-1 justify-center py-8">
+<div class="layout-content-container flex flex-col max-w-[1024px] flex-1 px-4 md:px-0">
+<!-- Profile Header Section -->
+<div class="bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800">
+<div class="relative h-64 md:h-80 w-full bg-slate-300 dark:bg-slate-800 bg-center bg-cover" data-alt="Professional electrician working on a circuit board" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCR0CLuSnfBYx_vXn_wHC3t-j8ytyHk4GJRXvXYQQuVTryigA3-_pG2PCdYXfBQOm3Qt3EP5WW6xXm4tIMbFUH5E2olvwD4su1BSEd1WFLGnASBT7zfvN5M4Gsw7idOGN9WuQld_V1W0JH4zprRvrzyjrUOuFomzIA2EPvPdCXWikcAF6fnM3aoceTF0qmDOYf_LaVBsNV7fqNVTu5y37pI2_ur6-VRYHjAl36hSvkE3tPLhoZM8ej4zLjsSm1KpD33_0czJYTEhx0");'>
+<div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent"></div>
+</div>
+<div class="relative flex flex-col items-center -mt-20 pb-8">
+<div class="relative">
+<div class="bg-white dark:bg-slate-900 p-1.5 rounded-full shadow-lg">
+<div class="size-32 md:size-40 rounded-full bg-center bg-cover border-4 border-white dark:border-slate-900 shadow-inner" data-alt="Close up portrait of a professional male worker" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAklgwItlCxh2p47pTLcfBgzVneAbdp94y0HKW9jVMRgq-kx-2smljoEKGWAeiJtuduDfwUD_MRRqZ1tH9GOsY70tB1BnMttwqGuFL0jDsZiygTmU7SLMn8K2S0qaFUd595qeXxOBfnur4JVskTZ3mTIFsNSkmAOCNTN1_uh5zsnxqUppu2Ixf9D9Tf0mN38mMGhO1WUpL8NxHIJ1G6BqFdAsIuBcv-5JfvpoVEwoZGKRyVaSD9JO_vW6LsfjmQP10oBiHJCvg3Wkg");'></div>
+</div>
+<div class="absolute bottom-2 right-2 bg-primary text-white p-1 rounded-full border-2 border-white dark:border-slate-900">
+<span class="material-symbols-outlined text-xs font-bold block">check</span>
+</div>
+</div>
+<div class="mt-4 text-center">
+<h1 class="text-3xl font-bold text-slate-900 dark:text-white flex items-center justify-center gap-2">
+                                    Marcus Thompson
+                                </h1>
+<p class="text-slate-600 dark:text-slate-400 font-medium text-lg">Master Electrician • 12 years experience</p>
+<div class="flex items-center justify-center gap-2 mt-2">
+<div class="flex text-amber-400">
+<span class="material-symbols-outlined fill-1">star</span>
+<span class="material-symbols-outlined fill-1">star</span>
+<span class="material-symbols-outlined fill-1">star</span>
+<span class="material-symbols-outlined fill-1">star</span>
+<span class="material-symbols-outlined fill-1">star_half</span>
+</div>
+<span class="text-slate-500 dark:text-slate-400 text-sm font-semibold">(4.9 • 128 Reviews)</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Main Grid Content -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
+<!-- Left Column: Details -->
+<div class="lg:col-span-2 space-y-8">
+<!-- About Section -->
+<section class="bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
+<h3 class="text-xl font-bold text-slate-900 dark:text-white mb-4">About me</h3>
+<p class="text-slate-600 dark:text-slate-300 leading-relaxed">
+                                    I am a dedicated and highly skilled Master Electrician with over 12 years of hands-on experience in both residential and commercial sectors. My expertise ranges from basic home repairs and wiring to complex industrial installations and energy-efficient lighting solutions. I pride myself on safety, precision, and maintaining a clean workspace. I am fully licensed, insured, and committed to providing the highest quality of service to my community.
+                                </p>
+</section>
+<!-- Skills Section -->
+<section class="bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
+<h3 class="text-xl font-bold text-slate-900 dark:text-white mb-4">Expertise &amp; Skills</h3>
+<div class="flex flex-wrap gap-2">
+<span class="px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-semibold">Residential Wiring</span>
+<span class="px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-semibold">Circuit Troubleshooting</span>
+<span class="px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-semibold">Smart Home Installation</span>
+<span class="px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-semibold">EV Charger Setup</span>
+<span class="px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-semibold">Panel Upgrades</span>
+<span class="px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-semibold">Safety Inspections</span>
+<span class="px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-semibold">Lighting Design</span>
+<span class="px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-semibold">Commercial Maintenance</span>
+</div>
+</section>
+<!-- Reviews Section -->
+<section class="bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-xl font-bold text-slate-900 dark:text-white">Recent Reviews</h3>
+<a class="text-primary text-sm font-bold hover:underline" href="#">View all</a>
+</div>
+<div class="space-y-6">
+<!-- Review 1 -->
+<div class="border-b border-slate-100 dark:border-slate-800 pb-6 last:border-0 last:pb-0">
+<div class="flex justify-between items-start mb-2">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-slate-200 dark:bg-slate-700 bg-center bg-cover" data-alt="Portrait of a female reviewer" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBJWeoVW1s4Q-y32YlZrD94Pg0sRJZeQr0nXqVW-RgT3ziiG9QMpD6NkK0BkZgbQrChWi0JYPBbVws_ebkj-ctPGoNaDCBvhZZ8de-A2IWomDXfYp1VihgpVX0waRpdQX2-wmFifmazZNnP96RJ09yjkBAW7EJXskxX2WU4jYSjsZHcFf7ykYy8nKcMSTK3skvyR5QgNOiZEZv3U6qcC9_uR44HGTYbB7M4jtPF4wlGpsFlCkaqtr0tt6SQqpClxE7JU_Gp-PU01tY");'></div>
+<div>
+<p class="font-bold text-slate-900 dark:text-white">Sarah Jenkins</p>
+<p class="text-xs text-slate-500">2 days ago</p>
+</div>
+</div>
+<div class="flex text-amber-400">
+<span class="material-symbols-outlined text-sm fill-1">star</span>
+<span class="material-symbols-outlined text-sm fill-1">star</span>
+<span class="material-symbols-outlined text-sm fill-1">star</span>
+<span class="material-symbols-outlined text-sm fill-1">star</span>
+<span class="material-symbols-outlined text-sm fill-1">star</span>
+</div>
+</div>
+<p class="text-slate-600 dark:text-slate-300 text-sm">Marcus was incredibly professional. He fixed our panel issue in record time and was very patient explaining what went wrong. Highly recommend for any electrical work!</p>
+</div>
+<!-- Review 2 -->
+<div class="border-b border-slate-100 dark:border-slate-800 pb-6 last:border-0 last:pb-0">
+<div class="flex justify-between items-start mb-2">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-slate-200 dark:bg-slate-700 bg-center bg-cover" data-alt="Portrait of a male reviewer" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAS6i_4Ds6VPiiECkQjofKLlNXT4eiYHGg9YAWmChDW1ZxmhF5oEMDX_bJb-4cPtrlgOTPqRrfscy36Yg_-9JYz7iLNi8rdChcJx8b8hjCxzdPjyrYuIcnhik40VOSEwverafIbHeGr6P3sItt6lLzy3Y5gRMi4gWfJxq-3kYCHacb-mxHisZYnGmMr0vPSEO_k0JPM0fwN4afUfpWXA2C0HcPc0o3hn6T3lKQDxumqUp-Foll68irI_bhjwPVvSnYeyUw5hdUmTaU");'></div>
+<div>
+<p class="font-bold text-slate-900 dark:text-white">David Chen</p>
+<p class="text-xs text-slate-500">1 week ago</p>
+</div>
+</div>
+<div class="flex text-amber-400">
+<span class="material-symbols-outlined text-sm fill-1">star</span>
+<span class="material-symbols-outlined text-sm fill-1">star</span>
+<span class="material-symbols-outlined text-sm fill-1">star</span>
+<span class="material-symbols-outlined text-sm fill-1">star</span>
+<span class="material-symbols-outlined text-sm">star</span>
+</div>
+</div>
+<p class="text-slate-600 dark:text-slate-300 text-sm">Great communication and fair pricing. He installed three smart dimmers and everything works perfectly. A true pro.</p>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Column: Sidebar / Booking -->
+<div class="space-y-6">
+<div class="bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 sticky top-24">
+<h3 class="text-xl font-bold text-slate-900 dark:text-white mb-6">Pricing</h3>
+<div class="space-y-4 mb-8">
+<div class="flex justify-between items-center">
+<span class="text-slate-600 dark:text-slate-400">Hourly Rate</span>
+<span class="text-2xl font-bold text-slate-900 dark:text-white">$85.00</span>
+</div>
+<div class="flex justify-between items-center text-sm">
+<span class="text-slate-500">Service Call Base</span>
+<span class="font-semibold text-slate-700 dark:text-slate-300">$50.00</span>
+</div>
+<div class="border-t border-slate-100 dark:border-slate-800 pt-4">
+<div class="flex gap-2 items-center text-emerald-600 dark:text-emerald-400 text-sm font-bold">
+<span class="material-symbols-outlined text-sm">verified_user</span>
+<span>Price Guarantee</span>
+</div>
+</div>
+</div>
+<div class="space-y-3">
+<button class="w-full flex cursor-pointer items-center justify-center rounded-lg h-12 px-4 bg-primary text-white text-base font-bold shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all">
+                                        Book Now
+                                    </button>
+<button class="w-full flex cursor-pointer items-center justify-center rounded-lg h-12 px-4 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white text-base font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
+                                        Message
+                                    </button>
+</div>
+<p class="text-center text-slate-400 text-xs mt-6">Average response time: 2 hours</p>
+</div>
+<!-- Location Section -->
+<div class="bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
+<h3 class="text-lg font-bold text-slate-900 dark:text-white mb-4">Location</h3>
+<div class="aspect-video bg-slate-200 dark:bg-slate-800 rounded-lg overflow-hidden relative" data-location="San Francisco, CA" style="">
+<div class="absolute inset-0 bg-slate-300 dark:bg-slate-700 animate-pulse flex items-center justify-center">
+<span class="material-symbols-outlined text-slate-400 text-4xl">map</span>
+</div>
+<img class="w-full h-full object-cover relative z-10" data-alt="Simple map illustration of San Francisco" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDT9SMPIkncAyJRdE4lcwaXNkGCjEVlKhg8Pscqy3s8n2566u9-t1SfsTjpfk1iboclRBa7eloWQ9cy5fU8g-QYA2E9P7MM4ptWZI4Yyd3zeb8TBDyGVq31Uj3ZYu9_J5XySvIgTW8PHmSru8mS_QkBRmU0gHXzVvTiGSNV_JWdFTahDl0KoMZUB0X0dnjKjrSI-V3uoQoF1G5GvFIWcFsDJl3MoJ2lKnhlrxd71WD024edDcVOejpzV2lFlDtPatfwjR7AFZSAGJ8"/>
+</div>
+<p class="mt-4 text-sm text-slate-600 dark:text-slate-400 font-medium">Serving San Francisco and Greater Bay Area</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-10">
+<div class="max-w-[1024px] mx-auto px-4 md:px-0 flex flex-col md:flex-row justify-between items-center gap-6">
+<div class="flex items-center gap-2 text-slate-400">
+<div class="size-4">
+<svg fill="currentColor" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M24 4C25.7818 14.2173 33.7827 22.2182 44 24C33.7827 25.7818 25.7818 33.7827 24 44C22.2182 33.7827 14.2173 25.7818 4 24C14.2173 22.2182 22.2182 14.2173 24 4Z"></path>
+</svg>
+</div>
+<span class="text-sm font-bold">SkilledWorker © 2024</span>
+</div>
+<div class="flex gap-8">
+<a class="text-sm text-slate-500 hover:text-primary" href="#">Privacy Policy</a>
+<a class="text-sm text-slate-500 hover:text-primary" href="#">Terms of Service</a>
+<a class="text-sm text-slate-500 hover:text-primary" href="#">Help Center</a>
+</div>
+</div>
+</footer>
+</div>
+</div>
+</body></html>

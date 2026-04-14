@@ -54,6 +54,9 @@ public class EquipmentDtos {
         @NotBlank(message = "Rental end date is required")
         private String rentalEndDate;
 
+        @Min(value = 1, message = "Quantity must be at least 1")
+        private Integer quantity = 1;
+
         private String notes;
     }
 }

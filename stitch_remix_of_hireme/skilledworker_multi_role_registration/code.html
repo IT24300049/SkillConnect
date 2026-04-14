@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SkilledWorker - Multi-Role Registration</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2463eb",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111621",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<!-- Header -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-primary/10 bg-white dark:bg-slate-900 px-4 md:px-20 lg:px-40 py-4">
+<div class="flex items-center gap-3">
+<div class="text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl">construction</span>
+</div>
+<h2 class="text-slate-900 dark:text-white text-xl font-bold leading-tight tracking-tight">SkilledWorker</h2>
+</div>
+<div class="flex items-center gap-4">
+<p class="hidden md:block text-slate-500 dark:text-slate-400 text-sm">Already have an account?</p>
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-10 px-5 bg-primary text-white text-sm font-bold transition-colors hover:bg-primary/90">
+                        Login
+                    </button>
+</div>
+</header>
+<main class="flex flex-1 justify-center py-10 px-4">
+<div class="layout-content-container flex flex-col max-w-[800px] flex-1">
+<!-- Progress Section -->
+<div class="flex flex-col gap-3 mb-8">
+<div class="flex gap-6 justify-between items-end">
+<div>
+<h1 class="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white">Create your account</h1>
+<p class="text-slate-500 dark:text-slate-400 mt-1">Join the community of professionals and customers.</p>
+</div>
+<div class="text-right">
+<p class="text-primary text-sm font-semibold mb-1">Step 1 of 3</p>
+<p class="text-slate-400 text-xs font-medium">33% Complete</p>
+</div>
+</div>
+<div class="w-full h-2 rounded-full bg-primary/10 overflow-hidden">
+<div class="h-full bg-primary transition-all duration-500" style="width: 33%;"></div>
+</div>
+</div>
+<!-- Step 1: Role Selection Cards -->
+<div class="mb-10">
+<h2 class="text-lg font-semibold mb-6 text-center">First, choose your role</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Customer Role -->
+<label class="group relative cursor-pointer">
+<input checked="" class="peer sr-only" name="role" type="radio"/>
+<div class="flex flex-col items-center text-center p-6 bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-xl transition-all peer-checked:border-primary peer-checked:ring-1 peer-checked:ring-primary hover:shadow-lg">
+<div class="size-16 mb-4 flex items-center justify-center bg-primary/10 text-primary rounded-full group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-3xl">person_search</span>
+</div>
+<h3 class="font-bold text-slate-900 dark:text-white">Customer</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-2">I want to hire skilled professionals for my projects.</p>
+</div>
+</label>
+<!-- Worker Role -->
+<label class="group relative cursor-pointer">
+<input class="peer sr-only" name="role" type="radio"/>
+<div class="flex flex-col items-center text-center p-6 bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-xl transition-all peer-checked:border-primary peer-checked:ring-1 peer-checked:ring-primary hover:shadow-lg">
+<div class="size-16 mb-4 flex items-center justify-center bg-primary/10 text-primary rounded-full group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-3xl">engineering</span>
+</div>
+<h3 class="font-bold text-slate-900 dark:text-white">Worker</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-2">I am a professional looking for work opportunities.</p>
+</div>
+</label>
+<!-- Supplier Role -->
+<label class="group relative cursor-pointer">
+<input class="peer sr-only" name="role" type="radio"/>
+<div class="flex flex-col items-center text-center p-6 bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-xl transition-all peer-checked:border-primary peer-checked:ring-1 peer-checked:ring-primary hover:shadow-lg">
+<div class="size-16 mb-4 flex items-center justify-center bg-primary/10 text-primary rounded-full group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-3xl">inventory_2</span>
+</div>
+<h3 class="font-bold text-slate-900 dark:text-white">Supplier</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-2">I provide materials and tools for construction.</p>
+</div>
+</label>
+</div>
+</div>
+<!-- Step 2: General Info Form -->
+<div class="bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800">
+<h2 class="text-xl font-bold mb-6 text-slate-900 dark:text-white">Personal Information</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="flex flex-col gap-2">
+<label class="text-sm font-medium text-slate-700 dark:text-slate-300">Full Name</label>
+<input class="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-background-light dark:bg-slate-800 focus:border-primary focus:ring-primary" placeholder="John Doe" type="text"/>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-sm font-medium text-slate-700 dark:text-slate-300">Email Address</label>
+<input class="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-background-light dark:bg-slate-800 focus:border-primary focus:ring-primary" placeholder="john@example.com" type="email"/>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-sm font-medium text-slate-700 dark:text-slate-300">Phone Number</label>
+<input class="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-background-light dark:bg-slate-800 focus:border-primary focus:ring-primary" placeholder="+1 (555) 000-0000" type="tel"/>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-sm font-medium text-slate-700 dark:text-slate-300">Password</label>
+<input class="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-background-light dark:bg-slate-800 focus:border-primary focus:ring-primary" placeholder="••••••••" type="password"/>
+</div>
+</div>
+<!-- Step 3: Role Specific (Visible if Worker selected) -->
+<div class="mt-10 pt-10 border-t border-slate-100 dark:border-slate-800">
+<h2 class="text-xl font-bold mb-2 text-slate-900 dark:text-white">Professional Details</h2>
+<p class="text-sm text-slate-500 dark:text-slate-400 mb-6">Complete these fields if you are applying as a Worker</p>
+<div class="space-y-6">
+<div class="flex flex-col gap-2">
+<label class="text-sm font-medium text-slate-700 dark:text-slate-300">Skills &amp; Expertise</label>
+<div class="flex flex-wrap gap-2 p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-background-light dark:bg-slate-800 min-h-[46px]">
+<span class="inline-flex items-center gap-1 px-3 py-1 bg-primary text-white text-xs font-medium rounded-full">
+                                            Plumbing <span class="material-symbols-outlined text-[14px] cursor-pointer">close</span>
+</span>
+<span class="inline-flex items-center gap-1 px-3 py-1 bg-primary text-white text-xs font-medium rounded-full">
+                                            Electrical <span class="material-symbols-outlined text-[14px] cursor-pointer">close</span>
+</span>
+<input class="bg-transparent border-none p-0 text-sm focus:ring-0 w-24" placeholder="Add more..." type="text"/>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="flex flex-col gap-2">
+<label class="text-sm font-medium text-slate-700 dark:text-slate-300">Years of Experience</label>
+<select class="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-background-light dark:bg-slate-800 focus:border-primary focus:ring-primary">
+<option>1-3 years</option>
+<option>4-7 years</option>
+<option>8+ years</option>
+</select>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-sm font-medium text-slate-700 dark:text-slate-300">Hourly Rate (USD)</label>
+<div class="relative">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+<input class="w-full pl-7 rounded-lg border-slate-200 dark:border-slate-700 bg-background-light dark:bg-slate-800 focus:border-primary focus:ring-primary" placeholder="45.00" type="number"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Form Actions -->
+<div class="mt-10 flex flex-col gap-4">
+<button class="w-full bg-primary text-white font-bold py-4 rounded-lg hover:bg-primary/90 transition-all shadow-md shadow-primary/20">
+                                Create Account
+                            </button>
+<p class="text-center text-xs text-slate-400 dark:text-slate-500">
+                                By signing up, you agree to our Terms of Service and Privacy Policy.
+                            </p>
+</div>
+</div>
+<!-- Footer Link -->
+<div class="mt-8 text-center">
+<a class="text-slate-600 dark:text-slate-400 font-medium hover:text-primary transition-colors inline-flex items-center gap-2" href="#">
+                            Need help setting up? <span class="text-primary underline">Contact Support</span>
+</a>
+</div>
+</div>
+</main>
+</div>
+</div>
+</body></html>

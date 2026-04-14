@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SkilledWorker Landing Page</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2065ee",
+                        "secondary": "#f97316",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<div class="relative flex min-h-screen flex-col overflow-x-hidden">
+<!-- Navigation -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 px-6 py-4 lg:px-20 bg-white dark:bg-slate-900 sticky top-0 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3 text-primary">
+<span class="material-symbols-outlined text-3xl font-bold">handyman</span>
+<h2 class="text-slate-900 dark:text-slate-100 text-xl font-extrabold leading-tight tracking-tight">SkilledWorker</h2>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-slate-600 dark:text-slate-400 text-sm font-medium hover:text-primary transition-colors" href="#">How it Works</a>
+<a class="text-slate-600 dark:text-slate-400 text-sm font-medium hover:text-primary transition-colors" href="#">Categories</a>
+<a class="text-slate-600 dark:text-slate-400 text-sm font-medium hover:text-primary transition-colors" href="#">Equipment</a>
+<a class="text-slate-600 dark:text-slate-400 text-sm font-medium hover:text-primary transition-colors" href="#">Pricing</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<a class="hidden sm:block text-slate-600 dark:text-slate-400 text-sm font-bold hover:text-primary" href="#">Login</a>
+<button class="bg-primary hover:bg-primary/90 text-white text-sm font-bold py-2 px-6 rounded-lg transition-all">
+                    Get Started
+                </button>
+</div>
+</header>
+<main class="flex-1">
+<!-- Hero Section -->
+<section class="px-6 py-12 lg:px-20 lg:py-20 max-w-7xl mx-auto">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+<div class="flex flex-col gap-8">
+<div class="flex flex-col gap-4">
+<h1 class="text-slate-900 dark:text-slate-100 text-4xl md:text-5xl lg:text-6xl font-black leading-tight tracking-tight">
+                                Find skilled workers and reliable equipment <span class="text-primary">in one place</span>
+</h1>
+<p class="text-slate-600 dark:text-slate-400 text-lg md:text-xl max-w-lg leading-relaxed">
+                                Connect with top-rated professionals or find the tools you need for your next project. Join the SkilledWorker community today.
+                            </p>
+</div>
+<div class="flex flex-wrap gap-4">
+<button class="flex-1 sm:flex-none min-w-[200px] cursor-pointer items-center justify-center rounded-xl h-14 px-8 bg-primary text-white text-base font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform">
+                                Sign up as Customer
+                            </button>
+<button class="flex-1 sm:flex-none min-w-[200px] cursor-pointer items-center justify-center rounded-xl h-14 px-8 bg-secondary text-white text-base font-bold shadow-lg shadow-secondary/20 hover:scale-[1.02] transition-transform">
+                                Sign up as Worker/Supplier
+                            </button>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-slate-500 text-sm">Already a member?</span>
+<a class="text-primary font-bold text-sm hover:underline" href="#">Login here</a>
+</div>
+</div>
+<div class="relative">
+<div class="w-full aspect-square bg-slate-200 dark:bg-slate-800 rounded-2xl overflow-hidden shadow-2xl relative group">
+<div class="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent"></div>
+<img alt="Hero worker" class="w-full h-full object-cover" data-alt="Modern construction worker and industrial equipment collage" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAoij993yayKaN4vE7GDAFKUvYRpc5dX0KiUb6EPCFzeISg0LBbkOAS9zcxCtfe4R_geVFBhH9FFFqasHzhG4Lel4bk2O3FlzHIxE0sONmmVoiE5DslWXY4RDNkteLVDBCUPQ4iSNt2wXcRitgb5pZfqAZWm2C3wsCIyQ9pP0p65440GgQA_6X-wZuNABLhzBwkun-MJXMFM0t6NKLksQFdVWRtaO2TgERCzj57ThwEU0ktmyLGJQO9Ki_-zdBTv3Lef-tV5qALN54"/>
+</div>
+<!-- Floating Stats Card -->
+<div class="absolute -bottom-6 -left-6 bg-white dark:bg-slate-800 p-6 rounded-xl shadow-xl hidden md:flex items-center gap-4 border border-slate-100 dark:border-slate-700">
+<div class="bg-primary/10 p-3 rounded-full text-primary">
+<span class="material-symbols-outlined">verified</span>
+</div>
+<div>
+<p class="text-2xl font-black text-slate-900 dark:text-slate-100">12k+</p>
+<p class="text-sm text-slate-500">Verified Pros</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- How it Works -->
+<section class="bg-white dark:bg-slate-900 py-20 px-6 lg:px-20">
+<div class="max-w-7xl mx-auto">
+<div class="text-center mb-16">
+<h2 class="text-slate-900 dark:text-slate-100 text-3xl font-extrabold mb-4">How it Works</h2>
+<div class="w-20 h-1.5 bg-primary mx-auto rounded-full"></div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- Step 1 -->
+<div class="flex flex-col items-center text-center p-8 rounded-2xl border border-slate-100 dark:border-slate-800 hover:border-primary/50 transition-all group">
+<div class="w-16 h-16 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mb-6 group-hover:bg-primary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined text-3xl">person_add</span>
+</div>
+<h3 class="text-xl font-bold mb-3">Create an Account</h3>
+<p class="text-slate-600 dark:text-slate-400">Sign up as a customer, worker, or supplier in minutes with simple verification.</p>
+</div>
+<!-- Step 2 -->
+<div class="flex flex-col items-center text-center p-8 rounded-2xl border border-slate-100 dark:border-slate-800 hover:border-primary/50 transition-all group">
+<div class="w-16 h-16 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mb-6 group-hover:bg-primary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined text-3xl">search</span>
+</div>
+<h3 class="text-xl font-bold mb-3">Find What You Need</h3>
+<p class="text-slate-600 dark:text-slate-400">Browse through verified professionals or explore detailed equipment listings near you.</p>
+</div>
+<!-- Step 3 -->
+<div class="flex flex-col items-center text-center p-8 rounded-2xl border border-slate-100 dark:border-slate-800 hover:border-primary/50 transition-all group">
+<div class="w-16 h-16 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mb-6 group-hover:bg-primary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined text-3xl">task_alt</span>
+</div>
+<h3 class="text-xl font-bold mb-3">Get the Job Done</h3>
+<p class="text-slate-600 dark:text-slate-400">Book services or rent tools with secure payments and 24/7 dedicated support.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Popular Categories -->
+<section class="py-20 px-6 lg:px-20 max-w-7xl mx-auto">
+<div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+<div>
+<h2 class="text-slate-900 dark:text-slate-100 text-3xl font-extrabold mb-2">Popular Categories</h2>
+<p class="text-slate-600 dark:text-slate-400">Discover the most requested services in your area</p>
+</div>
+<a class="text-primary font-bold flex items-center gap-2 hover:translate-x-1 transition-transform" href="#">
+                        Explore all categories <span class="material-symbols-outlined">arrow_forward</span>
+</a>
+</div>
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- Category 1 -->
+<div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer group">
+<div class="w-12 h-12 bg-slate-100 dark:bg-slate-700 rounded-xl flex items-center justify-center mb-4 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-2xl">electrical_services</span>
+</div>
+<h4 class="font-bold text-lg mb-1">Electrician</h4>
+<p class="text-slate-500 text-sm">1.2k+ Experts</p>
+</div>
+<!-- Category 2 -->
+<div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer group">
+<div class="w-12 h-12 bg-slate-100 dark:bg-slate-700 rounded-xl flex items-center justify-center mb-4 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-2xl">plumbing</span>
+</div>
+<h4 class="font-bold text-lg mb-1">Plumber</h4>
+<p class="text-slate-500 text-sm">850 Experts</p>
+</div>
+<!-- Category 3 -->
+<div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer group">
+<div class="w-12 h-12 bg-slate-100 dark:bg-slate-700 rounded-xl flex items-center justify-center mb-4 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-2xl">carpenter</span>
+</div>
+<h4 class="font-bold text-lg mb-1">Carpenter</h4>
+<p class="text-slate-500 text-sm">540 Experts</p>
+</div>
+<!-- Category 4 -->
+<div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer group">
+<div class="w-12 h-12 bg-slate-100 dark:bg-slate-700 rounded-xl flex items-center justify-center mb-4 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-2xl">format_paint</span>
+</div>
+<h4 class="font-bold text-lg mb-1">Painter</h4>
+<p class="text-slate-500 text-sm">920 Experts</p>
+</div>
+<!-- Category 5 -->
+<div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer group">
+<div class="w-12 h-12 bg-slate-100 dark:bg-slate-700 rounded-xl flex items-center justify-center mb-4 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-2xl">construction</span>
+</div>
+<h4 class="font-bold text-lg mb-1">HVAC Tech</h4>
+<p class="text-slate-500 text-sm">430 Experts</p>
+</div>
+<!-- Category 6 -->
+<div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer group">
+<div class="w-12 h-12 bg-slate-100 dark:bg-slate-700 rounded-xl flex items-center justify-center mb-4 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-2xl">agriculture</span>
+</div>
+<h4 class="font-bold text-lg mb-1">Landscaper</h4>
+<p class="text-slate-500 text-sm">1.1k Experts</p>
+</div>
+<!-- Category 7 -->
+<div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer group">
+<div class="w-12 h-12 bg-slate-100 dark:bg-slate-700 rounded-xl flex items-center justify-center mb-4 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-2xl">drone</span>
+</div>
+<h4 class="font-bold text-lg mb-1">Equipment</h4>
+<p class="text-slate-500 text-sm">2.5k Listings</p>
+</div>
+<!-- Category 8 -->
+<div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer group text-center flex flex-col items-center justify-center">
+<span class="material-symbols-outlined text-primary mb-2">more_horiz</span>
+<h4 class="font-bold text-lg">See All</h4>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 pt-16 pb-8 px-6 lg:px-20">
+<div class="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-12 mb-16">
+<div class="col-span-2 lg:col-span-2">
+<div class="flex items-center gap-3 text-primary mb-6">
+<span class="material-symbols-outlined text-3xl font-bold">handyman</span>
+<h2 class="text-slate-900 dark:text-slate-100 text-xl font-extrabold">SkilledWorker</h2>
+</div>
+<p class="text-slate-600 dark:text-slate-400 max-w-sm mb-8">
+                        The world's most trusted marketplace for skilled labor and heavy equipment rentals. We connect quality workers with the projects that need them.
+                    </p>
+<div class="flex gap-4">
+<a class="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center hover:bg-primary hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined">share</span>
+</a>
+<a class="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center hover:bg-primary hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined">mail</span>
+</a>
+</div>
+</div>
+<div>
+<h5 class="font-bold mb-6">Platform</h5>
+<ul class="flex flex-col gap-4">
+<li><a class="text-slate-600 dark:text-slate-400 text-sm hover:text-primary" href="#">Find Work</a></li>
+<li><a class="text-slate-600 dark:text-slate-400 text-sm hover:text-primary" href="#">Hire Workers</a></li>
+<li><a class="text-slate-600 dark:text-slate-400 text-sm hover:text-primary" href="#">Equipment Hire</a></li>
+<li><a class="text-slate-600 dark:text-slate-400 text-sm hover:text-primary" href="#">Pricing</a></li>
+</ul>
+</div>
+<div>
+<h5 class="font-bold mb-6">Company</h5>
+<ul class="flex flex-col gap-4">
+<li><a class="text-slate-600 dark:text-slate-400 text-sm hover:text-primary" href="#">About Us</a></li>
+<li><a class="text-slate-600 dark:text-slate-400 text-sm hover:text-primary" href="#">Careers</a></li>
+<li><a class="text-slate-600 dark:text-slate-400 text-sm hover:text-primary" href="#">Success Stories</a></li>
+<li><a class="text-slate-600 dark:text-slate-400 text-sm hover:text-primary" href="#">Press</a></li>
+</ul>
+</div>
+<div>
+<h5 class="font-bold mb-6">Support</h5>
+<ul class="flex flex-col gap-4">
+<li><a class="text-slate-600 dark:text-slate-400 text-sm hover:text-primary" href="#">Help Center</a></li>
+<li><a class="text-slate-600 dark:text-slate-400 text-sm hover:text-primary" href="#">Safety</a></li>
+<li><a class="text-slate-600 dark:text-slate-400 text-sm hover:text-primary" href="#">Terms of Service</a></li>
+<li><a class="text-slate-600 dark:text-slate-400 text-sm hover:text-primary" href="#">Privacy Policy</a></li>
+</ul>
+</div>
+</div>
+<div class="max-w-7xl mx-auto pt-8 border-t border-slate-100 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
+<p class="text-slate-500 text-sm">© 2024 SkilledWorker Marketplace Inc. All rights reserved.</p>
+<div class="flex gap-6">
+<span class="flex items-center gap-2 text-sm text-slate-500">
+<span class="material-symbols-outlined text-sm">public</span>
+                        English (US)
+                    </span>
+<span class="flex items-center gap-2 text-sm text-slate-500">
+<span class="material-symbols-outlined text-sm">payments</span>
+                        USD ($)
+                    </span>
+</div>
+</div>
+</footer>
+</div>
+</body></html>

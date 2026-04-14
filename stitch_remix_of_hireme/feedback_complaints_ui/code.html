@@ -1,0 +1,201 @@
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Feedback &amp; Complaints | SkilledWorker</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2463eb",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111621",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .filled-star { font-variation-settings: 'FILL' 1; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-10 py-3">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-4 text-primary">
+<div class="size-6">
+<svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M24 4C25.7818 14.2173 33.7827 22.2182 44 24C33.7827 25.7818 25.7818 33.7827 24 44C22.2182 33.7827 14.2173 25.7818 4 24C14.2173 22.2182 22.2182 14.2173 24 4Z" fill="currentColor"></path>
+</svg>
+</div>
+<h2 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-tight">SkilledWorker</h2>
+</div>
+<label class="flex flex-col min-w-40 h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full">
+<div class="text-slate-500 flex border-none bg-slate-100 dark:bg-slate-800 items-center justify-center pl-4 rounded-l-lg border-r-0">
+<span class="material-symbols-outlined text-xl">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 border-none bg-slate-100 dark:bg-slate-800 focus:ring-0 h-full placeholder:text-slate-500 px-4 rounded-r-lg pl-2 text-base font-normal" placeholder="Search projects..."/>
+</div>
+</label>
+</div>
+<div class="flex flex-1 justify-end gap-8">
+<nav class="flex items-center gap-9">
+<a class="text-slate-700 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Dashboard</a>
+<a class="text-slate-700 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">My Projects</a>
+<a class="text-slate-700 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Messages</a>
+<a class="text-slate-700 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Support</a>
+</nav>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-slate-100 dark:border-slate-800" data-alt="User profile avatar circle" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAqS8q4Q0EMbiinj62gojw09IRpbknEC3x-UrB41hMGwn5LWl3lDJtiHWG33oMCp-eZ1VaCFd0KQN8vJrcPlLjmTTusKaZC25b2W06x88HbH0zu8dTFGqQjvPMJUKWNa_JLcjiQdlCcA7TAHUZ0srzTEDI7qf-PwPLhMfg7JnTxK09tJmE4ROBbvayRfu0aon63bbIdJ9FeamidCcIuGUtuNbWY6KzvuhFNd_t1VR9h9cIsLd56pS7me6-uksrgxUhDT6JD897bEPw");'></div>
+</div>
+</header>
+<main class="flex-1 flex flex-col items-center py-10 px-4">
+<div class="max-w-6xl w-full">
+<div class="mb-8">
+<h1 class="text-slate-900 dark:text-white text-4xl font-black leading-tight tracking-tight">Feedback &amp; Complaints</h1>
+<p class="text-slate-600 dark:text-slate-400 text-lg mt-2">Your input helps us maintain the highest service standards for our community.</p>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+<div class="bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary text-3xl">star</span>
+<h2 class="text-2xl font-bold text-slate-900 dark:text-white">Rate your Experience</h2>
+</div>
+<div class="mb-8 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg flex items-center gap-4">
+<div class="size-16 rounded-lg bg-cover bg-center" data-alt="Electrician working on a panel" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuASzxpcmEVEz8KqS25UhfRvyBq52N8MFHyUDfq87gGvuVziYlVWGamloPH1AN8QTf7BPyE-TGRdSjT8c4gY3jO1bS2KKSXM9GMrEdNA7Pp4tpvzB5XyTeLJqJ7dsBTyknEO9hRO-RMAgeowe-nHayqtSSma2jWDxF1XS7PqaUUK_JKquLcHK-wRt7GhtNM6Fn563RlSZL6F8dFYD3ceMLdZoqwjwVCvdWB3G5kYylakOzUQlWzL_qSghCNIyAv_RJvnmNHwKUW0nxU");'></div>
+<div>
+<p class="font-bold text-slate-900 dark:text-white">Electrical Panel Upgrade</p>
+<p class="text-sm text-slate-500 dark:text-slate-400">Worker: Marcus Johnson • May 12, 2024</p>
+</div>
+</div>
+<form class="space-y-6">
+<div>
+<label class="block text-sm font-semibold mb-3">Overall Rating</label>
+<div class="flex gap-2">
+<button class="text-primary hover:scale-110 transition-transform" type="button"><span class="material-symbols-outlined text-4xl filled-star">star</span></button>
+<button class="text-primary hover:scale-110 transition-transform" type="button"><span class="material-symbols-outlined text-4xl filled-star">star</span></button>
+<button class="text-primary hover:scale-110 transition-transform" type="button"><span class="material-symbols-outlined text-4xl filled-star">star</span></button>
+<button class="text-primary hover:scale-110 transition-transform" type="button"><span class="material-symbols-outlined text-4xl filled-star">star</span></button>
+<button class="text-slate-300 dark:text-slate-700 hover:scale-110 transition-transform" type="button"><span class="material-symbols-outlined text-4xl">star</span></button>
+</div>
+</div>
+<div>
+<label class="block text-sm font-semibold mb-2">Detailed Feedback</label>
+<textarea class="w-full rounded-lg border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:border-primary focus:ring-primary text-slate-900 dark:text-white h-32" placeholder="Tell us what went well or what could be improved..."></textarea>
+</div>
+<div>
+<label class="block text-sm font-semibold mb-2">Upload Photos (Optional)</label>
+<div class="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg p-6 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-800/30 hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-slate-400 text-4xl mb-2">cloud_upload</span>
+<p class="text-sm text-slate-500">Click to upload or drag and drop images</p>
+<p class="text-xs text-slate-400 mt-1">PNG, JPG up to 10MB</p>
+</div>
+</div>
+<button class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2" type="submit">
+<span>Submit Review</span>
+<span class="material-symbols-outlined">send</span>
+</button>
+</form>
+</div>
+<div class="bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-red-500 text-3xl">report</span>
+<h2 class="text-2xl font-bold text-slate-900 dark:text-white">File a Complaint</h2>
+</div>
+<p class="text-slate-600 dark:text-slate-400 mb-6">If you encountered serious issues with your project, please let us know. Our safety and quality team will investigate.</p>
+<form class="space-y-6">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div>
+<label class="block text-sm font-semibold mb-2">Category</label>
+<select class="w-full rounded-lg border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-primary">
+<option>Select category</option>
+<option>Quality of Work</option>
+<option>Delay in Completion</option>
+<option>Billing &amp; Payments</option>
+<option>Professionalism</option>
+<option>Safety Concerns</option>
+</select>
+</div>
+<div>
+<label class="block text-sm font-semibold mb-2">Priority Level</label>
+<div class="flex items-center gap-2 h-10">
+<label class="flex-1 flex items-center justify-center border border-slate-300 dark:border-slate-700 rounded-lg h-full cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800">
+<input class="hidden peer" name="priority" type="radio"/>
+<span class="text-sm peer-checked:text-primary peer-checked:font-bold">Normal</span>
+</label>
+<label class="flex-1 flex items-center justify-center border border-slate-300 dark:border-slate-700 rounded-lg h-full cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800">
+<input class="hidden peer" name="priority" type="radio"/>
+<span class="text-sm peer-checked:text-orange-500 peer-checked:font-bold">High</span>
+</label>
+<label class="flex-1 flex items-center justify-center border border-slate-300 dark:border-slate-700 rounded-lg h-full cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800">
+<input class="hidden peer" name="priority" type="radio"/>
+<span class="text-sm peer-checked:text-red-500 peer-checked:font-bold">Urgent</span>
+</label>
+</div>
+</div>
+</div>
+<div>
+<label class="block text-sm font-semibold mb-2">Subject</label>
+<input class="w-full rounded-lg border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-primary" placeholder="Briefly summarize the issue" type="text"/>
+</div>
+<div>
+<label class="block text-sm font-semibold mb-2">Detailed Description</label>
+<textarea class="w-full rounded-lg border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:border-primary focus:ring-primary text-slate-900 dark:text-white h-44" placeholder="Please provide specific details, dates, and any steps already taken to resolve the issue..."></textarea>
+</div>
+<div class="flex items-start gap-3">
+<input class="mt-1 rounded text-primary focus:ring-primary" id="agreement" type="checkbox"/>
+<label class="text-xs text-slate-500 dark:text-slate-400" for="agreement">I confirm that the information provided is accurate to the best of my knowledge and I understand that filing a false complaint may result in account restriction.</label>
+</div>
+<button class="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2 hover:bg-slate-800 dark:hover:bg-slate-200" type="submit">
+<span>File Complaint</span>
+<span class="material-symbols-outlined">flag</span>
+</button>
+</form>
+</div>
+</div>
+<div class="mt-12 p-6 bg-primary/5 rounded-xl border border-primary/20 flex flex-col md:flex-row items-center justify-between gap-6">
+<div class="flex items-center gap-4">
+<div class="bg-primary/20 p-3 rounded-full text-primary">
+<span class="material-symbols-outlined text-3xl">support_agent</span>
+</div>
+<div>
+<h4 class="font-bold text-slate-900 dark:text-white">Need immediate help?</h4>
+<p class="text-sm text-slate-600 dark:text-slate-400">Our support team is available 24/7 for critical site issues.</p>
+</div>
+</div>
+<button class="bg-white dark:bg-slate-800 text-primary border border-primary/30 font-semibold px-6 py-2 rounded-lg hover:bg-primary/10 transition-colors">
+                            Live Chat Support
+                        </button>
+</div>
+</div>
+</main>
+<footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-12 px-10">
+<div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined">verified</span>
+<span class="font-bold text-slate-900 dark:text-white">SkilledWorker Platform</span>
+</div>
+<div class="flex gap-8 text-sm text-slate-500 dark:text-slate-400">
+<a class="hover:text-primary" href="#">Terms of Service</a>
+<a class="hover:text-primary" href="#">Privacy Policy</a>
+<a class="hover:text-primary" href="#">Worker Handbook</a>
+</div>
+<p class="text-xs text-slate-400">© 2024 SkilledWorker Inc. All rights reserved.</p>
+</div>
+</footer>
+</div>
+</div>
+</body></html>

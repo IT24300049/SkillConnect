@@ -42,18 +42,42 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
-    @Transactional
-    public Map<String, Object> register(String email, String password, String role,
-            String firstName, String lastName, String phone) {
+    private void validatePasswordStrength(String password) {
+        if (password == null) {
+            throw new RuntimeException("Password is required");
+        }
+
+        // At least 8 chars, one lowercase, one uppercase, one symbol
+        String pattern = "^(?=.*[a-z])(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{8,}$";
+        if (!password.matches(pattern)) {
+            throw new RuntimeException(
+                    "Password must be at least 8 characters and include uppercase, lowercase and a symbol");
+        }
+    }
+
+        @Transactional
+        public Map<String, Object> register(String email, String password, String confirmPassword, String role,
+            String firstName, String lastName, String phone, String workerCategory) {
         if (userRepository.existsByEmail(email)) {
             throw new RuntimeException("Email already registered");
+        }
+
+        if (!password.equals(confirmPassword)) {
+            throw new RuntimeException("Passwords do not match");
+        }
+
+        validatePasswordStrength(password);
+
+        String normalizedPhone = phone == null ? "" : phone.trim();
+        if (!normalizedPhone.isEmpty() && !normalizedPhone.matches("\\d{10}")) {
+            throw new RuntimeException("Phone number must be exactly 10 digits");
         }
 
         User user = new User();
         user.setEmail(email);
         user.setPasswordHash(passwordEncoder.encode(password));
         user.setRole(User.Role.valueOf(role.toLowerCase()));
-        user.setPhone(phone);
+        user.setPhone(normalizedPhone.isEmpty() ? null : normalizedPhone);
         user.setIsVerified(true); // Auto-verify for demo
         user.setIsActive(true);
         user = userRepository.save(user);
@@ -66,10 +90,14 @@ public class AuthService {
             profile.setLastName(lastName);
             customerProfileRepository.save(profile);
         } else if ("worker".equalsIgnoreCase(role)) {
+            if (workerCategory == null || workerCategory.isBlank()) {
+                throw new RuntimeException("Worker category is required for worker accounts");
+            }
             WorkerProfile profile = new WorkerProfile();
             profile.setUser(user);
             profile.setFirstName(firstName);
             profile.setLastName(lastName);
+            profile.setSkillCategory(workerCategory.trim());
             workerProfileRepository.save(profile);
         } else if ("supplier".equalsIgnoreCase(role)) {
             SupplierProfile profile = new SupplierProfile();
@@ -123,30 +151,32 @@ public class AuthService {
                 throw new RuntimeException("Email not available from Google account");
             }
 
-            User user = userRepository.findByEmail(email).orElseGet(() -> {
-                User newUser = new User();
-                newUser.setEmail(email);
-                // Set a random encoded password; user will log in via Google
-                newUser.setPasswordHash(passwordEncoder.encode(UUID.randomUUID().toString()));
-                newUser.setRole(User.Role.customer);
-                newUser.setIsVerified(true);
-                newUser.setIsActive(true);
-                return userRepository.save(newUser);
-            });
+            // If the email is not yet registered, signal the frontend to complete registration
+            return userRepository.findByEmail(email)
+                    .map(user -> {
+                        if (!Boolean.TRUE.equals(user.getIsActive())) {
+                            throw new RuntimeException("Account is suspended");
+                        }
 
-            if (!Boolean.TRUE.equals(user.getIsActive())) {
-                throw new RuntimeException("Account is suspended");
-            }
+                        user.setLastLogin(LocalDateTime.now());
+                        userRepository.save(user);
 
-            user.setLastLogin(LocalDateTime.now());
-            userRepository.save(user);
-
-            String token = jwtUtil.generateToken(email, user.getRole().name());
-            return Map.of("token", token, "role", user.getRole().name(), "userId", user.getUserId(), "email", email);
+                        String token = jwtUtil.generateToken(email, user.getRole().name());
+                        return Map.<String, Object>of(
+                                "token", token,
+                                "role", user.getRole().name(),
+                                "userId", user.getUserId(),
+                                "email", email,
+                                "needRegistration", false);
+                    })
+                    .orElseGet(() -> Map.of(
+                            "email", email,
+                            "needRegistration", true));
         } catch (GeneralSecurityException e) {
             throw new RuntimeException("Failed to verify Google ID token");
         } catch (Exception e) {
-            throw new RuntimeException("Google login failed");
+            // Propagate the original message so the client can see what went wrong
+            throw new RuntimeException(e.getMessage() != null ? e.getMessage() : "Google login failed");
         }
     }
 
@@ -179,11 +209,32 @@ public class AuthService {
             throw new RuntimeException("Token has expired");
         }
 
+        validatePasswordStrength(newPassword);
+
         User user = recovery.getUser();
         user.setPasswordHash(passwordEncoder.encode(newPassword));
         userRepository.save(user);
 
         recovery.setIsUsed(true);
         passwordRecoveryRepository.save(recovery);
+    }
+
+    @Transactional
+    public void changePassword(String email, String currentPassword, String newPassword) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (currentPassword == null || currentPassword.isBlank()) {
+            throw new RuntimeException("Current password is required");
+        }
+
+        if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
+            throw new RuntimeException("Current password is incorrect");
+        }
+
+        validatePasswordStrength(newPassword);
+
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
     }
 }

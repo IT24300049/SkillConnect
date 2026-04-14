@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HireMe Login Variant 2</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ecec",
+                        "primary-dark": "#0ea5a5",
+                        "background-light": "#f6f8f8",
+                        "background-dark": "#102222",
+                        "navy-900": "#0d1b1b",
+                        "navy-800": "#152a2a",
+                        "navy-700": "#1e3b3b",
+                        "slate-50": "#f8fcfc",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark text-navy-900 dark:text-slate-100 antialiased min-h-screen flex flex-col">
+<div class="flex flex-col lg:flex-row min-h-screen w-full">
+<!-- Left Side: Image/Branding (Hidden on mobile, block on lg) -->
+<div class="hidden lg:flex lg:w-1/2 relative bg-navy-800 items-center justify-center overflow-hidden group/image-side">
+<div class="absolute inset-0 z-0 bg-cover bg-center opacity-80 mix-blend-overlay transition-transform duration-700 ease-in-out group-hover/image-side:scale-105" data-alt="Professional working in a modern office environment" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAbMtwNvF7A-gokFDmbHAfyqJ0kdLDad0au4nYxUPITAzkxj25lnt8XkUjrHjHxlq3QUn0-DdHVSDAP_oGDS067tBJLQqmdrIzAH-_33jlOV0AvvSMyuPovitzCR166dG-zT1RG8k2vm0xzxZxJ1ZtBVqUL3IjbRiIHMmFgPNOK97aChfL1k3RKivaYlvIci6rfC8FlN-xl4cAgE2Bea8fBiH77HwhdOUoYuaiOo7uVZ-R5sWa2EqEXzQ0FnUT5j0HXmiw2tkXscq4');">
+</div>
+<div class="absolute inset-0 bg-gradient-to-t from-navy-900/90 to-navy-900/20 z-10"></div>
+<div class="relative z-20 p-12 max-w-lg text-white">
+<div class="mb-8">
+<div class="flex items-center gap-2 mb-2 text-primary font-bold text-xl tracking-wider uppercase">
+<span class="material-symbols-outlined text-3xl">handshake</span>
+                        HireMe
+                    </div>
+</div>
+<h2 class="text-4xl md:text-5xl font-black mb-6 leading-tight">
+                    Connecting <span class="text-primary">Talent</span> with <span class="text-primary">Opportunity</span>.
+                </h2>
+<p class="text-lg text-slate-200 leading-relaxed font-light">
+                    Join thousands of professionals and clients building the future of work. Find your next project or hire the perfect expert today.
+                </p>
+<div class="mt-12 flex gap-4">
+<div class="flex -space-x-3">
+<img alt="User avatar 1" class="inline-block h-10 w-10 rounded-full ring-2 ring-navy-900" data-alt="Portrait of a female professional" src="https://lh3.googleusercontent.com/aida-public/AB6AXuACdzZl1VzQKhINz0ngrUuseuK6-uyphM4tu34MZvZQoRkJNgr3uzvXH41JjMzL8fjdm483ND2impiRNO9ZMetXd-iYCxXemTuSE1NJtFIVuvIPO54KzDJABeuB641oyxZaz4bUVhJmQBZparcftLBm8gGHCM7iglAq2KPc-99zqANZZ06WJIrNiW7jvBqOS2smgHmRJvUotuNHSniJVdFpxP0dtTby-Nher9iBJJh3TJR4FIG-Z3vX7sKlAdRKbVS07ASqUe51pmw"/>
+<img alt="User avatar 2" class="inline-block h-10 w-10 rounded-full ring-2 ring-navy-900" data-alt="Portrait of a male professional" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3aTqIZ7C7dMwm-Pc-S9cB5CWpcid3ifcahfKEpddpJeIuBLiTp12CHgRTqr9qNv2V0j7yexqkSwyvNQaiZsVLWbnZZWUfcSWysD4VJJTbX6jEdWtuNVFeM1012ss74cdOTKVRJb1Bm3cSsCN9rY7bZ5DdXTWgIkoXj5ecH7Q2FkReem2LEQ_pDUlXEFeRvb2I68vizLEPUIqAugG_dcRbLRdC90hE_mmAIGkLnmQwU1BHKfqlBCK_0IEN5N0nj26XyxSm_4UcrFc"/>
+<img alt="User avatar 3" class="inline-block h-10 w-10 rounded-full ring-2 ring-navy-900" data-alt="Portrait of a smiling man" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdjw-H-yH8eZQw7rDIoaLLjjuXzu6kB37ciQqVJ16GzQGr9b3DPvZfbxw4GRbNtKWIHYqQPqtg1HVVh5whmIZoK_1aLDSracNsHAkAHB3iT3TDZ5aX19vNTcWkScDEJRE4EntPpzKvamNOtQR2RUp5zKF-6EmlbPSNrwqIjpPjiI6OeY1sEn0CSZORDUExwjWcaADeuEe-xZ8z6rLSm7_lT9SfWLT7OO-JP7ofKvUuTFVUKQ5w286-LuCd6Hglk_XwYRKK2eN7s7Q"/>
+<div class="flex items-center justify-center h-10 w-10 rounded-full ring-2 ring-navy-900 bg-primary text-navy-900 font-bold text-xs">
+                            +2k
+                        </div>
+</div>
+<div class="flex flex-col justify-center">
+<span class="text-sm font-medium text-white">Trusted by professionals</span>
+<div class="flex items-center text-primary text-xs">
+<span class="material-symbols-outlined text-[14px] mr-1">star</span>
+<span class="material-symbols-outlined text-[14px] mr-1">star</span>
+<span class="material-symbols-outlined text-[14px] mr-1">star</span>
+<span class="material-symbols-outlined text-[14px] mr-1">star</span>
+<span class="material-symbols-outlined text-[14px] mr-1">star</span>
+<span class="ml-1 text-slate-300">5.0</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Side: Login Form -->
+<div class="flex-1 flex flex-col justify-center items-center p-6 sm:p-12 lg:p-16 bg-background-light dark:bg-background-dark relative">
+<!-- Mobile Header Logo (Only visible on small screens) -->
+<div class="lg:hidden absolute top-6 left-6 flex items-center gap-2 text-navy-900 dark:text-white font-bold text-xl tracking-wider uppercase">
+<span class="material-symbols-outlined text-primary text-3xl">handshake</span>
+                 HireMe
+            </div>
+<div class="w-full max-w-md mx-auto">
+<div class="text-center mb-10">
+<h1 class="text-3xl font-black text-navy-900 dark:text-white tracking-tight mb-2">Welcome Back</h1>
+<p class="text-slate-500 dark:text-slate-400">Please enter your details to sign in.</p>
+</div>
+<form class="space-y-6">
+<!-- Email Input -->
+<div>
+<label class="block text-sm font-medium text-navy-900 dark:text-slate-200 mb-2" for="email">Email Address</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+<span class="material-symbols-outlined text-[20px]">mail</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-3 border border-slate-200 dark:border-navy-700 rounded-lg bg-white dark:bg-navy-800 text-navy-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-sm" id="email" placeholder="you@example.com" type="email"/>
+</div>
+</div>
+<!-- Password Input -->
+<div>
+<div class="flex items-center justify-between mb-2">
+<label class="block text-sm font-medium text-navy-900 dark:text-slate-200" for="password">Password</label>
+<a class="text-sm font-medium text-primary-dark hover:text-primary transition-colors" href="#">Forgot password?</a>
+</div>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+<span class="material-symbols-outlined text-[20px]">lock</span>
+</div>
+<input class="block w-full pl-10 pr-10 py-3 border border-slate-200 dark:border-navy-700 rounded-lg bg-white dark:bg-navy-800 text-navy-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-sm" id="password" placeholder="••••••••" type="password"/>
+<div class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer text-slate-400 hover:text-navy-900 dark:hover:text-white">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</div>
+</div>
+</div>
+<!-- Sign In Button -->
+<button class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-navy-900 bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors" type="button">
+                        Sign In
+                    </button>
+</form>
+<!-- Divider -->
+<div class="relative my-8">
+<div class="absolute inset-0 flex items-center">
+<div class="w-full border-t border-slate-200 dark:border-navy-700"></div>
+</div>
+<div class="relative flex justify-center text-sm">
+<span class="px-4 bg-background-light dark:bg-background-dark text-slate-500 dark:text-slate-400">Or continue with</span>
+</div>
+</div>
+<!-- Social Login -->
+<div class="grid grid-cols-2 gap-4">
+<button class="flex items-center justify-center px-4 py-2.5 border border-slate-200 dark:border-navy-700 rounded-lg bg-white dark:bg-navy-800 hover:bg-slate-50 dark:hover:bg-navy-700 transition-colors group">
+<svg class="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" viewbox="0 0 24 24">
+<path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
+<path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
+<path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"></path>
+<path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"></path>
+</svg>
+<span class="text-sm font-semibold text-navy-900 dark:text-white">Google</span>
+</button>
+<button class="flex items-center justify-center px-4 py-2.5 border border-slate-200 dark:border-navy-700 rounded-lg bg-white dark:bg-navy-800 hover:bg-slate-50 dark:hover:bg-navy-700 transition-colors group">
+<svg class="h-5 w-5 mr-2 text-[#0077b5] group-hover:scale-110 transition-transform" fill="currentColor" viewbox="0 0 24 24">
+<path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"></path>
+</svg>
+<span class="text-sm font-semibold text-navy-900 dark:text-white">LinkedIn</span>
+</button>
+</div>
+<div class="mt-8 text-center">
+<p class="text-sm text-slate-500 dark:text-slate-400">
+                        Don't have an account? 
+                        <a class="font-bold text-primary-dark hover:text-primary transition-colors" href="#">Join HireMe</a>
+</p>
+</div>
+</div>
+<!-- Footer Links -->
+<div class="absolute bottom-6 w-full text-center">
+<div class="flex justify-center gap-6 text-xs text-slate-400 dark:text-slate-500">
+<a class="hover:text-primary transition-colors" href="#">Privacy Policy</a>
+<a class="hover:text-primary transition-colors" href="#">Terms of Service</a>
+<a class="hover:text-primary transition-colors" href="#">Help Center</a>
+</div>
+</div>
+</div>
+</div>
+</body></html>

@@ -41,7 +41,7 @@ public class SecurityConfig {
     private final UserDetailsService userDetailsService; // injected from UserDetailsServiceImpl
 
     @Value("${app.cors.allowed-origins}")
-    private String allowedOrigin;
+    private String allowedOrigins;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -68,9 +68,12 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.GET, "/api/auth/me").authenticated()
                         .requestMatchers("/api/auth/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 "/api/jobs",
+                                "/api/jobs/{id}",
                                 "/api/jobs/categories",
                                 "/api/equipment",
                                 "/api/equipment/categories",
@@ -88,7 +91,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(allowedOrigin));
+        // Use pattern matching so any localhost port is allowed (covers 5173, 5175,
+        // 5177, etc.)
+        config.setAllowedOriginPatterns(List.of("http://localhost:*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

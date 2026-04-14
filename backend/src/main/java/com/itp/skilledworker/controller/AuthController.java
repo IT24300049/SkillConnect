@@ -1,6 +1,8 @@
 package com.itp.skilledworker.controller;
 
 import com.itp.skilledworker.dto.ApiResponse;
+import com.itp.skilledworker.entity.User;
+import com.itp.skilledworker.repository.UserRepository;
 import com.itp.skilledworker.service.AuthService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
@@ -8,6 +10,7 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
@@ -17,12 +20,24 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+    private final UserRepository userRepository;
+
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<User>> getCurrentUser(Authentication auth) {
+        try {
+            User user = userRepository.findByEmail(auth.getName())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            return ResponseEntity.ok(ApiResponse.ok("Current user", user));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.error(e.getMessage()));
+        }
+    }
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<Map<String, Object>>> register(@Valid @RequestBody RegisterRequest req) {
         try {
-            var result = authService.register(req.email, req.password, req.role, req.firstName, req.lastName,
-                    req.phone);
+            var result = authService.register(req.email, req.password, req.confirmPassword, req.role,
+                    req.firstName, req.lastName, req.phone, req.workerCategory);
             return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok("Registration successful", result));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
@@ -52,7 +67,11 @@ public class AuthController {
     @PostMapping("/forgot-password")
     public ResponseEntity<ApiResponse<String>> forgotPassword(@RequestBody Map<String, String> body) {
         try {
-            String message = authService.forgotPassword(body.get("email"));
+            String email = body.get("email");
+            if (email == null || email.isBlank()) {
+                return ResponseEntity.badRequest().body(ApiResponse.error("Email is required"));
+            }
+            String message = authService.forgotPassword(email);
             return ResponseEntity.ok(ApiResponse.ok("Reset instructions sent", message));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
@@ -62,8 +81,36 @@ public class AuthController {
     @PostMapping("/reset-password")
     public ResponseEntity<ApiResponse<?>> resetPassword(@RequestBody Map<String, String> body) {
         try {
-            authService.resetPassword(body.get("token"), body.get("newPassword"));
+            String token = body.get("token");
+            String newPassword = body.get("newPassword");
+            if (token == null || token.isBlank()) {
+                return ResponseEntity.badRequest().body(ApiResponse.error("Reset token is required"));
+            }
+            if (newPassword == null || newPassword.isBlank()) {
+                return ResponseEntity.badRequest().body(ApiResponse.error("New password is required"));
+            }
+            authService.resetPassword(token, newPassword);
             return ResponseEntity.ok(ApiResponse.ok("Password reset successful"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        }
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<ApiResponse<?>> changePassword(@RequestBody Map<String, String> body, Authentication auth) {
+        try {
+            String currentPassword = body.get("currentPassword");
+            String newPassword = body.get("newPassword");
+
+            if (currentPassword == null || currentPassword.isBlank()) {
+                return ResponseEntity.badRequest().body(ApiResponse.error("Current password is required"));
+            }
+            if (newPassword == null || newPassword.isBlank()) {
+                return ResponseEntity.badRequest().body(ApiResponse.error("New password is required"));
+            }
+
+            authService.changePassword(auth.getName(), currentPassword, newPassword);
+            return ResponseEntity.ok(ApiResponse.ok("Password changed successfully"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
         }
@@ -75,15 +122,22 @@ public class AuthController {
         @NotBlank
         String email;
         @NotBlank
-        @Size(min = 6)
+        @Size(min = 8, message = "Password must be at least 8 characters")
         String password;
+        @NotBlank
+        @Size(min = 8, message = "Password must be at least 8 characters")
+        String confirmPassword;
         @NotBlank
         String role;
         @NotBlank
         String firstName;
         @NotBlank
         String lastName;
+        @Pattern(regexp = "^$|^\\d{10}$", message = "Phone number must be exactly 10 digits")
         String phone;
+
+        // Optional for non-workers; required for workers (validated in service)
+        String workerCategory;
     }
 
     @Data

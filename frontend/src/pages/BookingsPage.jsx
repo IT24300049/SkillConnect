@@ -1,57 +1,70 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { bookingAPI, jobAPI, workerAPI } from '../api';
 import { useAuth } from '../AuthContext';
 
-const STATUS_COLORS = {
-    requested: 'bg-yellow-100 text-yellow-700',
-    accepted: 'bg-blue-100 text-blue-700',
-    in_progress: 'bg-indigo-100 text-indigo-700',
-    completed: 'bg-green-100 text-green-700',
-    cancelled: 'bg-red-100 text-red-700',
-    rejected: 'bg-gray-100 text-gray-600',
+const STATUS_STYLE = {
+    requested: { bg: '#fef3c7', color: '#92400e', label: '⏳ Requested' },
+    accepted: { bg: '#dbeafe', color: '#1e40af', label: '✓ Accepted' },
+    in_progress: { bg: '#ede9fe', color: '#5b21b6', label: '🔨 In Progress' },
+    completed: { bg: '#d1fae5', color: '#065f46', label: '✅ Completed' },
+    cancelled: { bg: '#fee2e2', color: '#991b1b', label: '❌ Cancelled' },
+    rejected: { bg: '#f1f5f9', color: '#475569', label: '🚫 Rejected' },
 };
 
 const TRANSITIONS = {
     requested: ['accepted', 'rejected', 'cancelled'],
     accepted: ['in_progress', 'cancelled'],
     in_progress: ['completed', 'cancelled'],
-    completed: [],
-    cancelled: [],
-    rejected: [],
+    completed: [], cancelled: [], rejected: [],
+};
+
+const MODAL = {
+    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: 16, paddingTop: 125
+};
+const CARD_MODAL = {
+    background: '#fff', borderRadius: 20, boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
+    padding: 32, width: '100%', maxWidth: 480, maxHeight: '90vh', overflowY: 'auto'
 };
 
 export default function BookingsPage() {
+    const navigate = useNavigate();
     const { user } = useAuth();
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [viewAs, setViewAs] = useState('customer');
+    const [viewAs, setViewAs] = useState(user?.role === 'worker' ? 'worker' : 'customer');
     const [showForm, setShowForm] = useState(false);
     const [jobs, setJobs] = useState([]);
     const [workers, setWorkers] = useState([]);
-    const [form, setForm] = useState({ jobId: '', workerId: '', scheduledDate: '', scheduledTime: '', notes: '' });
+    const [form, setForm] = useState({ workerId: '', scheduledDate: '', scheduledTime: '', notes: '' });
     const [history, setHistory] = useState([]);
     const [historyBookingId, setHistoryBookingId] = useState(null);
     const [editBooking, setEditBooking] = useState(null);
     const [editForm, setEditForm] = useState({ notes: '', scheduledDate: '', scheduledTime: '' });
     const [error, setError] = useState('');
 
+    const today = new Date().toISOString().split('T')[0];
+
     const load = async () => {
         setLoading(true);
-        try {
-            const res = await bookingAPI.getMine(viewAs);
-            setBookings(res.data.data || []);
-        } catch {
-            setError('Failed to load bookings.');
-        } finally {
-            setLoading(false);
+        setError('');
+        try { const res = await bookingAPI.getMine(viewAs); setBookings(res.data.data || []); }
+        catch (err) {
+            if (err.response?.status === 404 && viewAs === 'worker') {
+                setError('You do not have a worker profile yet. Register as a worker to manage incoming bookings.');
+                setBookings([]);
+            } else {
+                setError('Failed to load bookings. Check your connection or login status.');
+            }
         }
+        finally { setLoading(false); }
     };
 
     const loadFormData = async () => {
         try {
-            const [jobsRes, workersRes] = await Promise.all([jobAPI.getAll({}), workerAPI.getAll()]);
-            setJobs(jobsRes.data.data || []);
-            setWorkers(workersRes.data.data || []);
+            const [j, w] = await Promise.all([jobAPI.getAll({}), workerAPI.getAll()]);
+            setJobs(j.data.data || []); setWorkers(w.data.data || []);
         } catch { }
     };
 
@@ -60,213 +73,186 @@ export default function BookingsPage() {
     const handleCreate = async (e) => {
         e.preventDefault();
         try {
-            await bookingAPI.create(form);
-            alert('Booking request sent!');
-            setShowForm(false);
-            load();
-        } catch (err) {
-            alert('Error: ' + (err.response?.data?.message || 'Failed'));
+            await bookingAPI.create({
+                ...form,
+                workerId: parseInt(form.workerId),
+                notes: form.notes || null,
+            });
+            setShowForm(false); load();
         }
+        catch (err) { alert('Error: ' + (err.response?.data?.message || 'Failed')); }
     };
 
     const handleStatusChange = async (bookingId, status) => {
-        const reason = status === 'cancelled' || status === 'rejected'
-            ? prompt('Enter a reason (optional):') || ''
-            : '';
-        try {
-            await bookingAPI.updateStatus(bookingId, status, reason);
-            alert(`Booking ${status}!`);
-            load();
-        } catch (err) {
-            alert('Error: ' + (err.response?.data?.message || 'Failed'));
-        }
+        const reason = (status === 'cancelled' || status === 'rejected') ? prompt('Enter a reason (optional):') || '' : '';
+        try { await bookingAPI.updateStatus(bookingId, status, reason); load(); }
+        catch (err) { alert('Error: ' + (err.response?.data?.message || 'Failed')); }
     };
 
     const viewHistory = async (bookingId) => {
-        try {
-            const res = await bookingAPI.getHistory(bookingId);
-            setHistory(res.data.data || []);
-            setHistoryBookingId(bookingId);
-        } catch {
-            alert('Failed to load history');
-        }
+        try { const res = await bookingAPI.getHistory(bookingId); setHistory(res.data.data || []); setHistoryBookingId(bookingId); }
+        catch { alert('Failed to load history'); }
     };
 
     const handleDelete = async (bookingId) => {
-        if (!confirm('Delete this booking? This cannot be undone.')) return;
-        try {
-            await bookingAPI.delete(bookingId);
-            load();
-        } catch (err) {
-            alert('Error: ' + (err.response?.data?.message || 'Failed'));
-        }
+        if (!confirm('Delete this booking?')) return;
+        try { await bookingAPI.delete(bookingId); load(); }
+        catch (err) { alert('Error: ' + (err.response?.data?.message || 'Failed')); }
     };
 
-    const openEdit = (booking) => {
-        setEditBooking(booking);
-        setEditForm({
-            notes: booking.notes || '',
-            scheduledDate: booking.scheduledDate || '',
-            scheduledTime: booking.scheduledTime || '',
-        });
-    };
+    const openEdit = (b) => { setEditBooking(b); setEditForm({ notes: b.notes || '', scheduledDate: b.scheduledDate || '', scheduledTime: b.scheduledTime || '' }); };
 
     const handleEdit = async (e) => {
         e.preventDefault();
-        try {
-            await bookingAPI.update(editBooking.bookingId, editForm);
-            alert('Booking updated!');
-            setEditBooking(null);
-            load();
-        } catch (err) {
-            alert('Error: ' + (err.response?.data?.message || 'Failed'));
-        }
+        try { await bookingAPI.update(editBooking.bookingId, editForm); setEditBooking(null); load(); }
+        catch (err) { alert('Error: ' + (err.response?.data?.message || 'Failed')); }
     };
 
     return (
-        <div>
-            <div className="flex items-center justify-between mb-6">
+        <div className="fade-in">
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
                 <div>
-                    <h1 className="text-2xl font-extrabold text-slate-800">📅 Bookings</h1>
-                    <p className="text-slate-500 text-sm">Manage and track your service bookings</p>
+                    <h1 style={{ fontSize: 22, fontWeight: 900, color: '#0c4a6e', marginBottom: 2 }}>📅 Bookings</h1>
+                    <p style={{ fontSize: 13, color: '#64748b' }}>Manage and track your service bookings</p>
                 </div>
-                <div className="flex items-center gap-3">
-                    <div className="flex bg-slate-100 rounded-xl p-1 gap-1">
-                        {['customer', 'worker'].map(role => (
-                            <button key={role} onClick={() => setViewAs(role)}
-                                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${viewAs === role ? 'bg-white shadow text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
-                            >
-                                As {role}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                    {/* Toggle view - only show if user has potential for both roles */}
+                    <div style={{ display: 'flex', background: '#e0f2fe', borderRadius: 10, padding: 3, gap: 3 }}>
+                        <button onClick={() => setViewAs('customer')}
+                            style={{
+                                padding: '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',
+                                fontSize: 12, fontWeight: 700,
+                                background: viewAs === 'customer' ? '#fff' : 'transparent',
+                                color: viewAs === 'customer' ? '#0891b2' : '#64748b',
+                                boxShadow: viewAs === 'customer' ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
+                                transition: 'all 0.15s'
+                            }}>
+                            As customer
+                        </button>
+                        {user?.role === 'worker' && (
+                            <button onClick={() => setViewAs('worker')}
+                                style={{
+                                    padding: '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',
+                                    fontSize: 12, fontWeight: 700,
+                                    background: viewAs === 'worker' ? '#fff' : 'transparent',
+                                    color: viewAs === 'worker' ? '#0891b2' : '#64748b',
+                                    boxShadow: viewAs === 'worker' ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
+                                    transition: 'all 0.15s'
+                                }}>
+                                As worker
                             </button>
-                        ))}
+                        )}
                     </div>
-                    <button
-                        onClick={() => { loadFormData(); setShowForm(true); }}
-                        className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors shadow"
-                    >
-                        + New Booking
-                    </button>
+                    {user?.role === 'worker' && viewAs === 'worker' && (
+                        <button className="btn-primary" onClick={() => { loadFormData(); setShowForm(true); }}>
+                            + New Booking
+                        </button>
+                    )}
                 </div>
             </div>
 
-            {error && <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-3 mb-4 text-sm">{error}</div>}
+            {error && (
+                <div className="alert-error" style={{ marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                    <span>❌ {error}</span>
+                    <button className="btn-secondary" style={{ padding: '5px 14px', fontSize: 12, flexShrink: 0 }} onClick={load}>Retry</button>
+                </div>
+            )}
 
             {loading ? (
-                <div className="flex items-center justify-center h-48">
-                    <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 200, gap: 12, color: '#0891b2' }}>
+                    <span className="spinner" /> Loading bookings...
                 </div>
             ) : bookings.length === 0 ? (
-                <div className="bg-white rounded-2xl p-12 text-center border border-slate-100">
-                    <div className="text-5xl mb-3">📅</div>
-                    <p className="text-slate-500">No bookings yet.</p>
+                <div className="hm-card" style={{ padding: 48, textAlign: 'center' }}>
+                    <div style={{ fontSize: 48, marginBottom: 12 }}>📅</div>
+                    <p style={{ color: '#64748b' }}>No bookings yet.</p>
                 </div>
             ) : (
-                <div className="space-y-4">
-                    {bookings.map(b => (
-                        <div key={b.bookingId} className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 hover:shadow-md transition-shadow">
-                            <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <span className="font-bold text-slate-800">Booking #{b.bookingId}</span>
-                                        <span className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${STATUS_COLORS[b.bookingStatus] || 'bg-gray-100 text-gray-600'}`}>
-                                            {b.bookingStatus?.replace('_', ' ')}
-                                        </span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                    {bookings.map(b => {
+                        const s = STATUS_STYLE[b.bookingStatus] || { bg: '#f1f5f9', color: '#475569', label: b.bookingStatus };
+                        return (
+                            <div key={b.bookingId} className="hm-card" style={{ padding: '20px 24px' }}>
+                                <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+                                    {/* Left: info */}
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
+                                            <span style={{ fontWeight: 800, color: '#0c4a6e', fontSize: 14 }}>Booking #{b.bookingId}</span>
+                                            <span className="badge" style={{ background: s.bg, color: s.color }}>{s.label}</span>
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 5, fontSize: 13, color: '#475569' }}>
+                                            {b.job?.jobTitle && <span>📋 <strong>{b.job.jobTitle}</strong></span>}
+                                            {(b.worker?.firstName) && <span>👷 {b.worker.firstName} {b.worker.lastName}</span>}
+                                            {b.scheduledDate && <span>📅 {b.scheduledDate} {b.scheduledTime && `at ${b.scheduledTime}`}</span>}
+                                            {b.notes && <span>📝 {b.notes}</span>}
+                                            {b.cancellationReason && <span style={{ color: '#ef4444' }}>❌ {b.cancellationReason}</span>}
+                                        </div>
                                     </div>
-                                    <div className="text-sm text-slate-500 space-y-1">
-                                        <p>📋 Job: <span className="font-medium text-slate-700">{b.job?.jobTitle}</span></p>
-                                        <p>👷 Worker: {b.worker?.firstName} {b.worker?.lastName}</p>
-                                        <p>📅 Scheduled: {b.scheduledDate} at {b.scheduledTime}</p>
-                                        {b.notes && <p>📝 {b.notes}</p>}
-                                        {b.cancellationReason && <p className="text-red-500">❌ Reason: {b.cancellationReason}</p>}
+
+                                    {/* Right: action buttons */}
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
+                                        <button className="btn-primary" style={{ padding: '6px 14px', fontSize: 11, justifyContent: 'center' }}
+                                            onClick={() => navigate(`/bookings/${b.bookingId}`)}>View Details</button>
+                                        {TRANSITIONS[b.bookingStatus]?.map(status => {
+                                            const isCancellation = status === 'cancelled';
+                                            const canWorkerChange = user?.role === 'worker' && viewAs === 'worker';
+                                            const canCustomerCancel = viewAs === 'customer' && isCancellation;
+                                            if (!canWorkerChange && !canCustomerCancel) return null;
+                                            return (
+                                                <button
+                                                    key={status}
+                                                    onClick={() => handleStatusChange(b.bookingId, status)}
+                                                    className={['accepted', 'in_progress', 'completed'].includes(status) ? 'btn-primary' : 'btn-danger'}
+                                                    style={{ padding: '6px 14px', fontSize: 11, justifyContent: 'center' }}
+                                                >
+                                                    → {status.replace(/_/g, ' ')}
+                                                </button>
+                                            );
+                                        })}
+                                        <button className="btn-secondary" style={{ padding: '6px 14px', fontSize: 11 }}
+                                            onClick={() => viewHistory(b.bookingId)}>📜 History</button>
+                                        {b.bookingStatus === 'requested' && (
+                                            <button className="btn-secondary" style={{ padding: '6px 14px', fontSize: 11 }}
+                                                onClick={() => openEdit(b)}>✏️ Edit</button>
+                                        )}
+                                        {['requested', 'completed', 'cancelled', 'rejected'].includes(b.bookingStatus) && (
+                                            <button className="btn-danger" style={{ padding: '6px 14px', fontSize: 11 }}
+                                                onClick={() => handleDelete(b.bookingId)}>🗑 Delete</button>
+                                        )}
                                     </div>
-                                </div>
-                                <div className="flex flex-col gap-2 ml-4 min-w-[140px]">
-                                    {TRANSITIONS[b.bookingStatus]?.map(status => (
-                                        <button
-                                            key={status}
-                                            onClick={() => handleStatusChange(b.bookingId, status)}
-                                            className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${status === 'accepted' || status === 'in_progress' || status === 'completed'
-                                                ? 'bg-indigo-600 text-white hover:bg-indigo-700'
-                                                : 'bg-red-50 text-red-600 hover:bg-red-100'
-                                                }`}
-                                        >
-                                            → {status.replace('_', ' ')}
-                                        </button>
-                                    ))}
-                                    <button
-                                        onClick={() => viewHistory(b.bookingId)}
-                                        className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-50 text-slate-600 hover:bg-slate-100 transition-colors"
-                                    >
-                                        📜 History
-                                    </button>
-                                    {b.bookingStatus === 'requested' && (
-                                        <button onClick={() => openEdit(b)}
-                                            className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-yellow-50 text-yellow-700 hover:bg-yellow-100 transition-colors">
-                                            ✏️ Edit
-                                        </button>
-                                    )}
-                                    {(b.bookingStatus === 'requested' || b.bookingStatus === 'completed' || b.bookingStatus === 'cancelled' || b.bookingStatus === 'rejected') && (
-                                        <button onClick={() => handleDelete(b.bookingId)}
-                                            className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors">
-                                            🗑 Delete
-                                        </button>
-                                    )}
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
 
             {/* Create Booking Modal */}
             {showForm && (
-                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-lg max-h-[90vh] overflow-y-auto">
-                        <h2 className="text-xl font-bold text-slate-800 mb-5">Create New Booking</h2>
-                        <form onSubmit={handleCreate} className="space-y-4">
+                <div style={MODAL} onClick={() => setShowForm(false)}>
+                    <div style={CARD_MODAL} onClick={e => e.stopPropagation()}>
+                        <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0c4a6e', marginBottom: 18 }}>📅 New Booking</h2>
+                        <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+
                             <div>
-                                <label className="block text-xs font-semibold text-slate-500 mb-1">Job</label>
-                                <select required value={form.jobId} onChange={e => setForm({ ...form, jobId: e.target.value })}
-                                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                    <option value="">Select a job</option>
-                                    {jobs.map(j => <option key={j.jobId} value={j.jobId}>{j.jobTitle}</option>)}
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-semibold text-slate-500 mb-1">Worker</label>
-                                <select required value={form.workerId} onChange={e => setForm({ ...form, workerId: e.target.value })}
-                                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <label className="hm-label">Worker</label>
+                                <select className="hm-input" required value={form.workerId} onChange={e => setForm({ ...form, workerId: e.target.value })}>
                                     <option value="">Select a worker</option>
                                     {workers.map(w => <option key={w.workerId} value={w.workerId}>{w.firstName} {w.lastName}</option>)}
                                 </select>
                             </div>
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label className="block text-xs font-semibold text-slate-500 mb-1">Date</label>
-                                    <input type="date" required value={form.scheduledDate} onChange={e => setForm({ ...form, scheduledDate: e.target.value })}
-                                        className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-semibold text-slate-500 mb-1">Time</label>
-                                    <input type="time" required value={form.scheduledTime} onChange={e => setForm({ ...form, scheduledTime: e.target.value })}
-                                        className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    />
-                                </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                                <div><label className="hm-label">Date</label><input className="hm-input" type="date" required min={today} value={form.scheduledDate} onChange={e => setForm({ ...form, scheduledDate: e.target.value })} /></div>
+                                <div><label className="hm-label">Time</label><input className="hm-input" type="time" required value={form.scheduledTime} onChange={e => setForm({ ...form, scheduledTime: e.target.value })} /></div>
                             </div>
                             <div>
-                                <label className="block text-xs font-semibold text-slate-500 mb-1">Notes (optional)</label>
-                                <textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={2}
-                                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                />
+                                <label className="hm-label">Notes (optional)</label>
+                                <textarea className="hm-input" rows={2} style={{ resize: 'vertical' }} value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} />
                             </div>
-                            <div className="flex gap-3">
-                                <button type="submit" className="flex-1 bg-indigo-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-indigo-700 transition-colors">
-                                    Send Request
-                                </button>
-                                <button type="button" onClick={() => setShowForm(false)} className="flex-1 bg-slate-100 rounded-xl py-2.5 text-sm font-semibold hover:bg-slate-200 transition-colors">
-                                    Cancel
-                                </button>
+                            <div style={{ display: 'flex', gap: 10 }}>
+                                <button type="submit" className="btn-primary" style={{ flex: 1, justifyContent: 'center' }}>Send Request</button>
+                                <button type="button" className="btn-secondary" style={{ flex: 1, textAlign: 'center' }} onClick={() => setShowForm(false)}>Cancel</button>
                             </div>
                         </form>
                     </div>
@@ -275,60 +261,45 @@ export default function BookingsPage() {
 
             {/* History Modal */}
             {historyBookingId && (
-                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md max-h-[80vh] overflow-y-auto">
-                        <h2 className="text-xl font-bold text-slate-800 mb-5">📜 Booking #{historyBookingId} History</h2>
-                        {history.length === 0 ? (
-                            <p className="text-slate-500 text-sm">No history yet.</p>
-                        ) : (
-                            <ol className="relative border-l border-slate-200 ml-3 space-y-4">
-                                {history.map(h => (
-                                    <li key={h.historyId} className="pl-6 relative">
-                                        <div className="absolute -left-1.5 top-1.5 w-3 h-3 bg-indigo-500 rounded-full border-2 border-white"></div>
-                                        <div className="text-sm font-semibold text-slate-800">
+                <div style={MODAL} onClick={() => setHistoryBookingId(null)}>
+                    <div style={CARD_MODAL} onClick={e => e.stopPropagation()}>
+                        <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0c4a6e', marginBottom: 18 }}>📜 Booking #{historyBookingId} History</h2>
+                        {history.length === 0 ? <p style={{ color: '#64748b', fontSize: 13 }}>No history yet.</p> : (
+                            <div style={{ position: 'relative', paddingLeft: 20, borderLeft: '2px solid #bae6fd' }}>
+                                {history.map((h, i) => (
+                                    <div key={h.historyId} style={{ marginBottom: 16, position: 'relative' }}>
+                                        <div style={{ position: 'absolute', left: -25, top: 4, width: 10, height: 10, borderRadius: '50%', background: '#0891b2', border: '2px solid #fff' }} />
+                                        <div style={{ fontWeight: 700, fontSize: 13, color: '#0c4a6e' }}>
                                             {h.oldStatus ? `${h.oldStatus} → ${h.newStatus}` : `Created (${h.newStatus})`}
                                         </div>
-                                        {h.changeReason && <div className="text-xs text-slate-500 mt-0.5">{h.changeReason}</div>}
-                                        <div className="text-xs text-slate-400 mt-0.5">{new Date(h.changedAt).toLocaleString()}</div>
-                                    </li>
+                                        {h.changeReason && <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{h.changeReason}</div>}
+                                        <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{new Date(h.changedAt).toLocaleString()}</div>
+                                    </div>
                                 ))}
-                            </ol>
+                            </div>
                         )}
-                        <button onClick={() => setHistoryBookingId(null)} className="mt-6 w-full bg-slate-100 rounded-xl py-2 text-sm font-semibold hover:bg-slate-200 transition-colors">
-                            Close
-                        </button>
+                        <button className="btn-secondary" style={{ width: '100%', marginTop: 16, textAlign: 'center' }} onClick={() => setHistoryBookingId(null)}>Close</button>
                     </div>
                 </div>
             )}
+
             {/* Edit Booking Modal */}
             {editBooking && (
-                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
-                        <h2 className="text-xl font-bold text-slate-800 mb-5">✏️ Edit Booking #{editBooking.bookingId}</h2>
-                        <form onSubmit={handleEdit} className="space-y-4">
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label className="block text-xs font-semibold text-slate-500 mb-1">Date</label>
-                                    <input type="date" value={editForm.scheduledDate} onChange={e => setEditForm({ ...editForm, scheduledDate: e.target.value })}
-                                        className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-semibold text-slate-500 mb-1">Time</label>
-                                    <input type="time" value={editForm.scheduledTime} onChange={e => setEditForm({ ...editForm, scheduledTime: e.target.value })}
-                                        className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    />
-                                </div>
+                <div style={MODAL} onClick={() => setEditBooking(null)}>
+                    <div style={CARD_MODAL} onClick={e => e.stopPropagation()}>
+                        <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0c4a6e', marginBottom: 18 }}>✏️ Edit Booking #{editBooking.bookingId}</h2>
+                        <form onSubmit={handleEdit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                                <div><label className="hm-label">Date</label><input className="hm-input" type="date" min={today} value={editForm.scheduledDate} onChange={e => setEditForm({ ...editForm, scheduledDate: e.target.value })} /></div>
+                                <div><label className="hm-label">Time</label><input className="hm-input" type="time" value={editForm.scheduledTime} onChange={e => setEditForm({ ...editForm, scheduledTime: e.target.value })} /></div>
                             </div>
                             <div>
-                                <label className="block text-xs font-semibold text-slate-500 mb-1">Notes</label>
-                                <textarea value={editForm.notes} onChange={e => setEditForm({ ...editForm, notes: e.target.value })} rows={3}
-                                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                />
+                                <label className="hm-label">Notes</label>
+                                <textarea className="hm-input" rows={3} style={{ resize: 'vertical' }} value={editForm.notes} onChange={e => setEditForm({ ...editForm, notes: e.target.value })} />
                             </div>
-                            <div className="flex gap-3">
-                                <button type="submit" className="flex-1 bg-indigo-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-indigo-700 transition-colors">Save</button>
-                                <button type="button" onClick={() => setEditBooking(null)} className="flex-1 bg-slate-100 rounded-xl py-2.5 text-sm font-semibold hover:bg-slate-200 transition-colors">Cancel</button>
+                            <div style={{ display: 'flex', gap: 10 }}>
+                                <button type="submit" className="btn-primary" style={{ flex: 1, justifyContent: 'center' }}>Save</button>
+                                <button type="button" className="btn-secondary" style={{ flex: 1, textAlign: 'center' }} onClick={() => setEditBooking(null)}>Cancel</button>
                             </div>
                         </form>
                     </div>

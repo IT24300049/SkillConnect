@@ -45,6 +45,10 @@ public class ReviewComplaintDtos {
         private String complaintDescription;
 
         private Integer bookingId;
+
+        private Integer complainedAgainstUserId;
+
+        private Integer reviewId;
     }
 
     @Data
@@ -68,6 +72,21 @@ public class ReviewComplaintDtos {
 
         @NotBlank(message = "Message text is required")
         private String messageText;
+    }
+
+    @Data
+    public static class PendingReviewResponse {
+        private Integer bookingId;
+        private Integer jobId;
+        private String jobTitle;
+        private Integer revieweeUserId;
+        private String revieweeName;
+        private String revieweeEmail;
+        private String reviewerType;
+        private String completedAt;
+        private String reviewDeadline;
+        private Integer workerUserId;
+        private Integer customerUserId;
     }
 }
 

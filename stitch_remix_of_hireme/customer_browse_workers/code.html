@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ecec",
+                        "background-light": "#f6f8f8",
+                        "background-dark": "#102222",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<title>Browse Workers - SkilledWorker</title>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="layout-container flex h-full grow flex-col">
+<!-- Header / Navigation -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark px-10 py-3 sticky top-0 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-4 text-slate-900 dark:text-slate-100">
+<div class="size-6 text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl">auto_awesome</span>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-[-0.015em]">SkilledWorker</h2>
+</div>
+<nav class="flex items-center gap-9">
+<a class="text-slate-900 dark:text-slate-100 text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Browse Workers</a>
+<a class="text-slate-600 dark:text-slate-400 text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">My Bookings</a>
+<a class="text-slate-600 dark:text-slate-400 text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Messages</a>
+<a class="text-slate-600 dark:text-slate-400 text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Account</a>
+</nav>
+</div>
+<div class="flex flex-1 justify-end gap-6 items-center">
+<label class="flex flex-col min-w-40 h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full overflow-hidden border border-slate-200 dark:border-slate-700">
+<div class="text-slate-400 flex bg-white dark:bg-slate-900 items-center justify-center pl-4">
+<span class="material-symbols-outlined text-xl">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 border-none bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-0 h-full placeholder:text-slate-400 px-4 pl-2 text-sm" placeholder="Search for skills..." value=""/>
+</div>
+</label>
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-10 px-5 bg-primary text-slate-900 text-sm font-bold leading-normal tracking-wide hover:brightness-105 active:scale-95 transition-all">
+                    Post a Job
+                </button>
+<div class="bg-slate-200 dark:bg-slate-800 bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border border-slate-200 dark:border-slate-700" data-alt="User profile avatar of a customer" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBytHPJ41gC6nNVOYbuLz9WZviA-1BAurGXQReccuKkdYKHhWwjiGwZQG6dSxmF90V6yFqN7VgcsZ5NZUrwJE2v3AKkFrZPY08T2pYgZ21H1gF-Cg5TcLMxWdIZ1ZDL13MFCevOHHEc-ew20lHwisHW2nNrpgzU_yvU44KJhmXtH-526sDfcoaD5O96iJmTqFPBHLaJgHfX292hvyyyK7HYRfUJ7No47AbfRHUs0KNqSZeRzbS6IMKMdP9cxLK6HC7vCnR0sVWla5Q");'></div>
+</div>
+</header>
+<main class="max-w-[1200px] mx-auto w-full px-10 py-8">
+<!-- Title Section -->
+<div class="flex flex-col gap-2 mb-8">
+<h1 class="text-slate-900 dark:text-slate-100 text-3xl font-black leading-tight tracking-tight">Browse Skilled Workers</h1>
+<p class="text-slate-500 dark:text-slate-400 text-base font-normal">Connect with top-rated professionals for your home and business projects.</p>
+</div>
+<!-- Filter Bar -->
+<div class="flex gap-3 mb-10 overflow-x-auto pb-2 scrollbar-hide">
+<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-4 hover:border-primary transition-colors">
+<span class="material-symbols-outlined text-lg text-slate-500">category</span>
+<p class="text-slate-700 dark:text-slate-300 text-sm font-medium">Category</p>
+<span class="material-symbols-outlined text-lg text-slate-400">expand_more</span>
+</button>
+<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-4 hover:border-primary transition-colors">
+<span class="material-symbols-outlined text-lg text-slate-500">location_on</span>
+<p class="text-slate-700 dark:text-slate-300 text-sm font-medium">Location</p>
+<span class="material-symbols-outlined text-lg text-slate-400">expand_more</span>
+</button>
+<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-4 hover:border-primary transition-colors">
+<span class="material-symbols-outlined text-lg text-slate-500">star</span>
+<p class="text-slate-700 dark:text-slate-300 text-sm font-medium">Rating</p>
+<span class="material-symbols-outlined text-lg text-slate-400">expand_more</span>
+</button>
+<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-4 hover:border-primary transition-colors">
+<span class="material-symbols-outlined text-lg text-slate-500">payments</span>
+<p class="text-slate-700 dark:text-slate-300 text-sm font-medium">Price Range</p>
+<span class="material-symbols-outlined text-lg text-slate-400">expand_more</span>
+</button>
+<div class="ml-auto flex items-center gap-2">
+<span class="text-sm text-slate-500 dark:text-slate-400">Sort by:</span>
+<button class="flex items-center gap-1 text-sm font-semibold text-slate-900 dark:text-slate-100">
+                        Popularity
+                        <span class="material-symbols-outlined text-lg">swap_vert</span>
+</button>
+</div>
+</div>
+<!-- Worker Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+<!-- Worker Card 1 -->
+<div class="flex flex-col bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow group">
+<div class="relative w-full aspect-[4/3] bg-slate-100 dark:bg-slate-800 overflow-hidden">
+<div class="w-full h-full bg-center bg-cover transition-transform duration-500 group-hover:scale-105" data-alt="Professional worker portrait in a business setting" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDLluyFcQWAh3BspRAH9diDAJvL-wkECh8FepznUy1wOtkQ8ovIiXx-lMscQ8_HtElIkSAHjcf2xlJHFXtxoXIB717roHa3fvWO7qG8LMCSDk5lbndW5ZWfM_KCnRFquHZIyZNb8rEOZet822rlQfuJoGl_KsOhvhuq0qKTDKZsVB7LpeGjT7w6cOgNuwkl3eC6eC9f1eoECASUMNV1pGR8AGqwpNVOtnyTTxd-XqEiGem6jEdLcDp3Cdh_b9TZnPzhEBPHMCU26zs");'></div>
+<div class="absolute top-3 right-3">
+<button class="p-1.5 bg-white/90 dark:bg-slate-900/90 rounded-full shadow-sm text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-xl leading-none">favorite</span>
+</button>
+</div>
+</div>
+<div class="p-4 flex flex-col flex-1">
+<div class="flex justify-between items-start mb-1">
+<h3 class="text-slate-900 dark:text-slate-100 text-base font-bold truncate">Marcus Henderson</h3>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary/20 text-slate-900 dark:text-primary text-[10px] font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-xs">verified</span> Pro
+                            </span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-xs mb-3">Master Electrician • 12 years exp.</p>
+<div class="flex items-center gap-1 mb-4">
+<span class="material-symbols-outlined text-amber-400 text-sm fill-current">star</span>
+<span class="text-slate-900 dark:text-slate-100 text-sm font-bold">4.9</span>
+<span class="text-slate-400 text-xs font-normal">(124 reviews)</span>
+</div>
+<div class="mt-auto pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+<div class="flex flex-col">
+<span class="text-[10px] text-slate-400 uppercase font-bold tracking-tight">Starting at</span>
+<span class="text-slate-900 dark:text-slate-100 text-lg font-black leading-tight">$55/hr</span>
+</div>
+<button class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold px-4 py-2 rounded-lg hover:bg-primary hover:text-slate-900 transition-colors">
+                                View Profile
+                            </button>
+</div>
+</div>
+</div>
+<!-- Worker Card 2 -->
+<div class="flex flex-col bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow group">
+<div class="relative w-full aspect-[4/3] bg-slate-100 dark:bg-slate-800 overflow-hidden">
+<div class="w-full h-full bg-center bg-cover transition-transform duration-500 group-hover:scale-105" data-alt="Female professional worker portrait" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCsCp1ZMFqMen3SSnkgyIzXl09ycxYf2YWNOo7g2i2dWaAmwJhlf9-7YshST6Inl96WSg7V7-Di2Yg5pxmvjXK7j39te5oaIHEYWk7ikfuAfGXwWSCvi4f_rS9tKBmLMVE8tFQVpC3kyMfD2RRsV1xlVS6ivgy_WFhKVTMZFlZe9NIwQZswbtqgjp_f2CHE9SyRxObJKuoMGqNFqLyCNfFI0q-942VN0ucGYRdEacHkm2TVZ3m7JkSZMKPFESQ1DKjpkGvCamvvaqg");'></div>
+<div class="absolute top-3 right-3">
+<button class="p-1.5 bg-white/90 dark:bg-slate-900/90 rounded-full shadow-sm text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-xl leading-none">favorite</span>
+</button>
+</div>
+</div>
+<div class="p-4 flex flex-col flex-1">
+<div class="flex justify-between items-start mb-1">
+<h3 class="text-slate-900 dark:text-slate-100 text-base font-bold truncate">Sarah Jenkins</h3>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary/20 text-slate-900 dark:text-primary text-[10px] font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-xs">verified</span> Pro
+                            </span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-xs mb-3">Interior Designer • 8 years exp.</p>
+<div class="flex items-center gap-1 mb-4">
+<span class="material-symbols-outlined text-amber-400 text-sm fill-current">star</span>
+<span class="text-slate-900 dark:text-slate-100 text-sm font-bold">5.0</span>
+<span class="text-slate-400 text-xs font-normal">(89 reviews)</span>
+</div>
+<div class="mt-auto pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+<div class="flex flex-col">
+<span class="text-[10px] text-slate-400 uppercase font-bold tracking-tight">Starting at</span>
+<span class="text-slate-900 dark:text-slate-100 text-lg font-black leading-tight">$75/hr</span>
+</div>
+<button class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold px-4 py-2 rounded-lg hover:bg-primary hover:text-slate-900 transition-colors">
+                                View Profile
+                            </button>
+</div>
+</div>
+</div>
+<!-- Worker Card 3 -->
+<div class="flex flex-col bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow group">
+<div class="relative w-full aspect-[4/3] bg-slate-100 dark:bg-slate-800 overflow-hidden">
+<div class="w-full h-full bg-center bg-cover transition-transform duration-500 group-hover:scale-105" data-alt="Portrait of a young male worker" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDqWJHSxAuRcGdnbCgEWmFeSDN54fFh94prGA43TyWL6Cihdqdfa2FVwn6AmnmBhMgPs9VvRbivTtG4PAm-72UA5HjObM1OM-RUEiVcTbNWnNjvxorPHnXXk-poCiNIWwT95elXFEOIF5eDULSO58hGOcT_wOOEjC4qEF_6HrSYGAh2EpQGiTSRr-1ma0Nz4NYKR1nLFWz3xESTNfU86c-W2t4NYoImnLOFbhGoX6bqwfNZzXzBB12cZ3BlPg9jscJ2YZmfbWd2668");'></div>
+<div class="absolute top-3 right-3">
+<button class="p-1.5 bg-white/90 dark:bg-slate-900/90 rounded-full shadow-sm text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-xl leading-none">favorite</span>
+</button>
+</div>
+</div>
+<div class="p-4 flex flex-col flex-1">
+<div class="flex justify-between items-start mb-1">
+<h3 class="text-slate-900 dark:text-slate-100 text-base font-bold truncate">David Miller</h3>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-xs mb-3">General Carpenter • 5 years exp.</p>
+<div class="flex items-center gap-1 mb-4">
+<span class="material-symbols-outlined text-amber-400 text-sm fill-current">star</span>
+<span class="text-slate-900 dark:text-slate-100 text-sm font-bold">4.7</span>
+<span class="text-slate-400 text-xs font-normal">(42 reviews)</span>
+</div>
+<div class="mt-auto pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+<div class="flex flex-col">
+<span class="text-[10px] text-slate-400 uppercase font-bold tracking-tight">Starting at</span>
+<span class="text-slate-900 dark:text-slate-100 text-lg font-black leading-tight">$40/hr</span>
+</div>
+<button class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold px-4 py-2 rounded-lg hover:bg-primary hover:text-slate-900 transition-colors">
+                                View Profile
+                            </button>
+</div>
+</div>
+</div>
+<!-- Worker Card 4 -->
+<div class="flex flex-col bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow group">
+<div class="relative w-full aspect-[4/3] bg-slate-100 dark:bg-slate-800 overflow-hidden">
+<div class="w-full h-full bg-center bg-cover transition-transform duration-500 group-hover:scale-105" data-alt="Portrait of a professional woman worker" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBCwuQbNynTdIgmNHVvsZw_BKthJC5zjWpb2-JQBjpszNu1oBitvLkiMeWb8pUXs0tjZNwvvpXLh38DYNsJiU-_VRBRjmn9PCwH82JWPuG3Wrz2J0pPb9hhrkmTjdb7OBCmBJOBCmYAAHAOStH-YbQsMCuSFLMD_XkmiJXNw9qrQH1DDW79lu0ovJmoC73WtneOTen2XYDOnCoafbw9U-bAZDZ2d7AkJ-QujngABZNPRN5iAlbBfmwK3Oxsp5jIaFOpkluC8yNG0rg");'></div>
+<div class="absolute top-3 right-3">
+<button class="p-1.5 bg-white/90 dark:bg-slate-900/90 rounded-full shadow-sm text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-xl leading-none">favorite</span>
+</button>
+</div>
+</div>
+<div class="p-4 flex flex-col flex-1">
+<div class="flex justify-between items-start mb-1">
+<h3 class="text-slate-900 dark:text-slate-100 text-base font-bold truncate">Elena Rodriguez</h3>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary/20 text-slate-900 dark:text-primary text-[10px] font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-xs">verified</span> Pro
+                            </span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-xs mb-3">Professional Painter • 15 years exp.</p>
+<div class="flex items-center gap-1 mb-4">
+<span class="material-symbols-outlined text-amber-400 text-sm fill-current">star</span>
+<span class="text-slate-900 dark:text-slate-100 text-sm font-bold">4.9</span>
+<span class="text-slate-400 text-xs font-normal">(210 reviews)</span>
+</div>
+<div class="mt-auto pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+<div class="flex flex-col">
+<span class="text-[10px] text-slate-400 uppercase font-bold tracking-tight">Starting at</span>
+<span class="text-slate-900 dark:text-slate-100 text-lg font-black leading-tight">$48/hr</span>
+</div>
+<button class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold px-4 py-2 rounded-lg hover:bg-primary hover:text-slate-900 transition-colors">
+                                View Profile
+                            </button>
+</div>
+</div>
+</div>
+<!-- Worker Card 5 -->
+<div class="flex flex-col bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow group">
+<div class="relative w-full aspect-[4/3] bg-slate-100 dark:bg-slate-800 overflow-hidden">
+<div class="w-full h-full bg-center bg-cover transition-transform duration-500 group-hover:scale-105" data-alt="Portrait of a smiling male professional" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAX8uzCCUwKz3b3EPMkNv7gNYuxen7g4B1qMmsYpDWV7EItTV3CDZG4vgYZTWB8uPLVmCSR-FcSaIXOBGPxsWkT8zbqjlUAc0gvJyganB0PIVMUXdo5J1nFrk6NvaKpyCRJGQmvPdlOdG_r9b6Ahw14wLWUwdRVvydMjQrSG2-GGEOiFLHw20yf0rHegJjwK6yEyfLcOo51S5ym8b0nCnCZdvybRTA-uDf_3YO3uh891azMlDYprqceF9qJQIwlShoAZH7pV3XNpBM");'></div>
+<div class="absolute top-3 right-3">
+<button class="p-1.5 bg-white/90 dark:bg-slate-900/90 rounded-full shadow-sm text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-xl leading-none">favorite</span>
+</button>
+</div>
+</div>
+<div class="p-4 flex flex-col flex-1">
+<div class="flex justify-between items-start mb-1">
+<h3 class="text-slate-900 dark:text-slate-100 text-base font-bold truncate">James Wilson</h3>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-xs mb-3">Plumbing Specialist • 6 years exp.</p>
+<div class="flex items-center gap-1 mb-4">
+<span class="material-symbols-outlined text-amber-400 text-sm fill-current">star</span>
+<span class="text-slate-900 dark:text-slate-100 text-sm font-bold">4.8</span>
+<span class="text-slate-400 text-xs font-normal">(67 reviews)</span>
+</div>
+<div class="mt-auto pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+<div class="flex flex-col">
+<span class="text-[10px] text-slate-400 uppercase font-bold tracking-tight">Starting at</span>
+<span class="text-slate-900 dark:text-slate-100 text-lg font-black leading-tight">$60/hr</span>
+</div>
+<button class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold px-4 py-2 rounded-lg hover:bg-primary hover:text-slate-900 transition-colors">
+                                View Profile
+                            </button>
+</div>
+</div>
+</div>
+<!-- Worker Card 6 -->
+<div class="flex flex-col bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow group">
+<div class="relative w-full aspect-[4/3] bg-slate-100 dark:bg-slate-800 overflow-hidden">
+<div class="w-full h-full bg-center bg-cover transition-transform duration-500 group-hover:scale-105" data-alt="Portrait of a professional woman technician" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCmOWHiokhqWYL6vIc4RlOeopJLMk6cfHS9JXoGvEJMHiwNQHIV_VnHmyaMQIH8-28l13O-hay-J-ZWr3Zitz5LtIunZW4xPTyVH9X27eF3UqIScpIECGBZVFTypX7ECtPbU21XPCkTOH8xDIKAyAj5I3HR-1FAcT7hvbTFBp43ZlFYhamgJEp4zAop1NPNs11UpEkXQs4fGk7m1rRdt0u-3K5bxQs0gR5ml3Mk7nk5X8kKFaCDQ4GIjCKqTnwYsHumaBUeLs2YE8g");'></div>
+<div class="absolute top-3 right-3">
+<button class="p-1.5 bg-white/90 dark:bg-slate-900/90 rounded-full shadow-sm text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-xl leading-none">favorite</span>
+</button>
+</div>
+</div>
+<div class="p-4 flex flex-col flex-1">
+<div class="flex justify-between items-start mb-1">
+<h3 class="text-slate-900 dark:text-slate-100 text-base font-bold truncate">Linda Thompson</h3>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary/20 text-slate-900 dark:text-primary text-[10px] font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-xs">verified</span> Pro
+                            </span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-xs mb-3">HVAC Technician • 10 years exp.</p>
+<div class="flex items-center gap-1 mb-4">
+<span class="material-symbols-outlined text-amber-400 text-sm fill-current">star</span>
+<span class="text-slate-900 dark:text-slate-100 text-sm font-bold">4.6</span>
+<span class="text-slate-400 text-xs font-normal">(153 reviews)</span>
+</div>
+<div class="mt-auto pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+<div class="flex flex-col">
+<span class="text-[10px] text-slate-400 uppercase font-bold tracking-tight">Starting at</span>
+<span class="text-slate-900 dark:text-slate-100 text-lg font-black leading-tight">$85/hr</span>
+</div>
+<button class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold px-4 py-2 rounded-lg hover:bg-primary hover:text-slate-900 transition-colors">
+                                View Profile
+                            </button>
+</div>
+</div>
+</div>
+<!-- Worker Card 7 -->
+<div class="flex flex-col bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow group">
+<div class="relative w-full aspect-[4/3] bg-slate-100 dark:bg-slate-800 overflow-hidden">
+<div class="w-full h-full bg-center bg-cover transition-transform duration-500 group-hover:scale-105" data-alt="Male professional worker headshot" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBYhANHo6hspYP1l4oZh64BkZ9qjVnjj-yE-GdbtKZqIK-hy1r0Eu9yUdGV0CgbnxGrbW5wPK-DdmoXgcfZd50HVtCxTd3uSzp4_4CQJr4YPsQalYVupdSkyFoTko2rvq1CoDnQjW0KjznKTxKpMMV_09XS6Bi3yVsvGWuM9Ntc_t0WtctdyI7N_hoWaSNEHvgG8twmvx5R8qVWKghiG3TGlb7cDvli4sfwmegpnRj_d-OInEsAYiIczvlZ6LI4LTWoTXRdU08bPWA");'></div>
+<div class="absolute top-3 right-3">
+<button class="p-1.5 bg-white/90 dark:bg-slate-900/90 rounded-full shadow-sm text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-xl leading-none">favorite</span>
+</button>
+</div>
+</div>
+<div class="p-4 flex flex-col flex-1">
+<div class="flex justify-between items-start mb-1">
+<h3 class="text-slate-900 dark:text-slate-100 text-base font-bold truncate">Robert Chen</h3>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-xs mb-3">Landscape Architect • 4 years exp.</p>
+<div class="flex items-center gap-1 mb-4">
+<span class="material-symbols-outlined text-amber-400 text-sm fill-current">star</span>
+<span class="text-slate-900 dark:text-slate-100 text-sm font-bold">4.5</span>
+<span class="text-slate-400 text-xs font-normal">(28 reviews)</span>
+</div>
+<div class="mt-auto pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+<div class="flex flex-col">
+<span class="text-[10px] text-slate-400 uppercase font-bold tracking-tight">Starting at</span>
+<span class="text-slate-900 dark:text-slate-100 text-lg font-black leading-tight">$65/hr</span>
+</div>
+<button class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold px-4 py-2 rounded-lg hover:bg-primary hover:text-slate-900 transition-colors">
+                                View Profile
+                            </button>
+</div>
+</div>
+</div>
+<!-- Worker Card 8 -->
+<div class="flex flex-col bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow group">
+<div class="relative w-full aspect-[4/3] bg-slate-100 dark:bg-slate-800 overflow-hidden">
+<div class="w-full h-full bg-center bg-cover transition-transform duration-500 group-hover:scale-105" data-alt="Portrait of a smiling professional woman" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB7fW4Bfcdf6-Qo4dMJjPWX20BpOaczUOxyq4CHLk4LhDAjhEmVZ-GDXe7b2-R5MvLhZ_HEQpEgCZ9N4kHu1Ymk25sLoVfy7Z8yh43MKEOat2bSP8O4p7ZxH7fK7YgFK4jI4llNozt1cNlwbC6TtqdlcI7dZDV0Nj2Wq4ydgsabe-_AXmmn2ZYQ9uRSovHAJc04Fu3jX2zSPdR7496VBaEbrZZRAeLa68x3enrhaYX2Yj1k5Ejcj6DvcvVGABfaIHh5S9_1zuMaB-4");'></div>
+<div class="absolute top-3 right-3">
+<button class="p-1.5 bg-white/90 dark:bg-slate-900/90 rounded-full shadow-sm text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-xl leading-none">favorite</span>
+</button>
+</div>
+</div>
+<div class="p-4 flex flex-col flex-1">
+<div class="flex justify-between items-start mb-1">
+<h3 class="text-slate-900 dark:text-slate-100 text-base font-bold truncate">Aisha Khan</h3>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary/20 text-slate-900 dark:text-primary text-[10px] font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-xs">verified</span> Pro
+                            </span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-xs mb-3">Tiling Specialist • 9 years exp.</p>
+<div class="flex items-center gap-1 mb-4">
+<span class="material-symbols-outlined text-amber-400 text-sm fill-current">star</span>
+<span class="text-slate-900 dark:text-slate-100 text-sm font-bold">5.0</span>
+<span class="text-slate-400 text-xs font-normal">(112 reviews)</span>
+</div>
+<div class="mt-auto pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+<div class="flex flex-col">
+<span class="text-[10px] text-slate-400 uppercase font-bold tracking-tight">Starting at</span>
+<span class="text-slate-900 dark:text-slate-100 text-lg font-black leading-tight">$52/hr</span>
+</div>
+<button class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold px-4 py-2 rounded-lg hover:bg-primary hover:text-slate-900 transition-colors">
+                                View Profile
+                            </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Pagination -->
+<div class="flex items-center justify-center p-8 mt-6">
+<nav class="flex items-center gap-1">
+<a class="flex size-10 items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full transition-colors" href="#">
+<span class="material-symbols-outlined">chevron_left</span>
+</a>
+<a class="text-sm font-bold flex size-10 items-center justify-center text-slate-900 dark:text-slate-100 rounded-full bg-primary" href="#">1</a>
+<a class="text-sm font-medium flex size-10 items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full transition-colors" href="#">2</a>
+<a class="text-sm font-medium flex size-10 items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full transition-colors" href="#">3</a>
+<span class="text-sm text-slate-400 flex size-10 items-center justify-center">...</span>
+<a class="text-sm font-medium flex size-10 items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full transition-colors" href="#">12</a>
+<a class="flex size-10 items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full transition-colors" href="#">
+<span class="material-symbols-outlined">chevron_right</span>
+</a>
+</nav>
+</div>
+</main>
+<!-- Footer -->
+<footer class="mt-auto border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark py-12 px-10">
+<div class="max-w-[1200px] mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
+<div class="flex flex-col gap-4">
+<div class="flex items-center gap-2 text-slate-900 dark:text-slate-100">
+<span class="material-symbols-outlined text-primary">auto_awesome</span>
+<span class="font-bold text-lg">SkilledWorker</span>
+</div>
+<p class="text-sm text-slate-500 dark:text-slate-400">The most trusted marketplace for professional skilled labor in your local area.</p>
+</div>
+<div>
+<h4 class="font-bold text-slate-900 dark:text-slate-100 mb-4">Platform</h4>
+<ul class="flex flex-col gap-2 text-sm text-slate-500 dark:text-slate-400">
+<li><a class="hover:text-primary transition-colors" href="#">How it works</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Pricing</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Mobile App</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-bold text-slate-900 dark:text-slate-100 mb-4">Company</h4>
+<ul class="flex flex-col gap-2 text-sm text-slate-500 dark:text-slate-400">
+<li><a class="hover:text-primary transition-colors" href="#">About Us</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Careers</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Press</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-bold text-slate-900 dark:text-slate-100 mb-4">Support</h4>
+<ul class="flex flex-col gap-2 text-sm text-slate-500 dark:text-slate-400">
+<li><a class="hover:text-primary transition-colors" href="#">Help Center</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Contact Us</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Trust &amp; Safety</a></li>
+</ul>
+</div>
+</div>
+<div class="max-w-[1200px] mx-auto mt-12 pt-8 border-t border-slate-100 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
+<p class="text-xs text-slate-400">© 2024 SkilledWorker Inc. All rights reserved.</p>
+<div class="flex gap-6">
+<a class="text-xs text-slate-400 hover:text-primary transition-colors" href="#">Privacy Policy</a>
+<a class="text-xs text-slate-400 hover:text-primary transition-colors" href="#">Terms of Service</a>
+</div>
+</div>
+</footer>
+</div>
+</body></html>

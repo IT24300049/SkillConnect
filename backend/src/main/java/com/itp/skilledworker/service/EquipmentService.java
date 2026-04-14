@@ -78,9 +78,15 @@ public class EquipmentService {
 
     @Transactional
     public EquipmentBooking bookEquipment(Integer equipmentId, Integer customerUserId,
-            String startDate, String endDate, String notes) {
+            String startDate, String endDate, Integer quantity, String notes) {
         EquipmentInventory equipment = getEquipmentById(equipmentId);
-        if (equipment.getQuantityAvailable() < 1) {
+        int requestedQty = quantity == null ? 1 : quantity;
+        if (requestedQty < 1) {
+            throw new RuntimeException("Quantity must be at least 1");
+        }
+
+        int availableQty = equipment.getQuantityAvailable() == null ? 0 : equipment.getQuantityAvailable();
+        if (availableQty < requestedQty) {
             throw new RuntimeException("Equipment not available");
         }
         CustomerProfile customer = customerProfileRepository.findByUser_UserId(customerUserId)
@@ -92,7 +98,9 @@ public class EquipmentService {
         if (days <= 0)
             throw new RuntimeException("End date must be after start date");
 
-        BigDecimal baseCost = equipment.getRentalPricePerDay().multiply(BigDecimal.valueOf(days));
+        BigDecimal baseCost = equipment.getRentalPricePerDay()
+            .multiply(BigDecimal.valueOf(days))
+            .multiply(BigDecimal.valueOf(requestedQty));
 
         EquipmentBooking booking = new EquipmentBooking();
         booking.setEquipment(equipment);
@@ -102,11 +110,17 @@ public class EquipmentService {
         booking.setRentalEndDate(end);
         booking.setDailyRate(equipment.getRentalPricePerDay());
         booking.setTotalDays((int) days);
+        booking.setQuantityRented(requestedQty);
         booking.setBaseRentalCost(baseCost);
         booking.setTotalCost(baseCost);
         booking.setDepositAmount(equipment.getDepositAmount());
         booking.setNotes(notes);
         booking.setBookingStatus(EquipmentBooking.BookingStatus.reserved);
+
+        equipment.setQuantityAvailable(availableQty - requestedQty);
+        equipment.setIsAvailable((availableQty - requestedQty) > 0);
+        inventoryRepository.save(equipment);
+
         return bookingRepository.save(booking);
     }
 
@@ -114,6 +128,20 @@ public class EquipmentService {
     public EquipmentBooking returnEquipment(Integer bookingId) {
         EquipmentBooking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Equipment booking not found"));
+
+        if (booking.getBookingStatus() == EquipmentBooking.BookingStatus.returned) {
+            throw new RuntimeException("Equipment is already returned");
+        }
+
+        EquipmentInventory equipment = booking.getEquipment();
+        int currentAvailable = equipment.getQuantityAvailable() == null ? 0 : equipment.getQuantityAvailable();
+        int totalQty = equipment.getQuantityTotal() == null ? currentAvailable : equipment.getQuantityTotal();
+        int returnedQty = booking.getQuantityRented() == null ? 1 : booking.getQuantityRented();
+        int updatedAvailable = Math.min(totalQty, currentAvailable + returnedQty);
+
+        equipment.setQuantityAvailable(updatedAvailable);
+        equipment.setIsAvailable(updatedAvailable > 0);
+        inventoryRepository.save(equipment);
 
         booking.setActualReturnDate(LocalDate.now());
         booking.setBookingStatus(EquipmentBooking.BookingStatus.returned);
@@ -143,7 +171,7 @@ public class EquipmentService {
 
         long daysOverdue = ChronoUnit.DAYS.between(updated.getRentalEndDate(), LocalDate.now());
         BigDecimal dailyLateFeeRate = daysOverdue > 0
-                ? updated.getLateFee().divide(BigDecimal.valueOf(daysOverdue))
+                ? updated.getLateFee().divide(BigDecimal.valueOf(daysOverdue), 2, java.math.RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
 
         return Map.of(
@@ -160,7 +188,19 @@ public class EquipmentService {
         return bookingRepository.findByCustomer_CustomerId(customer.getCustomerId());
     }
 
+    public List<EquipmentBooking> getSupplierBookings(Integer supplierUserId) {
+        SupplierProfile supplier = supplierRepository.findByUser_UserId(supplierUserId)
+                .orElseThrow(() -> new RuntimeException("Supplier profile not found"));
+        return bookingRepository.findBySupplier_SupplierId(supplier.getSupplierId());
+    }
+
     public List<EquipmentCategory> getCategories() {
         return categoryRepository.findAll();
+    }
+
+    public List<EquipmentInventory> getSupplierEquipment(Integer supplierUserId) {
+        SupplierProfile supplier = supplierRepository.findByUser_UserId(supplierUserId)
+                .orElseThrow(() -> new RuntimeException("Supplier profile not found"));
+        return inventoryRepository.findBySupplier_SupplierId(supplier.getSupplierId());
     }
 }

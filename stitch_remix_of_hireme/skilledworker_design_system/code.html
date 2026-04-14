@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SkilledWorker Design System</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2463eb",
+                        "secondary": "#f97316",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111621",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<div class="relative flex min-h-screen flex-col">
+<!-- Navigation Header -->
+<header class="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md">
+<div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-2 text-primary">
+<svg class="w-8 h-8" fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path clip-rule="evenodd" d="M24 18.4228L42 11.475V34.3663C42 34.7796 41.7457 35.1504 41.3601 35.2992L24 42V18.4228Z" fill="currentColor" fill-rule="evenodd"></path>
+<path clip-rule="evenodd" d="M24 8.18819L33.4123 11.574L24 15.2071L14.5877 11.574L24 8.18819ZM9 15.8487L21 20.4805V37.6263L9 32.9945V15.8487ZM27 37.6263V20.4805L39 15.8487V32.9945L27 37.6263ZM25.354 2.29885C24.4788 1.98402 23.5212 1.98402 22.646 2.29885L4.98454 8.65208C3.7939 9.08038 3 10.2097 3 11.475V34.3663C3 36.0196 4.01719 37.5026 5.55962 38.098L22.9197 44.7987C23.6149 45.0671 24.3851 45.0671 25.0803 44.7987L42.4404 38.098C43.9828 37.5026 45 36.0196 45 34.3663V11.475C45 10.2097 44.2061 9.08038 43.0155 8.65208L25.354 2.29885Z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+<span class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">SkilledWorker</span>
+</div>
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-sm font-semibold text-primary" href="#">Foundations</a>
+<a class="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-primary transition-colors" href="#">Components</a>
+<a class="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-primary transition-colors" href="#">Layouts</a>
+<a class="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-primary transition-colors" href="#">Resources</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative w-64">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-sm">search</span>
+<input class="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary/20" placeholder="Search documentation..." type="text"/>
+</div>
+<button class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-primary/90 transition-all">Download Kit</button>
+<div class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="User profile avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD7zhcoXMSUGyUL-pDYUcvXjAqA3VQD_u7uVJ0PfZMe2or3xNn-GNb3VdfzYVjv3oZFU_Tbo16JibniUiTdHhY_qNnT-3_2fyVGtFi8LZdLYqHG_OfGqUfMGgFaFAybHDScnMxWuhAGLa95Qf1QFAoslnrj1h6oo0UHB3UfMtKPmyatiV3R85LnMZWeaOAUOVO8YB_hIAjUhz9On3CqaGphaKpOg4YfOkhM43dJlHbd1HJF1fsVi68Zdvw76BluClqu34McXIeDJ3I"/>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto w-full px-6 py-12 flex-1">
+<div class="mb-12">
+<h1 class="text-4xl font-black text-slate-900 dark:text-white mb-2">Component Library</h1>
+<p class="text-lg text-slate-600 dark:text-slate-400 max-w-2xl">A comprehensive guide to the visual style and interactive elements of the SkilledWorker platform.</p>
+</div>
+<!-- Color Palette Section -->
+<section class="mb-16">
+<div class="flex items-center gap-2 mb-6 border-b border-slate-200 dark:border-slate-800 pb-2">
+<span class="material-symbols-outlined text-primary">palette</span>
+<h2 class="text-2xl font-bold">Color Palette</h2>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+<div class="space-y-2">
+<div class="h-24 w-full rounded-lg bg-primary shadow-sm"></div>
+<p class="font-bold text-sm">Primary Blue</p>
+<p class="text-xs text-slate-500 font-mono">#2463EB</p>
+</div>
+<div class="space-y-2">
+<div class="h-24 w-full rounded-lg bg-secondary shadow-sm"></div>
+<p class="font-bold text-sm">Secondary Orange</p>
+<p class="text-xs text-slate-500 font-mono">#F97316</p>
+</div>
+<div class="space-y-2">
+<div class="h-24 w-full rounded-lg bg-slate-900 shadow-sm border border-slate-200 dark:border-slate-700"></div>
+<p class="font-bold text-sm">Slate 900</p>
+<p class="text-xs text-slate-500 font-mono">#0F172A</p>
+</div>
+<div class="space-y-2">
+<div class="h-24 w-full rounded-lg bg-slate-500 shadow-sm"></div>
+<p class="font-bold text-sm">Slate 500</p>
+<p class="text-xs text-slate-500 font-mono">#64748B</p>
+</div>
+<div class="space-y-2">
+<div class="h-24 w-full rounded-lg bg-slate-200 shadow-sm border border-slate-300"></div>
+<p class="font-bold text-sm">Slate 200</p>
+<p class="text-xs text-slate-500 font-mono">#E2E8F0</p>
+</div>
+<div class="space-y-2">
+<div class="h-24 w-full rounded-lg bg-white shadow-sm border border-slate-200"></div>
+<p class="font-bold text-sm">White</p>
+<p class="text-xs text-slate-500 font-mono">#FFFFFF</p>
+</div>
+</div>
+</section>
+<!-- Typography Section -->
+<section class="mb-16">
+<div class="flex items-center gap-2 mb-6 border-b border-slate-200 dark:border-slate-800 pb-2">
+<span class="material-symbols-outlined text-primary">text_fields</span>
+<h2 class="text-2xl font-bold">Typography</h2>
+</div>
+<div class="bg-white dark:bg-slate-900 p-8 rounded-xl border border-slate-200 dark:border-slate-800 space-y-8">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-baseline">
+<p class="text-xs font-mono text-slate-400 uppercase tracking-widest">Headline XL</p>
+<div class="md:col-span-2">
+<h1 class="text-5xl font-black">Inter Extra Bold</h1>
+<p class="text-slate-500 mt-2">Font-size: 48px / Tracking: -0.033em</p>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-baseline">
+<p class="text-xs font-mono text-slate-400 uppercase tracking-widest">Headline MD</p>
+<div class="md:col-span-2">
+<h3 class="text-2xl font-bold">Inter Bold Headline</h3>
+<p class="text-slate-500 mt-2">Font-size: 24px / Tracking: -0.015em</p>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-baseline">
+<p class="text-xs font-mono text-slate-400 uppercase tracking-widest">Body Text</p>
+<div class="md:col-span-2">
+<p class="text-base text-slate-700 dark:text-slate-300">SkillWorker components use Inter as the primary typeface. It's designed for maximum readability across various screen sizes and weights from Thin to Black.</p>
+<p class="text-slate-500 mt-2">Font-size: 16px / Leading: Normal</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Buttons Section -->
+<section class="mb-16">
+<div class="flex items-center gap-2 mb-6 border-b border-slate-200 dark:border-slate-800 pb-2">
+<span class="material-symbols-outlined text-primary">smart_button</span>
+<h2 class="text-2xl font-bold">Buttons</h2>
+</div>
+<div class="flex flex-wrap gap-8 items-center bg-slate-50 dark:bg-slate-900/50 p-8 rounded-xl border border-dashed border-slate-300 dark:border-slate-700">
+<div class="flex flex-col gap-2 items-center">
+<button class="bg-primary text-white px-6 py-2.5 rounded-lg font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">Primary Button</button>
+<span class="text-xs text-slate-500 uppercase font-mono tracking-tighter">Primary</span>
+</div>
+<div class="flex flex-col gap-2 items-center">
+<button class="bg-secondary text-white px-6 py-2.5 rounded-lg font-bold hover:bg-secondary/90 transition-all shadow-lg shadow-secondary/20">Secondary Action</button>
+<span class="text-xs text-slate-500 uppercase font-mono tracking-tighter">Secondary</span>
+</div>
+<div class="flex flex-col gap-2 items-center">
+<button class="bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 px-6 py-2.5 rounded-lg font-bold hover:bg-slate-50 transition-all">Outline Ghost</button>
+<span class="text-xs text-slate-500 uppercase font-mono tracking-tighter">Ghost</span>
+</div>
+<div class="flex flex-col gap-2 items-center">
+<button class="bg-red-500 text-white px-6 py-2.5 rounded-lg font-bold hover:bg-red-600 transition-all shadow-lg shadow-red-500/20 flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">delete</span>
+                            Danger Zone
+                        </button>
+<span class="text-xs text-slate-500 uppercase font-mono tracking-tighter">Danger</span>
+</div>
+</div>
+</section>
+<!-- Status Chips & Inputs -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+<!-- Status Chips -->
+<section>
+<div class="flex items-center gap-2 mb-6 border-b border-slate-200 dark:border-slate-800 pb-2">
+<span class="material-symbols-outlined text-primary">label</span>
+<h2 class="text-2xl font-bold">Status Chips</h2>
+</div>
+<div class="flex flex-wrap gap-4 bg-white dark:bg-slate-900 p-8 rounded-xl border border-slate-200 dark:border-slate-800">
+<span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Success
+                        </span>
+<span class="px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-bold flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Warning
+                        </span>
+<span class="px-3 py-1 rounded-full bg-rose-100 text-rose-700 text-xs font-bold flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Error
+                        </span>
+<span class="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span> Info
+                        </span>
+</div>
+</section>
+<!-- Inputs -->
+<section>
+<div class="flex items-center gap-2 mb-6 border-b border-slate-200 dark:border-slate-800 pb-2">
+<span class="material-symbols-outlined text-primary">edit_square</span>
+<h2 class="text-2xl font-bold">Input States</h2>
+</div>
+<div class="space-y-4 bg-white dark:bg-slate-900 p-8 rounded-xl border border-slate-200 dark:border-slate-800">
+<div>
+<label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Default Input</label>
+<input class="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-transparent py-2 px-4 focus:ring-primary focus:border-primary" placeholder="Your name" type="text"/>
+</div>
+<div>
+<label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Focus State</label>
+<input class="w-full rounded-lg border-primary ring-1 ring-primary bg-transparent py-2 px-4" type="text" value="Active interaction"/>
+</div>
+<div>
+<label class="block text-xs font-bold text-red-500 uppercase mb-1.5">Error State</label>
+<div class="relative">
+<input class="w-full rounded-lg border-red-500 bg-red-50/50 dark:bg-red-900/10 py-2 px-4 text-red-600 focus:ring-red-500" type="email" value="invalid-email@"/>
+<span class="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-red-500 text-xl">error</span>
+</div>
+<p class="text-xs text-red-500 mt-1">Please enter a valid email address.</p>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Footer -->
+<footer class="border-t border-slate-200 dark:border-slate-800 py-10">
+<div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
+<div class="flex items-center gap-2">
+<div class="size-6 text-slate-400">
+<svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path clip-rule="evenodd" d="M24 18.4228L42 11.475V34.3663C42 34.7796 41.7457 35.1504 41.3601 35.2992L24 42V18.4228Z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+<p class="text-sm text-slate-500">© 2024 SkilledWorker Platform. Built for excellence.</p>
+</div>
+<div class="flex gap-6">
+<a class="text-sm text-slate-500 hover:text-primary transition-colors" href="#">Twitter</a>
+<a class="text-sm text-slate-500 hover:text-primary transition-colors" href="#">GitHub</a>
+<a class="text-sm text-slate-500 hover:text-primary transition-colors" href="#">Changelog</a>
+</div>
+</div>
+</footer>
+</div>
+</body></html>

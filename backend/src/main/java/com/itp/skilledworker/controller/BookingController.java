@@ -15,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/bookings")
@@ -57,7 +58,8 @@ public class BookingController {
             return ResponseEntity.ok(ApiResponse.ok("Bookings fetched", bookings));
         } catch (RuntimeException e) {
             if ("Worker profile not found".equals(e.getMessage())) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("Worker profile not found for the current user."));
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(ApiResponse.error("Worker profile not found for the current user."));
             }
             return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
         }
@@ -125,6 +127,16 @@ public class BookingController {
     @GetMapping
     public ResponseEntity<ApiResponse<List<Booking>>> getAllBookings() {
         return ResponseEntity.ok(ApiResponse.ok("All bookings", bookingService.getAllBookings()));
+    }
+
+    @GetMapping("/worker/{workerId}/busy-dates")
+    public ResponseEntity<ApiResponse<List<java.time.LocalDate>>> getBusyDates(@PathVariable Integer workerId) {
+        return ResponseEntity.ok(ApiResponse.ok("Busy dates", bookingService.getWorkerBusyDates(workerId)));
+    }
+
+    @GetMapping("/worker/{workerId}/busy-slots")
+    public ResponseEntity<ApiResponse<List<Map<String, String>>>> getBusySlots(@PathVariable Integer workerId) {
+        return ResponseEntity.ok(ApiResponse.ok("Busy slots", bookingService.getWorkerBusySlots(workerId)));
     }
 
     private Integer getUserId(Authentication auth) {

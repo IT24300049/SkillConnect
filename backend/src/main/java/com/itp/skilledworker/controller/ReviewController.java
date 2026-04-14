@@ -5,6 +5,7 @@ import com.itp.skilledworker.dto.ReviewComplaintDtos.ComplaintCreateRequest;
 import com.itp.skilledworker.dto.ReviewComplaintDtos.ComplaintStatusUpdateRequest;
 import com.itp.skilledworker.dto.ReviewComplaintDtos.MessageCreateRequest;
 import com.itp.skilledworker.dto.ReviewComplaintDtos.MessageThreadCreateRequest;
+import com.itp.skilledworker.dto.ReviewComplaintDtos.PendingReviewResponse;
 import com.itp.skilledworker.dto.ReviewComplaintDtos.ReviewCreateRequest;
 import com.itp.skilledworker.dto.ReviewComplaintDtos.ReviewUpdateRequest;
 import com.itp.skilledworker.entity.*;
@@ -51,9 +52,47 @@ public class ReviewController {
         return ResponseEntity.ok(ApiResponse.ok("Reviews", reviewService.getReviewsForWorker(workerUserId)));
     }
 
+    @GetMapping("/reviews/customer/{customerUserId}")
+    public ResponseEntity<ApiResponse<List<Review>>> getCustomerReviews(@PathVariable Integer customerUserId) {
+        return ResponseEntity.ok(ApiResponse.ok("Reviews", reviewService.getReviewsForCustomer(customerUserId)));
+    }
+
     @GetMapping("/reviews")
     public ResponseEntity<ApiResponse<List<Review>>> getAllReviews() {
         return ResponseEntity.ok(ApiResponse.ok("All reviews", reviewService.getAllReviews()));
+    }
+
+    @GetMapping("/reviews/my")
+    public ResponseEntity<ApiResponse<List<Review>>> getMyReviews(Authentication auth) {
+        try {
+            Integer userId = getUserId(auth);
+            return ResponseEntity.ok(ApiResponse.ok("My reviews", reviewService.getMyReviews(userId)));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        }
+    }
+
+    @GetMapping("/reviews/pending")
+    public ResponseEntity<ApiResponse<List<PendingReviewResponse>>> getPendingReviews(Authentication auth) {
+        try {
+            Integer userId = getUserId(auth);
+            return ResponseEntity.ok(ApiResponse.ok("Pending reviews", reviewService.getPendingReviews(userId)));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        }
+    }
+
+    @GetMapping("/reviews/pending/job/{jobId}")
+    public ResponseEntity<ApiResponse<List<PendingReviewResponse>>> getPendingReviewsForJob(
+            @PathVariable Integer jobId,
+            Authentication auth) {
+        try {
+            Integer userId = getUserId(auth);
+            return ResponseEntity.ok(ApiResponse.ok("Pending reviews for job",
+                    reviewService.getPendingReviewsForJob(userId, jobId)));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        }
     }
 
     // --------- COMPLAINTS ---------
@@ -67,7 +106,9 @@ public class ReviewController {
                     body.getComplaintCategory(),
                     body.getComplaintTitle(),
                     body.getComplaintDescription(),
-                    body.getBookingId());
+                    body.getBookingId(),
+                    body.getComplainedAgainstUserId(),
+                    body.getReviewId());
             return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok("Complaint submitted", complaint));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
@@ -75,62 +116,39 @@ public class ReviewController {
     }
 
     @GetMapping("/complaints")
-    public ResponseEntity<ApiResponse<List<Complaint>>> getAllComplaints() {
-        return ResponseEntity.ok(ApiResponse.ok("Complaints", reviewService.getAllComplaints()));
+    public ResponseEntity<ApiResponse<List<Complaint>>> getAllComplaints(Authentication auth) {
+        try {
+            Integer userId = getUserId(auth);
+            return ResponseEntity.ok(ApiResponse.ok("Complaints", reviewService.getAllComplaints(userId)));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        }
+    }
+
+    @GetMapping("/complaints/my")
+    public ResponseEntity<ApiResponse<List<Complaint>>> getMyComplaints(Authentication auth) {
+        try {
+            Integer userId = getUserId(auth);
+            return ResponseEntity.ok(ApiResponse.ok("My complaints", reviewService.getMyComplaints(userId)));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        }
     }
 
     @PatchMapping("/complaints/{id}/status")
     public ResponseEntity<ApiResponse<Complaint>> updateComplaintStatus(@PathVariable Integer id,
-            @Valid @RequestBody ComplaintStatusUpdateRequest body) {
+            @Valid @RequestBody ComplaintStatusUpdateRequest body,
+            Authentication auth) {
         try {
-            Complaint complaint = reviewService.updateComplaintStatus(id, body.getStatus());
+            Integer userId = getUserId(auth);
+            Complaint complaint = reviewService.updateComplaintStatus(id, userId, body.getStatus());
             return ResponseEntity.ok(ApiResponse.ok("Complaint updated", complaint));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
         }
     }
 
-    // --------- MESSAGES ---------
-    @PostMapping("/messages/threads")
-    public ResponseEntity<ApiResponse<MessageThread>> createThread(@Valid @RequestBody MessageThreadCreateRequest body,
-            Authentication auth) {
-        try {
-            Integer myId = getUserId(auth);
-            MessageThread thread = reviewService.createThread(
-                    myId,
-                    body.getOtherUserId(),
-                    body.getBookingId());
-            return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok("Thread created", thread));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
-        }
-    }
-
-    @PostMapping("/messages")
-    public ResponseEntity<ApiResponse<Message>> sendMessage(@Valid @RequestBody MessageCreateRequest body,
-            Authentication auth) {
-        try {
-            Integer userId = getUserId(auth);
-            Message message = reviewService.sendMessage(
-                    body.getThreadId(),
-                    userId,
-                    body.getMessageText());
-            return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok("Message sent", message));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
-        }
-    }
-
-    @GetMapping("/messages/threads/{threadId}")
-    public ResponseEntity<ApiResponse<List<Message>>> getMessages(@PathVariable Integer threadId) {
-        return ResponseEntity.ok(ApiResponse.ok("Messages", reviewService.getThreadMessages(threadId)));
-    }
-
-    @GetMapping("/messages/threads")
-    public ResponseEntity<ApiResponse<List<MessageThread>>> getMyThreads(Authentication auth) {
-        Integer userId = getUserId(auth);
-        return ResponseEntity.ok(ApiResponse.ok("Threads", reviewService.getUserThreads(userId)));
-    }
+    // NOTE: Messaging endpoints moved to dedicated MessageController
 
     @PutMapping("/reviews/{id}")
     public ResponseEntity<ApiResponse<Review>> updateReview(@PathVariable Integer id,

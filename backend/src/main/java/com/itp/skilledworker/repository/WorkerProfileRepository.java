@@ -11,4 +11,8 @@ public interface WorkerProfileRepository extends JpaRepository<WorkerProfile, In
     List<WorkerProfile> findByDistrict(String district);
 
     List<WorkerProfile> findByIsVerified(Boolean isVerified);
+
+    List<WorkerProfile> findBySkillCategoryIgnoreCase(String skillCategory);
+
+    List<WorkerProfile> findByDistrictAndSkillCategoryIgnoreCase(String district, String skillCategory);
 }

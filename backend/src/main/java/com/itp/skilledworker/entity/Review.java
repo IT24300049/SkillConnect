@@ -23,6 +23,11 @@ public class Review {
     private Booking booking;
 
     @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "job_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    private Job job;
+
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "reviewer_id", nullable = false)
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "passwordHash"})
     private User reviewer;

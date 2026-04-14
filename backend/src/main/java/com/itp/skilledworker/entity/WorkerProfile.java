@@ -51,6 +51,9 @@ public class WorkerProfile {
     @Column(columnDefinition = "TEXT")
     private String bio;
 
+    @Column(name = "skill_category")
+    private String skillCategory;
+
     @Column(name = "hourly_rate_min")
     private BigDecimal hourlyRateMin;
 

@@ -1,353 +1,712 @@
 import { useState, useEffect } from 'react';
-import { equipmentAPI } from '../api';
 import { useAuth } from '../AuthContext';
+import { equipmentAPI } from '../api';
+import DistrictSelect from '../components/DistrictSelect';
 
-const STATUS_COLORS = {
-    available: 'bg-green-100 text-green-700',
-    reserved: 'bg-blue-100 text-blue-700',
-    rented_out: 'bg-orange-100 text-orange-700',
-    returned: 'bg-slate-100 text-slate-600',
-    cancelled: 'bg-red-100 text-red-700',
-    damaged: 'bg-red-200 text-red-800',
+const CONDITION_COLORS = {
+  new: 'badge-teal',
+  excellent: 'badge-blue',
+  good: 'badge-orange',
+  fair: 'badge-gray',
+};
+
+const BOOKING_STATUS_COLORS = {
+  available: 'badge-green',
+  reserved: 'badge-orange',
+  rented_out: 'badge-blue',
+  returned: 'badge-green',
+  damaged: 'badge-red',
+  cancelled: 'badge-gray',
+};
+
+const MODAL_OVERLAY = {
+  position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
+  display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 16, paddingTop: 105
+};
+
+const MODAL_CARD = {
+  background: '#fff', borderRadius: 24, boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
+  padding: 32, width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto'
+};
+
+const EMPTY_FORM = {
+  equipmentName: '', equipmentDescription: '', equipmentCondition: 'good',
+  rentalPricePerDay: '', depositAmount: '', quantityAvailable: 1,
+  equipmentCategoryId: '',
 };
 
 export default function EquipmentPage() {
-    const { user } = useAuth();
-    const [equipment, setEquipment] = useState([]);
-    const [categories, setCategories] = useState([]);
-    const [myBookings, setMyBookings] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [tab, setTab] = useState('browse');
-    const [showAddForm, setShowAddForm] = useState(false);
-    const [showBookForm, setShowBookForm] = useState(null); // holds selected equipment
-    const [lateFee, setLateFee] = useState(null);
-    const [addForm, setAddForm] = useState({
-        categoryId: '', equipmentName: '', equipmentDescription: '',
-        equipmentCondition: 'good', rentalPricePerDay: '', depositAmount: '', quantityTotal: 1
+  const { user } = useAuth();
+  const [equipment, setEquipment] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [myBookings, setMyBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [tab, setTab] = useState('browse');
+  const [search, setSearch] = useState('');
+  const [filterCategoryId, setFilterCategoryId] = useState('');
+  const [filterDistrict, setFilterDistrict] = useState('');
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [editId, setEditId] = useState(null);
+  const [bookForm, setBookForm] = useState({ equipmentId: '', rentalStartDate: '', rentalEndDate: '', quantity: 1 });
+  const [showBook, setShowBook] = useState(false);
+
+  const today = new Date().toISOString().split('T')[0];
+
+  const isSupplier = user?.role === 'supplier';
+
+  useEffect(() => { loadData(); }, []);
+
+  const getEquipmentImage = (eq) => {
+    if (eq.imagePath) return eq.imagePath;
+
+    const name = (eq.equipmentName || '').toLowerCase();
+
+    if (name.includes('cement')) return 'https://images.pexels.com/photos/5691502/pexels-photo-5691502.jpeg?auto=compress&cs=tinysrgb&w=600';
+    if (name.includes('scaffolding') || name.includes('scaffold')) return 'https://images.pexels.com/photos/5854190/pexels-photo-5854190.jpeg?auto=compress&cs=tinysrgb&w=600';
+    if (name.includes('hammer')) return 'https://images.pexels.com/photos/3807388/pexels-photo-3807388.jpeg?auto=compress&cs=tinysrgb&w=600';
+    if (name.includes('helmet')) return 'https://images.pexels.com/photos/8486928/pexels-photo-8486928.jpeg?auto=compress&cs=tinysrgb&w=600';
+    if (name.includes('sprayer') || name.includes('paint')) return 'https://images.pexels.com/photos/6476584/pexels-photo-6476584.jpeg?auto=compress&cs=tinysrgb&w=600';
+
+    return 'https://images.pexels.com/photos/8961065/pexels-photo-8961065.jpeg?auto=compress&cs=tinysrgb&w=600';
+  };
+
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const [eqRes, catRes, bookRes] = await Promise.allSettled([
+        isSupplier ? equipmentAPI.getAll() : equipmentAPI.getAvailable(),
+        equipmentAPI.getCategories(),
+        isSupplier ? equipmentAPI.getSupplierBookings() : equipmentAPI.getMyBookings(),
+      ]);
+      setEquipment(eqRes.status === 'fulfilled' ? eqRes.value?.data?.data || [] : []);
+      setCategories(catRes.status === 'fulfilled' ? catRes.value?.data?.data || [] : []);
+      setMyBookings(bookRes.status === 'fulfilled' ? bookRes.value?.data?.data || [] : []);
+    } catch { /* non-critical */ }
+    finally { setLoading(false); }
+  };
+
+  const handleSubmitEquipment = async (e) => {
+    e.preventDefault(); setError('');
+    try {
+      const payload = {
+        categoryId: form.equipmentCategoryId ? parseInt(form.equipmentCategoryId) : null,
+        equipmentName: form.equipmentName,
+        equipmentDescription: form.equipmentDescription,
+        equipmentCondition: form.equipmentCondition,
+        rentalPricePerDay: form.rentalPricePerDay ? parseFloat(form.rentalPricePerDay) : null,
+        depositAmount: form.depositAmount ? parseFloat(form.depositAmount) : null,
+        // Use the single quantity field as the total quantity for backend
+        quantityTotal: form.quantityAvailable ? parseInt(form.quantityAvailable, 10) : 1,
+      };
+      if (editId) { await equipmentAPI.update(editId, payload); }
+      else { await equipmentAPI.add(payload); }
+      setShowForm(false); setForm(EMPTY_FORM); setEditId(null);
+      loadData();
+    } catch (err) { setError(err.response?.data?.message || 'Failed to save equipment.'); }
+  };
+
+  const handleEdit = (eq) => {
+    setForm({
+      equipmentName: eq.equipmentName || '', equipmentDescription: eq.equipmentDescription || '',
+      equipmentCondition: eq.equipmentCondition || 'good',
+      rentalPricePerDay: eq.rentalPricePerDay || '', depositAmount: eq.depositAmount || '',
+      quantityAvailable: (eq.quantityAvailable ?? eq.quantityTotal ?? 1),
+      equipmentCategoryId: eq.equipmentCategoryId || eq.categoryId || '',
     });
-    const [bookForm, setBookForm] = useState({ rentalStartDate: '', rentalEndDate: '', notes: '' });
-    const [error, setError] = useState('');
+    setEditId(eq.equipmentId || eq.id);
+    setShowForm(true);
+  };
 
-    const loadEquipment = async () => {
-        setLoading(true);
-        try {
-            const [eqRes, catRes] = await Promise.all([
-                equipmentAPI.getAvailable(),
-                equipmentAPI.getCategories()
-            ]);
-            setEquipment(eqRes.data.data || []);
-            setCategories(catRes.data.data || []);
-        } catch {
-            setError('Failed to load equipment.');
-        } finally {
-            setLoading(false);
-        }
-    };
+  const handleDelete = async (id) => {
+    if (!confirm('Delete this equipment?')) return;
+    try { await equipmentAPI.delete(id); loadData(); }
+    catch (err) { setError(err.response?.data?.message || 'Failed to delete.'); }
+  };
 
-    const loadMyBookings = async () => {
-        setLoading(true);
-        try {
-            const res = await equipmentAPI.getMyBookings();
-            setMyBookings(res.data.data || []);
-        } catch {
-            setError('Failed to load bookings.');
-        } finally {
-            setLoading(false);
-        }
-    };
+  const handleBook = async (e) => {
+    e.preventDefault(); setError('');
+    try {
+      await equipmentAPI.book({
+        ...bookForm,
+        quantity: bookForm.quantity ? parseInt(bookForm.quantity, 10) : 1,
+      });
+      setShowBook(false);
+      setBookForm({ equipmentId: '', rentalStartDate: '', rentalEndDate: '', quantity: 1 });
+      loadData();
+    } catch (err) { setError(err.response?.data?.message || 'Failed to book.'); }
+  };
 
-    useEffect(() => {
-        if (tab === 'browse') loadEquipment();
-        else loadMyBookings();
-    }, [tab]);
+  const handleReturn = async (bookingId) => {
+    try { await equipmentAPI.returnEquipment(bookingId); loadData(); }
+    catch (err) { setError(err.response?.data?.message || 'Failed to return.'); }
+  };
 
-    const handleAddEquipment = async (e) => {
-        e.preventDefault();
-        try {
-            await equipmentAPI.add({ ...addForm, categoryId: parseInt(addForm.categoryId), quantityTotal: parseInt(addForm.quantityTotal) });
-            alert('Equipment added!');
-            setShowAddForm(false);
-            loadEquipment();
-        } catch (err) {
-            setError(err.response?.data?.message || 'Failed to add equipment');
-        }
-    };
+  const openBookModal = (eq) => {
+    setBookForm({ ...bookForm, equipmentId: eq.equipmentId || eq.id });
+    setShowBook(true);
+  };
 
-    const handleBook = async (e) => {
-        e.preventDefault();
-        try {
-            await equipmentAPI.book({ equipmentId: showBookForm.equipmentId, ...bookForm });
-            alert('Equipment booked successfully!');
-            setShowBookForm(null);
-            loadEquipment();
-        } catch (err) {
-            alert('Error: ' + (err.response?.data?.message || 'Failed'));
-        }
-    };
+  const TABS = isSupplier
+    ? [{ key: 'browse', label: '🛠 My Inventory' }, { key: 'bookings', label: '📅 Rental Bookings' }]
+    : [{ key: 'browse', label: '🔍 Browse Tools' }, { key: 'bookings', label: '📦 My Rentals' }];
 
-    const handleReturn = async (bookingId) => {
-        try {
-            const res = await equipmentAPI.returnEquipment(bookingId);
-            alert('Equipment returned!' + (res.data.data?.lateFee > 0 ? ` Late fee: LKR ${res.data.data.lateFee}` : ''));
-            loadMyBookings();
-        } catch (err) {
-            alert('Error: ' + (err.response?.data?.message || 'Failed'));
-        }
-    };
+  const filteredEquipment = equipment.filter((eq) => {
+    const term = search.trim().toLowerCase();
+    const inSearch = !term
+      || (eq.equipmentName || '').toLowerCase().includes(term)
+      || (eq.equipmentDescription || '').toLowerCase().includes(term)
+      || (eq.categoryName || '').toLowerCase().includes(term);
+    const catId = eq.equipmentCategoryId || eq.categoryId || '';
+    const inCategory = !filterCategoryId || String(catId) === String(filterCategoryId);
+    // For customers, allow filtering by supplier district.
+    // For suppliers ("My Inventory" view), ignore the district filter so
+    // they always see their own tools regardless of selection.
+    const district = eq.supplier?.district || '';
+    const inDistrict = isSupplier
+      ? true
+      : (!filterDistrict || (district && district.toLowerCase() === filterDistrict.toLowerCase()));
+    return inSearch && inCategory && inDistrict;
+  });
 
-    const handleCalcLateFee = async (bookingId) => {
-        try {
-            const res = await equipmentAPI.calculateLateFee(bookingId);
-            setLateFee(res.data.data);
-        } catch (err) {
-            alert('Error: ' + (err.response?.data?.message || 'Failed'));
-        }
-    };
+  const activeBookingsCount = myBookings.filter(b => b.bookingStatus === 'reserved' || b.bookingStatus === 'rented_out').length;
+  const returnedBookingsCount = myBookings.filter(b => b.bookingStatus === 'returned').length;
 
-    const handleDelete = async (id) => {
-        if (!confirm('Delete this equipment?')) return;
-        try {
-            await equipmentAPI.delete(id);
-            loadEquipment();
-        } catch (err) {
-            alert('Error: ' + (err.response?.data?.message || 'Failed'));
-        }
-    };
+  const hasActiveFilters = !!(search.trim() || filterCategoryId || (!isSupplier && filterDistrict));
 
-    return (
+  return (
+    <div className="fade-in">
+      {/* Header */}
+      <div className="page-header">
         <div>
-            <div className="flex items-center justify-between mb-6">
-                <div>
-                    <h1 className="text-2xl font-extrabold text-slate-800">🔧 Equipment Rental</h1>
-                    <p className="text-slate-500 text-sm">Browse and rent tools & equipment</p>
-                </div>
-                <div className="flex gap-2">
-                    {(user?.role === 'supplier' || user?.role === 'admin') && (
-                        <button onClick={() => setShowAddForm(true)} className="bg-purple-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-purple-700 transition-colors shadow">
-                            + Add Equipment
-                        </button>
-                    )}
-                </div>
-            </div>
-
-            {/* Tabs */}
-            <div className="flex gap-2 mb-6">
-                {['browse', 'my-rentals'].map(t => (
-                    <button key={t} onClick={() => setTab(t)}
-                        className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${tab === t ? 'bg-purple-600 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}`}>
-                        {t === 'browse' ? '🔧 Browse Equipment' : '📦 My Rentals'}
-                    </button>
-                ))}
-            </div>
-
-            {error && <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-3 mb-4 text-sm">{error}</div>}
-
-            {loading ? (
-                <div className="flex items-center justify-center h-48">
-                    <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-                </div>
-            ) : tab === 'browse' ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {equipment.length === 0 ? (
-                        <div className="col-span-3 bg-white rounded-2xl p-12 text-center border border-slate-100">
-                            <div className="text-5xl mb-3">🔧</div>
-                            <p className="text-slate-500">No equipment available.</p>
-                        </div>
-                    ) : equipment.map(eq => (
-                        <div key={eq.equipmentId} className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 hover:shadow-md transition-all">
-                            <div className="flex items-start justify-between mb-3">
-                                <h3 className="font-bold text-slate-800 text-base">{eq.equipmentName}</h3>
-                                <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium capitalize">
-                                    {eq.equipmentCondition?.replace('_', '')}
-                                </span>
-                            </div>
-                            {eq.equipmentDescription && <p className="text-sm text-slate-500 mb-3 line-clamp-2">{eq.equipmentDescription}</p>}
-                            <div className="text-xs text-slate-400 space-y-1 mb-4">
-                                <p>🏷 {eq.equipmentCategory?.categoryName}</p>
-                                <p>💰 LKR {eq.rentalPricePerDay}/day</p>
-                                <p>🔒 Deposit: LKR {eq.depositAmount}</p>
-                                <p>📦 Available: {eq.quantityAvailable}/{eq.quantityTotal}</p>
-                            </div>
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => { setShowBookForm(eq); setBookForm({ rentalStartDate: '', rentalEndDate: '', notes: '' }); }}
-                                    className="flex-1 bg-purple-600 text-white rounded-xl py-2 text-sm font-semibold hover:bg-purple-700 transition-colors"
-                                >
-                                    Rent Now
-                                </button>
-                                {(user?.role === 'supplier' || user?.role === 'admin') && (
-                                    <button onClick={() => handleDelete(eq.equipmentId)} className="bg-red-50 text-red-500 rounded-xl px-3 py-2 text-sm hover:bg-red-100 transition-colors">
-                                        🗑
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            ) : (
-                <div className="space-y-4">
-                    {myBookings.length === 0 ? (
-                        <div className="bg-white rounded-2xl p-12 text-center border border-slate-100">
-                            <div className="text-5xl mb-3">📦</div>
-                            <p className="text-slate-500">No rentals yet.</p>
-                        </div>
-                    ) : myBookings.map(b => (
-                        <div key={b.equipmentBookingId} className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 hover:shadow-md transition-shadow">
-                            <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <h3 className="font-bold text-slate-800">{b.equipment?.equipmentName}</h3>
-                                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[b.bookingStatus] || 'bg-gray-100 text-gray-600'}`}>
-                                            {b.bookingStatus?.replace('_', ' ')}
-                                        </span>
-                                    </div>
-                                    <div className="text-sm text-slate-500 space-y-1">
-                                        <p>📅 {b.rentalStartDate} → {b.rentalEndDate}</p>
-                                        <p>💰 Base: LKR {b.baseRentalCost} ({b.totalDays} days × LKR {b.dailyRate}/day)</p>
-                                        {b.lateFee > 0 && <p className="text-red-500 font-medium">⚠️ Late fee: LKR {b.lateFee}</p>}
-                                        <p className="font-semibold text-slate-700">Total: LKR {b.totalCost}</p>
-                                    </div>
-                                </div>
-                                <div className="flex flex-col gap-2 ml-4">
-                                    {(b.bookingStatus === 'rented_out' || b.bookingStatus === 'reserved') && (
-                                        <>
-                                            <button onClick={() => handleReturn(b.equipmentBookingId)}
-                                                className="text-xs bg-green-50 text-green-600 px-3 py-1.5 rounded-lg hover:bg-green-100 transition-colors">
-                                                Return
-                                            </button>
-                                            <button onClick={() => handleCalcLateFee(b.equipmentBookingId)}
-                                                className="text-xs bg-orange-50 text-orange-600 px-3 py-1.5 rounded-lg hover:bg-orange-100 transition-colors">
-                                                Late Fee?
-                                            </button>
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            )}
-
-            {/* Add Equipment Modal */}
-            {showAddForm && (
-                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-lg max-h-[90vh] overflow-y-auto">
-                        <h2 className="text-xl font-bold text-slate-800 mb-5">Add Equipment</h2>
-                        <form onSubmit={handleAddEquipment} className="space-y-4">
-                            <div>
-                                <label className="block text-xs font-semibold text-slate-500 mb-1">Category</label>
-                                <select required value={addForm.categoryId} onChange={e => setAddForm({ ...addForm, categoryId: e.target.value })}
-                                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-purple-500">
-                                    <option value="">Select category</option>
-                                    {categories.map(c => <option key={c.equipmentCategoryId} value={c.equipmentCategoryId}>{c.categoryName}</option>)}
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-semibold text-slate-500 mb-1">Equipment Name</label>
-                                <input required value={addForm.equipmentName} onChange={e => setAddForm({ ...addForm, equipmentName: e.target.value })}
-                                    placeholder="e.g. Hammer Drill"
-                                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-semibold text-slate-500 mb-1">Description</label>
-                                <textarea value={addForm.equipmentDescription} onChange={e => setAddForm({ ...addForm, equipmentDescription: e.target.value })} rows={2}
-                                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-semibold text-slate-500 mb-1">Condition</label>
-                                <select value={addForm.equipmentCondition} onChange={e => setAddForm({ ...addForm, equipmentCondition: e.target.value })}
-                                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-purple-500">
-                                    {['new_', 'excellent', 'good', 'fair'].map(c => <option key={c} value={c}>{c.replace('_', '')}</option>)}
-                                </select>
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label className="block text-xs font-semibold text-slate-500 mb-1">Price/Day (LKR)</label>
-                                    <input required type="number" value={addForm.rentalPricePerDay} onChange={e => setAddForm({ ...addForm, rentalPricePerDay: e.target.value })}
-                                        className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-semibold text-slate-500 mb-1">Deposit (LKR)</label>
-                                    <input required type="number" value={addForm.depositAmount} onChange={e => setAddForm({ ...addForm, depositAmount: e.target.value })}
-                                        className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                    />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-semibold text-slate-500 mb-1">Quantity</label>
-                                <input type="number" min="1" value={addForm.quantityTotal} onChange={e => setAddForm({ ...addForm, quantityTotal: e.target.value })}
-                                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                />
-                            </div>
-                            <div className="flex gap-3">
-                                <button type="submit" className="flex-1 bg-purple-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-purple-700 transition-colors">Add</button>
-                                <button type="button" onClick={() => setShowAddForm(false)} className="flex-1 bg-slate-100 rounded-xl py-2.5 text-sm font-semibold hover:bg-slate-200 transition-colors">Cancel</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-
-            {/* Book Modal */}
-            {showBookForm && (
-                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
-                        <h2 className="text-xl font-bold text-slate-800 mb-1">Rent: {showBookForm.equipmentName}</h2>
-                        <p className="text-sm text-slate-500 mb-5">LKR {showBookForm.rentalPricePerDay}/day · Deposit: LKR {showBookForm.depositAmount}</p>
-                        <form onSubmit={handleBook} className="space-y-4">
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label className="block text-xs font-semibold text-slate-500 mb-1">Start Date</label>
-                                    <input required type="date" value={bookForm.rentalStartDate} onChange={e => setBookForm({ ...bookForm, rentalStartDate: e.target.value })}
-                                        className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-semibold text-slate-500 mb-1">End Date</label>
-                                    <input required type="date" value={bookForm.rentalEndDate} onChange={e => setBookForm({ ...bookForm, rentalEndDate: e.target.value })}
-                                        className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                    />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-semibold text-slate-500 mb-1">Notes (optional)</label>
-                                <textarea value={bookForm.notes} onChange={e => setBookForm({ ...bookForm, notes: e.target.value })} rows={2}
-                                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                />
-                            </div>
-                            <div className="flex gap-3">
-                                <button type="submit" className="flex-1 bg-purple-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-purple-700 transition-colors">Confirm Rental</button>
-                                <button type="button" onClick={() => setShowBookForm(null)} className="flex-1 bg-slate-100 rounded-xl py-2.5 text-sm font-semibold hover:bg-slate-200 transition-colors">Cancel</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-
-            {/* Late Fee Modal */}
-            {lateFee && (
-                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm">
-                        <h2 className="text-xl font-bold text-slate-800 mb-5">⚠️ Late Fee Calculation</h2>
-                        {lateFee.daysOverdue === 0 ? (
-                            <p className="text-green-600 font-medium">✅ Not overdue! No late fee applies.</p>
-                        ) : (
-                            <div className="space-y-2 text-sm text-slate-700">
-                                <p>📅 Due: <strong>{lateFee.rentalEndDate}</strong></p>
-                                <p>⏱ Days overdue: <strong className="text-red-600">{lateFee.daysOverdue}</strong></p>
-                                <p>💰 Daily late fee rate: <strong>LKR {lateFee.dailyLateFeeRate}</strong></p>
-                                <p className="text-lg font-extrabold text-red-600 pt-2 border-t border-slate-100">
-                                    Total Late Fee: LKR {lateFee.totalLateFee}
-                                </p>
-                            </div>
-                        )}
-                        <button onClick={() => setLateFee(null)} className="mt-6 w-full bg-slate-100 rounded-xl py-2 text-sm font-semibold hover:bg-slate-200 transition-colors">Close</button>
-                    </div>
-                </div>
-            )}
+          <h1 className="page-title">{isSupplier ? 'Equipment Inventory' : 'Equipment Rentals'}</h1>
+          <p className="page-subtitle">{isSupplier ? 'Manage and track the tools you list on SkillConnect' : 'Browse and rent professional tools and equipment for your projects'}</p>
         </div>
-    );
+        {isSupplier && (
+          <button onClick={() => { setShowForm(true); setEditId(null); setForm(EMPTY_FORM); }} className="btn-primary">
+            + Add Equipment
+          </button>
+        )}
+      </div>
+
+      {/* Tabs */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
+        {TABS.map(t => (
+          <button key={t.key} onClick={() => setTab(t.key)}
+            style={{
+              padding: '10px 20px', borderRadius: 12, border: 'none', cursor: 'pointer',
+              fontSize: 13, fontWeight: 700,
+              background: tab === t.key ? 'linear-gradient(135deg,#f97316,#ea580c)' : '#fff',
+              color: tab === t.key ? '#fff' : '#64748b',
+              border: tab === t.key ? 'none' : '1.5px solid #e5e7eb',
+              boxShadow: tab === t.key ? '0 4px 16px rgba(0,0,0,0.28)' : 'none',
+              transition: 'all 0.2s'
+            }}>{t.label}</button>
+        ))}
+      </div>
+
+      {error && <div className="alert-error" style={{ marginBottom: 20 }}>❌ {error}</div>}
+
+      {/* Equipment Form Modal */}
+      {showForm && (
+        <div style={MODAL_OVERLAY} onClick={() => setShowForm(false)}>
+          <div style={MODAL_CARD} onClick={e => e.stopPropagation()} className="scale-in">
+            <h2 style={{ fontSize: 20, fontWeight: 800, color: '#0c4a6e', marginBottom: 20 }}>
+              {editId ? 'Edit Equipment' : 'Add New Equipment'}
+            </h2>
+            <form onSubmit={handleSubmitEquipment} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <label className="hm-label">Equipment Name</label>
+                <input type="text" className="hm-input" required value={form.equipmentName} onChange={e => setForm({ ...form, equipmentName: e.target.value })} placeholder="e.g. Jackhammer" />
+              </div>
+              <div>
+                <label className="hm-label">Description</label>
+                <textarea className="hm-input" rows={2} value={form.equipmentDescription} onChange={e => setForm({ ...form, equipmentDescription: e.target.value })} placeholder="Brief details about the tool..." style={{ resize: 'none' }} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div>
+                  <label className="hm-label">Condition</label>
+                  <select className="hm-input" value={form.equipmentCondition} onChange={e => setForm({ ...form, equipmentCondition: e.target.value })}>
+                    <option value="new">New</option>
+                    <option value="excellent">Excellent</option>
+                    <option value="good">Good</option>
+                    <option value="fair">Fair</option>
+                  </select>
+                </div>
+                {categories.length > 0 && (
+                  <div>
+                    <label className="hm-label">Category</label>
+                    <select className="hm-input" value={form.equipmentCategoryId} onChange={e => setForm({ ...form, equipmentCategoryId: e.target.value })}>
+                      <option value="">Select</option>
+                      {categories.map(c => <option key={c.equipmentCategoryId || c.id} value={c.equipmentCategoryId || c.id}>{c.categoryName}</option>)}
+                    </select>
+                  </div>
+                )}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div>
+                  <label className="hm-label">Daily Rate (LKR)</label>
+                  <input type="number" className="hm-input" required value={form.rentalPricePerDay} onChange={e => setForm({ ...form, rentalPricePerDay: e.target.value })} />
+                </div>
+                <div>
+                  <label className="hm-label">Deposit (LKR)</label>
+                  <input type="number" className="hm-input" required value={form.depositAmount} onChange={e => setForm({ ...form, depositAmount: e.target.value })} />
+                </div>
+              </div>
+              <div>
+                <label className="hm-label">Available Qty</label>
+                <input
+                  type="number"
+                  className="hm-input"
+                  min="1"
+                  value={form.quantityAvailable}
+                  onChange={e => setForm({ ...form, quantityAvailable: e.target.value })}
+                />
+              </div>
+              <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+                <button type="submit" className="btn-primary" style={{ flex: 1 }}>{editId ? 'Update Listing' : 'Submit Listing'}</button>
+                <button type="button" onClick={() => setShowForm(false)} className="btn-secondary" style={{ flex: 1 }}>Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Rent Modal */}
+      {showBook && (
+        <div style={MODAL_OVERLAY} onClick={() => setShowBook(false)}>
+          <div style={MODAL_CARD} onClick={e => e.stopPropagation()} className="scale-in">
+            <h2 style={{ fontSize: 20, fontWeight: 800, color: '#0c4a6e', marginBottom: 20 }}>Rent Tool</h2>
+            <form onSubmit={handleBook} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div>
+                  <label className="hm-label">Start Date</label>
+                  <input type="date" className="hm-input" required min={today} value={bookForm.rentalStartDate} onChange={e => setBookForm({ ...bookForm, rentalStartDate: e.target.value })} />
+                </div>
+                <div>
+                  <label className="hm-label">End Date</label>
+                  <input type="date" className="hm-input" required min={bookForm.rentalStartDate || today} value={bookForm.rentalEndDate} onChange={e => setBookForm({ ...bookForm, rentalEndDate: e.target.value })} />
+                </div>
+              </div>
+              <div>
+                <label className="hm-label">Quantity to Rent</label>
+                <input type="number" className="hm-input" min="1" required value={bookForm.quantity} onChange={e => setBookForm({ ...bookForm, quantity: e.target.value })} />
+              </div>
+              <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+                <button type="submit" className="btn-primary" style={{ flex: 1 }}>Confirm Rental</button>
+                <button type="button" onClick={() => setShowBook(false)} className="btn-secondary" style={{ flex: 1 }}>Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {loading ? (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 200, color: '#0891b2', gap: 12 }}>
+          <span className="spinner" /> Loading inventory...
+        </div>
+      ) : tab === 'browse' ? (
+        filteredEquipment.length === 0 ? (
+          <div className="hm-card" style={{ padding: 60, textAlign: 'center' }}>
+            <div style={{ fontSize: 60, marginBottom: 16 }}>📦</div>
+            <h3 style={{ fontSize: 18, fontWeight: 800, color: '#0c4a6e', marginBottom: 4 }}>No equipment found</h3>
+            <p style={{ color: '#64748b', marginBottom: hasActiveFilters && !isSupplier ? 16 : 0 }}>
+              {isSupplier
+                ? 'Start by adding your first tool to the inventory.'
+                : (hasActiveFilters
+                  ? 'No tools match your current filters.'
+                  : 'Try adjusting your search or filters, or check back later.')}
+            </p>
+            {!isSupplier && hasActiveFilters && (
+              <button
+                type="button"
+                className="btn-secondary"
+                style={{ marginTop: 4 }}
+                onClick={() => {
+                  setSearch('');
+                  setFilterCategoryId('');
+                  setFilterDistrict('');
+                }}
+              >
+                Reset filters
+              </button>
+            )}
+          </div>
+        ) : (
+          <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+            {/* Left column: search + results */}
+            <div style={{ flex: '1 1 620px', minWidth: 'min(100%, 620px)' }}>
+              <div
+                style={{
+                  marginBottom: 20,
+                  padding: 18,
+                  borderRadius: 18,
+                  background: '#eff4ff',
+                  boxShadow: '0 4px 20px rgba(15,23,42,0.04)',
+                }}
+              >
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', marginBottom: 10 }}>
+                  <div style={{ flex: '1 1 220px', minWidth: 220 }}>
+                    <label className="hm-label" style={{ marginBottom: 4 }}>
+                      Search tools or equipment
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <span
+                        style={{
+                          position: 'absolute',
+                          left: 12,
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          fontSize: 15,
+                          color: '#9ca3af',
+                        }}
+                      >
+                        🔍
+                      </span>
+                      <input
+                        className="hm-input"
+                        placeholder="Search by name or description"
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                        style={{ paddingLeft: 36, background: '#ffffff' }}
+                      />
+                    </div>
+                  </div>
+
+                  {categories.length > 0 && (
+                    <div style={{ flex: '0 1 200px', minWidth: 200 }}>
+                      <label className="hm-label" style={{ marginBottom: 4 }}>
+                        Category
+                      </label>
+                      <select
+                        className="hm-input"
+                        value={filterCategoryId}
+                        onChange={e => setFilterCategoryId(e.target.value)}
+                        style={{ background: '#ffffff' }}
+                      >
+                        <option value="">All categories</option>
+                        {categories.map(c => (
+                          <option
+                            key={c.equipmentCategoryId || c.id}
+                            value={c.equipmentCategoryId || c.id}
+                          >
+                            {c.categoryName}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {!isSupplier && (
+                    <div style={{ flex: '0 1 200px', minWidth: 200 }}>
+                      <label className="hm-label" style={{ marginBottom: 4 }}>
+                        District
+                      </label>
+                      <DistrictSelect
+                        value={filterDistrict}
+                        onChange={(value) => setFilterDistrict(value || '')}
+                        required={false}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
+                  gap: 18,
+                }}
+              >
+                {filteredEquipment.map(eq => (
+                  <div
+                    key={eq.equipmentId || eq.id}
+                    className="hm-card"
+                    style={{
+                      padding: 16,
+                      borderRadius: 22,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      minHeight: 240,
+                    }}
+                  >
+                    <div style={{ marginBottom: 10 }}>
+                      <div
+                        style={{
+                          width: '100%',
+                          height: 130,
+                          borderRadius: 18,
+                          overflow: 'hidden',
+                          background: 'linear-gradient(135deg,#e0f2fe,#f5f5ff)',
+                          border: '1px solid #dbeafe',
+                          marginBottom: 10,
+                        }}
+                      >
+                        <img
+                          src={getEquipmentImage(eq)}
+                          alt={eq.equipmentName || 'Equipment photo'}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                        />
+                      </div>
+
+                      <h3
+                        style={{
+                          fontSize: 15,
+                          fontWeight: 800,
+                          color: '#0c4a6e',
+                          marginBottom: 2,
+                        }}
+                      >
+                        {eq.equipmentName}
+                      </h3>
+                      <p style={{ fontSize: 12, color: '#64748b', marginBottom: 6 }}>
+                        {eq.categoryName || 'General Equipment'}
+                      </p>
+                      {eq.equipmentDescription && (
+                        <p
+                          style={{
+                            fontSize: 12,
+                            color: '#475569',
+                            lineHeight: 1.5,
+                            marginBottom: 8,
+                            maxHeight: 34,
+                            overflow: 'hidden',
+                          }}
+                        >
+                          {eq.equipmentDescription}
+                        </p>
+                      )}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                        <span className={`badge ${CONDITION_COLORS[eq.equipmentCondition] || 'badge-gray'}`}>
+                          {eq.equipmentCondition}
+                        </span>
+                        <span className="badge badge-gray">
+                          Qty: {eq.quantityAvailable ?? eq.quantityTotal ?? 0}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        marginTop: 4,
+                      }}
+                    >
+                      <div>
+                        <div>
+                          <span
+                            style={{
+                              fontSize: 18,
+                              fontWeight: 900,
+                              color: '#0891b2',
+                            }}
+                          >
+                            Rs.{eq.rentalPricePerDay}
+                          </span>
+                          <span style={{ fontSize: 12, color: '#94a3b8' }}>
+                            /day
+                          </span>
+                        </div>
+                        {eq.depositAmount && (
+                          <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>
+                            Deposit Rs.{eq.depositAmount}
+                          </div>
+                        )}
+                      </div>
+
+                      {isSupplier ? (
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <button
+                            onClick={() => handleEdit(eq)}
+                            className="btn-secondary"
+                            style={{ padding: '6px 10px', fontSize: 12 }}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDelete(eq.equipmentId || eq.id)}
+                            className="btn-danger"
+                            style={{ padding: '6px 10px', fontSize: 12 }}
+                          >
+                            🗑
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => openBookModal(eq)}
+                          className="btn-primary"
+                          style={{ padding: '8px 16px', fontSize: 13 }}
+                        >
+                          Rent Now
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Right column: snapshot & recent */}
+            <div style={{ flex: '1 1 260px', minWidth: 260, maxWidth: 360, display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div className="hm-card" style={{ padding: 18 }}>
+                <h3 className="section-title" style={{ fontSize: 16, marginBottom: 8 }}>
+                  {isSupplier ? 'Inventory snapshot' : 'Rental snapshot'}
+                </h3>
+                <p className="section-sub" style={{ marginBottom: 14 }}>
+                  {isSupplier
+                    ? 'Quick view of your listed tools and current bookings.'
+                    : 'Overview of your current and past equipment rentals.'}
+                </p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginBottom: 14 }}>
+                  <div>
+                    <div style={{ fontSize: 11, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                      Active
+                    </div>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: '#0c4a6e' }}>{activeBookingsCount}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                      Returned
+                    </div>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: '#0c4a6e' }}>{returnedBookingsCount}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                      Total
+                    </div>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: '#0c4a6e' }}>{myBookings.length}</div>
+                  </div>
+                </div>
+                <div
+                  style={{
+                    height: 6,
+                    borderRadius: 999,
+                    background: '#e5e7eb',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: `${myBookings.length ? Math.min(100, (activeBookingsCount / myBookings.length) * 100) : 0}%`,
+                      height: '100%',
+                      background: 'linear-gradient(135deg,#f97316,#ea580c)',
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="hm-card" style={{ padding: 18 }}>
+                <h3 className="section-title" style={{ fontSize: 15, marginBottom: 8 }}>
+                  Recent rentals
+                </h3>
+                {myBookings.length === 0 ? (
+                  <p style={{ fontSize: 13, color: '#64748b' }}>
+                    {isSupplier
+                      ? 'Your latest equipment bookings will appear here.'
+                      : 'Your recent rentals will appear here once you book equipment.'}
+                  </p>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {myBookings.slice(0, 3).map(b => (
+                      <div
+                        key={b.equipmentBookingId || b.id}
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          fontSize: 13,
+                        }}
+                      >
+                        <div style={{ minWidth: 0 }}>
+                          <div
+                            style={{
+                              fontWeight: 600,
+                              color: '#0c4a6e',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                              maxWidth: 170,
+                            }}
+                          >
+                            {b.equipmentName || b.equipment?.equipmentName || 'Equipment'}
+                          </div>
+                          <div style={{ fontSize: 11, color: '#94a3b8' }}>
+                            {b.rentalStartDate} → {b.rentalEndDate}
+                          </div>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontSize: 11, color: '#64748b', marginBottom: 2 }}>
+                            {b.bookingStatus?.replace('_', ' ') || 'status'}
+                          </div>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: '#0891b2' }}>Rs.{b.totalCost || 0}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )
+      ) : (
+        /* Bookings Tab */
+        myBookings.length === 0 ? (
+          <div className="hm-card" style={{ padding: 60, textAlign: 'center' }}>
+            <div style={{ fontSize: 60, marginBottom: 16 }}>📜</div>
+            <h3 style={{ fontSize: 18, fontWeight: 800, color: '#0c4a6e', marginBottom: 4 }}>No rental history</h3>
+            <p style={{ color: '#64748b' }}>Your equipment rental activity will be listed here.</p>
+          </div>
+        ) : (
+          <div className="hm-card" style={{ overflow: 'hidden' }}>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13.5 }}>
+                <thead style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                  <tr>
+                    <th style={{ textAlign: 'left', padding: '16px 20px', fontWeight: 700, color: '#64748b' }}>Equipment</th>
+                    <th style={{ textAlign: 'left', padding: '16px 20px', fontWeight: 700, color: '#64748b' }}>Rental Period</th>
+                    <th style={{ textAlign: 'left', padding: '16px 20px', fontWeight: 700, color: '#64748b' }}>Status</th>
+                    <th style={{ textAlign: 'left', padding: '16px 20px', fontWeight: 700, color: '#64748b' }}>Total Cost</th>
+                    <th style={{ textAlign: 'right', padding: '16px 20px', fontWeight: 700, color: '#64748b' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody style={{ divideY: '1px solid #f1f5f9' }}>
+                  {myBookings.map(b => (
+                    <tr key={b.equipmentBookingId || b.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <td style={{ padding: '16px 20px', fontWeight: 800, color: '#0c4a6e' }}>
+                        {b.equipmentName || b.equipment?.equipmentName || `Item #${b.equipmentId || b.equipment?.equipmentId || 'N/A'}`}
+                      </td>
+                      <td style={{ padding: '16px 20px', color: '#475569' }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                          {b.rentalStartDate} <span style={{ opacity: 0.4 }}>→</span> {b.rentalEndDate}
+                        </span>
+                      </td>
+                      <td style={{ padding: '16px 20px' }}>
+                        <span className={`badge ${BOOKING_STATUS_COLORS[b.bookingStatus] || 'badge-gray'}`} style={{ textTransform: 'capitalize' }}>
+                          {(b.bookingStatus || '').replace('_', ' ')}
+                        </span>
+                      </td>
+                      <td style={{ padding: '16px 20px', fontWeight: 800, color: '#0891b2' }}>Rs.{b.totalCost || 0}</td>
+                      <td style={{ padding: '16px 20px', textAlign: 'right' }}>
+                        {(b.bookingStatus === 'rented_out' || b.bookingStatus === 'reserved') && (
+                          <button onClick={() => handleReturn(b.equipmentBookingId || b.id)} className="btn-secondary" style={{ padding: '6px 14px', fontSize: 12 }}>
+                            Return
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )
+      )}
+    </div>
+  );
 }

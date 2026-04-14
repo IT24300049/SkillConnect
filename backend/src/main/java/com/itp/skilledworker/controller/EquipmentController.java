@@ -95,6 +95,7 @@ public class EquipmentController {
                     userId,
                     body.getRentalStartDate(),
                     body.getRentalEndDate(),
+                    body.getQuantity(),
                     body.getNotes());
             return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok("Equipment booked", booking));
         } catch (Exception e) {
@@ -133,9 +134,30 @@ public class EquipmentController {
         }
     }
 
+    @GetMapping("/supplier/bookings")
+    public ResponseEntity<ApiResponse<List<EquipmentBooking>>> getSupplierBookings(Authentication auth) {
+        try {
+            Integer userId = getUserId(auth);
+            return ResponseEntity
+                    .ok(ApiResponse.ok("Supplier equipment bookings", equipmentService.getSupplierBookings(userId)));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        }
+    }
+
     @GetMapping("/categories")
     public ResponseEntity<ApiResponse<List<EquipmentCategory>>> getCategories() {
         return ResponseEntity.ok(ApiResponse.ok("Categories", equipmentService.getCategories()));
+    }
+
+    @GetMapping("/supplier/mine")
+    public ResponseEntity<ApiResponse<List<EquipmentInventory>>> getSupplierMine(Authentication auth) {
+        try {
+            Integer userId = getUserId(auth);
+            return ResponseEntity.ok(ApiResponse.ok("My supplier inventory", equipmentService.getSupplierEquipment(userId)));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        }
     }
 
     private Integer getUserId(Authentication auth) {

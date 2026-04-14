@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Worker Profile: Variant 2 | SkilledWorker</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2463eb",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111621",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+<header class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 lg:px-20 py-3 sticky top-0 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-3xl">architecture</span>
+<h2 class="text-slate-900 dark:text-white text-xl font-bold tracking-tight">SkilledWorker</h2>
+</div>
+<div class="hidden md:flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg px-3 py-1.5 border border-slate-200 dark:border-slate-700">
+<span class="material-symbols-outlined text-slate-500 text-xl">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-64 placeholder:text-slate-500" placeholder="Find experts or projects..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<nav class="hidden lg:flex items-center gap-6 text-sm font-medium text-slate-600 dark:text-slate-300">
+<a class="hover:text-primary transition-colors" href="#">Find Work</a>
+<a class="hover:text-primary transition-colors" href="#">Hire Workers</a>
+<a class="hover:text-primary transition-colors" href="#">Projects</a>
+</nav>
+<div class="h-6 w-px bg-slate-200 dark:bg-slate-700"></div>
+<button class="bg-primary text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors">My Account</button>
+<div class="size-9 rounded-full bg-slate-200 border border-slate-300 dark:border-slate-700 bg-cover bg-center" data-alt="Small profile picture of user" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC79CLHX1OsOmncZTCJ4WjBDzWPu7heijDJj43UXhtuWZQ7SYtKYLXbOEYNeSuoZFFG9SEzQBKYVtNEVs0S1gRbxL6Immd-C5ZV62Pd798x5KIRuKqsreARC5iRl1Ou5HQJpgP5EqbFiHrPjeesKVKT9eU0xMEanRPjPrqnSwmNsBO3QVNdWHXEJeLcT6Fj4EGmtRSJDoVtHEmcibA-aQoesY1r3rdKPnZJQypdiEULwc-II-oUEuaww1apnue7uyXcGYiL-ByPQkU')"></div>
+</div>
+</header>
+<main class="mx-auto max-w-[1280px] w-full px-6 lg:px-20 py-10">
+<div class="flex flex-col lg:flex-row gap-10">
+<aside class="w-full lg:w-1/3 flex flex-col gap-6">
+<div class="bg-white dark:bg-slate-900 rounded-xl p-8 border border-slate-200 dark:border-slate-800 shadow-sm text-center">
+<div class="size-32 rounded-full mx-auto mb-6 border-4 border-slate-50 dark:border-slate-800 shadow-lg bg-cover bg-center" data-alt="Portrait of Alex Rivers, Master Electrician" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCAQcYfufD9DmLRrzIaq2bRPF_AUF8AkSoNhWAISgJQTdB6PSvaRT3SukEBWL_Qk3gdsL9NTwXNPvMI_WExT2c7hqh4WvdstMlNLCYhVOIweIExY1ffd9emdMZza8dHmDjyrY3qdAjVBKyVC0fgS-Au69ZYEtle5qKXtxPXhb0UMBfL7-Bh_Ut6uAU0OZth8Rw-n3UJcnwSQ64qa4RYy0Z7j_pNo1f90tWKwl9bnTlb6tevips9bgn-5sTIVTDIT1q_WDcqN1_kkoc')"></div>
+<h1 class="text-2xl font-bold text-slate-900 dark:text-white mb-1">Alex Rivers</h1>
+<p class="text-primary font-medium mb-4">Master Electrician &amp; Automation Expert</p>
+<div class="flex items-center justify-center gap-2 mb-8 text-slate-500 text-sm">
+<span class="material-symbols-outlined text-sm">location_on</span>
+<span>Seattle, Washington</span>
+</div>
+<div class="flex flex-col gap-3">
+<button class="w-full bg-primary text-white py-3 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors">
+<span class="material-symbols-outlined">mail</span>
+                                Message Now
+                            </button>
+<button class="w-full bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white py-3 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined">calendar_today</span>
+                                Book Consultation
+                            </button>
+</div>
+</div>
+<div class="bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl p-6">
+<div class="flex justify-between items-center mb-4">
+<p class="text-slate-900 dark:text-white font-semibold">Response Rate</p>
+<span class="bg-green-100 dark:bg-green-900/30 text-green-600 text-xs font-bold px-2 py-0.5 rounded-full">+2% this month</span>
+</div>
+<div class="flex items-end gap-2">
+<p class="text-4xl font-black text-primary">98%</p>
+<p class="text-slate-500 text-sm pb-1">Average 2h response time</p>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800">
+<h3 class="text-slate-900 dark:text-white font-bold mb-4">Skills &amp; Certifications</h3>
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full text-xs font-medium">Smart Home Integration</span>
+<span class="px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full text-xs font-medium">Commercial Wiring</span>
+<span class="px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full text-xs font-medium">NEC Licensed</span>
+<span class="px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full text-xs font-medium">Solar Panel Install</span>
+<span class="px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full text-xs font-medium">EV Charger Specialist</span>
+</div>
+</div>
+</aside>
+<div class="w-full lg:w-2/3 flex flex-col gap-10">
+<section>
+<div class="flex items-center justify-between mb-6">
+<h2 class="text-2xl font-bold text-slate-900 dark:text-white">Portfolio</h2>
+<a class="text-primary text-sm font-semibold hover:underline" href="#">View All Projects</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="group relative aspect-video rounded-xl overflow-hidden cursor-pointer">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110" data-alt="Modern smart home electrical panel installation" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAX2lAaK4WOjtV2XAUoDuHvAccpKO7g4KzPSfpwHHja75kpnu5a38jgsjkTYoMNoSXinL-iJ5LqLHas1M4Eny_Bv-yMOlhLVEmVT2XeQlPTDiTipcG2EOWEJEHgjwnX49xnjuETg8tDIIjigf_KQSlcShBaTd7HuK0dhbtQTWVe0nX6qJoho_yhlCN5Ev9gQ4VN7SmbdrwM1O4sC7B1pPPLhlsDRSm3HqxfDWUUDrwkQxenjH4VI4nxvk8oiSR4dYD_Xyrd679emDE')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-4">
+<div>
+<p class="text-white font-bold">Smart Home Hub</p>
+<p class="text-slate-300 text-xs">Residential Installation</p>
+</div>
+</div>
+</div>
+<div class="group relative aspect-video rounded-xl overflow-hidden cursor-pointer">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110" data-alt="Industrial solar array on factory roof" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBkOJMOvapw6OQFDfyttw9l3NgmWKgnMBjyV-dETQDL4dkM_zQTccm7mGZP7CKh3jGyJ1UrJfnhG5XFRYlBue4zWBMrBQZsRB-eaNig2eW0vmBkQsDDEhq57azZ4JrOxl3_PIh0CjV0sSqXk9ySqxff1FJPX407DPM89b4GXUJovzmWjDXVidOvCkNnQTc-vyWkUgbS4WxOJSgGLvd2Ilo1hfLvU3UJMuJWzJnSsXtBaHwBY-GjNdMyTOO1tWW3eRaunOCBhgkv2HE')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-4">
+<div>
+<p class="text-white font-bold">Solar Array Project</p>
+<p class="text-slate-300 text-xs">Sustainable Energy</p>
+</div>
+</div>
+</div>
+<div class="group relative aspect-video rounded-xl overflow-hidden cursor-pointer">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110" data-alt="EV Charging station setup in garage" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAmXZXPEuywH8l678_JhT6GL59kqQRQS08tfK-QrPyZOINPYsSYA57kFgOeQ4PVIqkaGZ2eanA6fU_LBXbCy9VfxXrOz34WZg0zdLEGGTBNTm9X0OTBl0i0nHNzo3fMJJwf0Hi8yvRtTc-WTDOw6Rwr0Hgehde-s8Dz3rVw5iSpq25LXpAezaOLSvaf7lSnWWuIXbFFXofFobrsdeCnar5a75V1CVeutXajDfdtRziw_w4CL1DChiEs1GZnrHqdjazoXzroN1rSsHI')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-4">
+<div>
+<p class="text-white font-bold">Commercial EV Ports</p>
+<p class="text-slate-300 text-xs">Retail Center</p>
+</div>
+</div>
+</div>
+<div class="group relative aspect-video rounded-xl overflow-hidden cursor-pointer">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110" data-alt="Custom lighting design in modern office" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCL40ZG5qAvkAaBm2rEYo9WVbJrunp2kEFLYrTOJjJ4GngccOu9M_vSEre-nc2l5n_--RqNPiJk9_49cgY0Pyr5ZGvr8pQhO_eibCGmkaUfvRZVnwhlEBvuSALKm4f2Zu5E3_rR_0s1ALlt1MB2NPeD_ER3oufSPc09ti39rsEm_cc3ohnpWy3AHGEXDtRceIAU3MLHH_dk_ZY1SH3g36Monvb9fqHhVze3ymNeYyaFEdg1vT2z8aCagqz_L_BDJy_PD8Jk9XHhJoA')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-4">
+<div>
+<p class="text-white font-bold">Architectural Lighting</p>
+<p class="text-slate-300 text-xs">Custom Design</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section>
+<h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-6">Experience</h2>
+<div class="space-y-8 relative before:absolute before:left-[17px] before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-800">
+<div class="relative pl-12">
+<div class="absolute left-0 top-1 size-9 rounded-full bg-primary/10 border-2 border-primary flex items-center justify-center z-10">
+<span class="material-symbols-outlined text-primary text-sm">bolt</span>
+</div>
+<div>
+<h4 class="text-lg font-bold text-slate-900 dark:text-white">Senior Lead Electrician</h4>
+<p class="text-slate-500 text-sm font-medium">VoltLine Solutions • 2018 - Present</p>
+<p class="mt-2 text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Lead a team of 12 electricians on major commercial developments. Specializing in high-voltage infrastructure and complex automation systems for data centers.</p>
+</div>
+</div>
+<div class="relative pl-12">
+<div class="absolute left-0 top-1 size-9 rounded-full bg-slate-100 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 flex items-center justify-center z-10">
+<span class="material-symbols-outlined text-slate-500 text-sm">home</span>
+</div>
+<div>
+<h4 class="text-lg font-bold text-slate-900 dark:text-white">Industrial Service Technician</h4>
+<p class="text-slate-500 text-sm font-medium">Cascade Power &amp; Light • 2012 - 2018</p>
+<p class="mt-2 text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Focused on preventative maintenance for industrial machinery and facility-wide electrical audits.</p>
+</div>
+</div>
+</div>
+</section>
+<section>
+<div class="flex items-center justify-between mb-6">
+<h2 class="text-2xl font-bold text-slate-900 dark:text-white">Customer Reviews</h2>
+<div class="flex items-center gap-1 text-yellow-500">
+<span class="material-symbols-outlined text-xl">star</span>
+<span class="text-slate-900 dark:text-white font-bold">4.9</span>
+<span class="text-slate-500 text-sm font-normal">(142 reviews)</span>
+</div>
+</div>
+<div class="space-y-4">
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+<div class="flex justify-between items-start mb-4">
+<div class="flex gap-3">
+<div class="size-10 rounded-full bg-slate-200 bg-cover" data-alt="Reviewer avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuATz0M42GT__3xQbvIJmlVj3hiKGD1Itbx_99h0eYtVcDgD4bEP2ooQpCUyHI9ljyYCVji4J8og5YzA9J9tgJXJqCkZjKc0TL-dIaVVxrr2C5s_YV00vVgY1KRRuchUR5p2HAUtmZF4XAGXF-8-bTiWmP54m3FzEnuFB2pRBNsMyl0AjZ6ZGNkfkfW-hE3Y1lKqBuSBf-Mx_H6R_UBw-yCA0SElRSlj6vz7kkX4Sjkru5qUAq4WY85BI15TXg7YGd0HY8lw9Op2sTU')"></div>
+<div>
+<p class="font-bold text-sm">Sarah Jenkins</p>
+<p class="text-slate-500 text-xs">October 14, 2023</p>
+</div>
+</div>
+<div class="flex text-yellow-500">
+<span class="material-symbols-outlined text-sm">star</span>
+<span class="material-symbols-outlined text-sm">star</span>
+<span class="material-symbols-outlined text-sm">star</span>
+<span class="material-symbols-outlined text-sm">star</span>
+<span class="material-symbols-outlined text-sm">star</span>
+</div>
+</div>
+<p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed italic">"Alex was incredibly professional. He rewired our entire office building in record time and his attention to safety was impressive. Highly recommended for commercial work."</p>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+<div class="flex justify-between items-start mb-4">
+<div class="flex gap-3">
+<div class="size-10 rounded-full bg-slate-200 bg-cover" data-alt="Reviewer avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBeO_Xu7GX0XrqeRpC4gbibrct1U6MOrETfj58NSDwmJJMMhn36e6-pt_1Bhvi3YNx7HX7AmCc5O4hIUeFcn0wWs-37b7yYKaUE8ysK4iYlhgm1ZYcH5n2TOC13A8SRbF4sbMEirGIktU0Vy5UI8H0WSksDHPUzHuab_yC2F-397BfqM9WL0xsNJVoamUJhM1fO576_vD7F7WJQ3QG_6HCzEowFMkzPrbf2cWQ1b0AP9d6VhGqktvj18B-fNBC4iupOyb27YWVZ71I')"></div>
+<div>
+<p class="font-bold text-sm">Michael Chen</p>
+<p class="text-slate-500 text-xs">September 28, 2023</p>
+</div>
+</div>
+<div class="flex text-yellow-500">
+<span class="material-symbols-outlined text-sm">star</span>
+<span class="material-symbols-outlined text-sm">star</span>
+<span class="material-symbols-outlined text-sm">star</span>
+<span class="material-symbols-outlined text-sm">star</span>
+<span class="material-symbols-outlined text-sm">star</span>
+</div>
+</div>
+<p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed italic">"Super knowledgeable about smart home systems. He fixed a messy wiring job from a previous contractor and got our home hub running perfectly."</p>
+</div>
+</div>
+<button class="w-full mt-6 py-3 border border-slate-200 dark:border-slate-800 rounded-lg text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Load More Reviews</button>
+</section>
+</div>
+</div>
+</main>
+<footer class="mt-auto border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 lg:px-20 py-12">
+<div class="max-w-[1280px] mx-auto flex flex-col md:flex-row justify-between gap-10">
+<div class="flex flex-col gap-4 max-w-sm">
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined">architecture</span>
+<h2 class="text-slate-900 dark:text-white text-lg font-bold">SkilledWorker</h2>
+</div>
+<p class="text-slate-500 text-sm">Connecting certified tradespeople with the projects that matter most. Quality craftsmanship, verified reviews.</p>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-3 gap-10">
+<div class="flex flex-col gap-4">
+<h4 class="text-slate-900 dark:text-white font-bold text-sm">Platform</h4>
+<a class="text-slate-500 text-sm hover:text-primary" href="#">How it Works</a>
+<a class="text-slate-500 text-sm hover:text-primary" href="#">Worker Registry</a>
+<a class="text-slate-500 text-sm hover:text-primary" href="#">Safety Measures</a>
+</div>
+<div class="flex flex-col gap-4">
+<h4 class="text-slate-900 dark:text-white font-bold text-sm">Support</h4>
+<a class="text-slate-500 text-sm hover:text-primary" href="#">Help Center</a>
+<a class="text-slate-500 text-sm hover:text-primary" href="#">Contact Us</a>
+<a class="text-slate-500 text-sm hover:text-primary" href="#">Community</a>
+</div>
+<div class="flex flex-col gap-4">
+<h4 class="text-slate-900 dark:text-white font-bold text-sm">Follow Us</h4>
+<div class="flex gap-4">
+<a class="text-slate-400 hover:text-primary" href="#"><span class="material-symbols-outlined">public</span></a>
+<a class="text-slate-400 hover:text-primary" href="#"><span class="material-symbols-outlined">share</span></a>
+<a class="text-slate-400 hover:text-primary" href="#"><span class="material-symbols-outlined">camera</span></a>
+</div>
+</div>
+</div>
+</div>
+<div class="max-w-[1280px] mx-auto mt-12 pt-8 border-t border-slate-100 dark:border-slate-800 text-center text-slate-400 text-xs">
+                © 2024 SkilledWorker Inc. All rights reserved. Professional trades platform.
+            </div>
+</footer>
+</div>
+</body></html>

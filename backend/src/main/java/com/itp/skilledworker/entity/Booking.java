@@ -22,18 +22,18 @@ public class Booking {
     private Integer bookingId;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "job_id", nullable = false)
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "customer"})
+    @JoinColumn(name = "job_id", nullable = true)
+    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler", "customer" })
     private Job job;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "worker_id", nullable = false)
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
     private WorkerProfile worker;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "customer_id", nullable = false)
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
     private CustomerProfile customer;
 
     @Enumerated(EnumType.STRING)

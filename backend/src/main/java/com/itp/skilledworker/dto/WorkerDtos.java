@@ -15,6 +15,8 @@ public class WorkerDtos {
         private String city;
         private String district;
 
+        private String skillCategory;
+
         @DecimalMin(value = "0.0", inclusive = false, message = "Minimum hourly rate must be positive")
         private BigDecimal hourlyRateMin;
 

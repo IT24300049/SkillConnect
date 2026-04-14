@@ -32,6 +32,11 @@ public class Complaint {
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Booking booking;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "review_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    private Review review;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "complaint_category", nullable = false)
     private ComplaintCategory complaintCategory;

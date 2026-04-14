@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Worker Dashboard Overview - SkilledWorker</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ecec",
+                        "background-light": "#f6f8f8",
+                        "background-dark": "#102222",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
+<div class="relative flex h-screen w-full overflow-hidden">
+<!-- Sidebar Navigation -->
+<aside class="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col justify-between p-4 shrink-0">
+<div class="flex flex-col gap-8">
+<div class="flex items-center gap-3 px-2">
+<div class="size-10 bg-primary rounded-full flex items-center justify-center text-slate-900">
+<span class="material-symbols-outlined font-bold">handyman</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-slate-900 dark:text-slate-100 text-base font-bold leading-none">SkilledWorker</h1>
+<p class="text-slate-500 dark:text-slate-400 text-xs font-medium">Professional Account</p>
+</div>
+</div>
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-slate-900 dark:text-primary font-semibold" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+<span class="text-sm">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">work</span>
+<span class="text-sm font-medium">Available Jobs</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">task_alt</span>
+<span class="text-sm font-medium">My Jobs</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">calendar_today</span>
+<span class="text-sm font-medium">Calendar</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">star</span>
+<span class="text-sm font-medium">Reviews</span>
+</a>
+</nav>
+</div>
+<div class="border-t border-slate-200 dark:border-slate-800 pt-4">
+<div class="flex items-center gap-3 px-2">
+<div class="size-10 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Profile picture of a professional worker" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4DsDjbdxNGXt-lG_BQh35lHS0dl0hWPh6-QzM3yrLHpvMYt07GGVsOkeTg0AC8pOG7J8P3GPPV2Rm9DtArk6AzTusT95pM91Oh1lHrfWGu-rVnDAr9UVbpzyBLrW5E0A7mcndujY---Di8Iy5r9umBack2EWqscWMP0Muon46yPHUlC19YUg2Mb-A05xa9gfcnrVb64pQj4_dVdTqhCnzYbi8TmSpG2j91nIZOJCf7u4Egqa271009wPHs2fhtBVBhlWMePd6ej4"/>
+</div>
+<div class="flex flex-col overflow-hidden">
+<p class="text-sm font-bold truncate">Alex Johnson</p>
+<p class="text-xs text-slate-500 truncate">Settings &amp; Profile</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 overflow-y-auto bg-background-light dark:bg-background-dark p-8">
+<header class="mb-8">
+<h2 class="text-3xl font-black tracking-tight text-slate-900 dark:text-slate-100">Worker Dashboard</h2>
+<p class="text-slate-500 dark:text-slate-400 mt-1">Welcome back, Alex! Here's an overview of your active performance.</p>
+</header>
+<!-- Stats Grid -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium uppercase tracking-wider">Earnings this month</p>
+<span class="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-xs font-bold px-2 py-1 rounded">+12%</span>
+</div>
+<p class="text-3xl font-black text-slate-900 dark:text-slate-100">$4,250.00</p>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium uppercase tracking-wider">Jobs in Progress</p>
+<span class="bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 text-xs font-bold px-2 py-1 rounded">On Track</span>
+</div>
+<p class="text-3xl font-black text-slate-900 dark:text-slate-100">8</p>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium uppercase tracking-wider">Average Rating</p>
+<span class="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-xs font-bold px-2 py-1 rounded">Top Rated</span>
+</div>
+<div class="flex items-center gap-2">
+<p class="text-3xl font-black text-slate-900 dark:text-slate-100">4.8</p>
+<div class="flex text-amber-400">
+<span class="material-symbols-outlined text-[20px] fill-1">star</span>
+<span class="material-symbols-outlined text-[20px] fill-1">star</span>
+<span class="material-symbols-outlined text-[20px] fill-1">star</span>
+<span class="material-symbols-outlined text-[20px] fill-1">star</span>
+<span class="material-symbols-outlined text-[20px] fill-1">star_half</span>
+</div>
+</div>
+</div>
+</section>
+<div class="flex flex-col lg:flex-row gap-8">
+<!-- Available Jobs List -->
+<section class="flex-1">
+<div class="flex justify-between items-center mb-4 px-1">
+<h3 class="text-xl font-bold">Available Jobs Near You</h3>
+<a class="text-primary font-semibold text-sm hover:underline" href="#">View all jobs</a>
+</div>
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+<!-- Job Card 1 -->
+<div class="bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm group">
+<div class="h-32 bg-slate-200 overflow-hidden relative">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Modern kitchen with plumbing tools" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB82_94lcfTYA8qv8ztnLWB8aqBN8JoE19huw6W1KeJdZYGEg65slRMUDPoTZrxAnr02phOjD2us3yzj-5jNBwh10llsXA0DrQOnnOVSuhZt03P8nwXZvWlSd8Ys3DaOJxNNQhrEgSHbHPrAhl7JMPRd-YKnRT6eLkZnMnYsOuB1QFskB_CisCCYQBj358a4XhpRJ33veegFSHpvmOfAVw8ZqRw0BmGbfrAnrAzMGRY-Ut48xBPROEcnBpqbbE7dgxfQeDlbDVlMyo"/>
+<span class="absolute top-3 right-3 bg-red-500 text-white text-[10px] font-black px-2 py-1 rounded uppercase">Urgent</span>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-2">
+<h4 class="font-bold text-lg group-hover:text-primary transition-colors">Kitchen Plumbing Repair</h4>
+<span class="text-slate-900 dark:text-primary font-black">$250</span>
+</div>
+<div class="flex flex-col gap-1 mb-4">
+<div class="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-xs">
+<span class="material-symbols-outlined text-sm">location_on</span>
+<span>Downtown, NY</span>
+</div>
+<div class="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-xs">
+<span class="material-symbols-outlined text-sm">schedule</span>
+<span>Posted 2h ago</span>
+</div>
+</div>
+<button class="w-full bg-primary hover:bg-primary/80 text-slate-900 font-bold py-2 rounded transition-colors text-sm">Apply Now</button>
+</div>
+</div>
+<!-- Job Card 2 -->
+<div class="bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm group">
+<div class="h-32 bg-slate-200 overflow-hidden relative">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Lush green garden landscaping project" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDZrdX4H2LAkk8TGc6H66_stCs5PmkfPQWnn-tiU2c4VLY8Op9LDKksgjaScSuhXY_1F1cPaGNpvakjpei4AiY2dARmuBCwa66edNkcxjWbGNkM4eymSHYiFje9p5_WJ0I3NyEWDNmy844GFyq5i3bFs8zaiUQToUG_2DykU08ByMkYqxwgUcAxl_6tE5hZV3OQ4Z-MMzY33yCAlQqiAELiwPGwbzjwuvlrCVzxhT1LrB9vyAPqVUT50hhKgGbL27v8apV6aD4tj3o"/>
+<span class="absolute top-3 right-3 bg-primary text-slate-900 text-[10px] font-black px-2 py-1 rounded uppercase">Scheduled</span>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-2">
+<h4 class="font-bold text-lg group-hover:text-primary transition-colors">Garden Landscaping</h4>
+<span class="text-slate-900 dark:text-primary font-black">$400</span>
+</div>
+<div class="flex flex-col gap-1 mb-4">
+<div class="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-xs">
+<span class="material-symbols-outlined text-sm">location_on</span>
+<span>Brooklyn, NY</span>
+</div>
+<div class="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-xs">
+<span class="material-symbols-outlined text-sm">calendar_month</span>
+<span>Starts Oct 12th</span>
+</div>
+</div>
+<button class="w-full bg-primary hover:bg-primary/80 text-slate-900 font-bold py-2 rounded transition-colors text-sm">Apply Now</button>
+</div>
+</div>
+<!-- Job Card 3 -->
+<div class="bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm group">
+<div class="h-32 bg-slate-200 overflow-hidden relative">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Electrical control panel with wires" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAhVrSpeHneGEg6RebAIluDoT9Sjp69ZAUO22fFdPRZW44kCU_6TqOT0lMIw4h5oxtM39Zx2D5LnEDVc5Ar3JOw2eHxDPqaIjIFOELGnaOmUL4FsUD8ekb_btU8k9iZ8eKFhljzD8jKvi9v43v-laC8qOt1o6-BuPuiot8r8xKo2A6_eOv3OeJznD4EfMEfsXEszZN-3C3g4i6XGIGJcUhz2jgzrrD7ddcra39rXumEkMxO6P1BmaSgopLcwd4WyoBNiup5NhPncrQ"/>
+<span class="absolute top-3 right-3 bg-slate-200 text-slate-700 text-[10px] font-black px-2 py-1 rounded uppercase">New</span>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-2">
+<h4 class="font-bold text-lg group-hover:text-primary transition-colors">Residential Rewiring</h4>
+<span class="text-slate-900 dark:text-primary font-black">$180</span>
+</div>
+<div class="flex flex-col gap-1 mb-4">
+<div class="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-xs">
+<span class="material-symbols-outlined text-sm">location_on</span>
+<span>Queens, NY</span>
+</div>
+<div class="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-xs">
+<span class="material-symbols-outlined text-sm">history</span>
+<span>Posted 10m ago</span>
+</div>
+</div>
+<button class="w-full bg-primary hover:bg-primary/80 text-slate-900 font-bold py-2 rounded transition-colors text-sm">Apply Now</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Sidebar Widgets -->
+<aside class="w-full lg:w-80 flex flex-col gap-6">
+<!-- Calendar Widget -->
+<div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-center mb-5">
+<h3 class="font-bold text-sm uppercase tracking-wider text-slate-500">Upcoming Appointments</h3>
+<span class="material-symbols-outlined text-slate-400 text-lg">event_note</span>
+</div>
+<div class="flex flex-col gap-4">
+<div class="flex gap-4">
+<div class="flex flex-col items-center justify-center min-w-10 h-12 bg-primary/10 rounded-lg">
+<span class="text-[10px] font-black text-primary leading-none">OCT</span>
+<span class="text-lg font-black text-slate-900 dark:text-slate-100 leading-none">05</span>
+</div>
+<div class="flex flex-col">
+<p class="text-sm font-bold truncate">HVAC Maintenance</p>
+<p class="text-[11px] text-slate-500">09:00 AM - 11:30 AM</p>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="flex flex-col items-center justify-center min-w-10 h-12 bg-slate-100 dark:bg-slate-800 rounded-lg">
+<span class="text-[10px] font-black text-slate-500 leading-none">OCT</span>
+<span class="text-lg font-black text-slate-900 dark:text-slate-100 leading-none">07</span>
+</div>
+<div class="flex flex-col">
+<p class="text-sm font-bold truncate">Pool Cleaning</p>
+<p class="text-[11px] text-slate-500">02:00 PM - 04:00 PM</p>
+</div>
+</div>
+<div class="flex gap-4 opacity-60">
+<div class="flex flex-col items-center justify-center min-w-10 h-12 bg-slate-100 dark:bg-slate-800 rounded-lg">
+<span class="text-[10px] font-black text-slate-500 leading-none">OCT</span>
+<span class="text-lg font-black text-slate-900 dark:text-slate-100 leading-none">10</span>
+</div>
+<div class="flex flex-col">
+<p class="text-sm font-bold truncate">Roof Inspection</p>
+<p class="text-[11px] text-slate-500">08:00 AM - 10:00 AM</p>
+</div>
+</div>
+</div>
+<button class="w-full mt-6 py-2 border border-slate-200 dark:border-slate-800 rounded text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">View Full Calendar</button>
+</div>
+<!-- Profile Completeness -->
+<div class="bg-primary/5 p-5 rounded-xl border border-primary/20">
+<h3 class="font-bold text-sm mb-3">Profile Strength</h3>
+<div class="flex items-center gap-3 mb-2">
+<div class="flex-1 bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[85%]"></div>
+</div>
+<span class="text-xs font-bold">85%</span>
+</div>
+<p class="text-[11px] text-slate-600 dark:text-slate-400">Complete your tax forms to unlock instant payouts.</p>
+</div>
+</aside>
+</div>
+</main>
+</div>
+</body></html>

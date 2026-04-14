@@ -8,7 +8,7 @@ public class BookingDtos {
 
     @Data
     public static class BookingCreateRequest {
-        @NotNull(message = "Job is required")
+        // jobId is optional – customers can book a worker directly
         private Integer jobId;
 
         @NotNull(message = "Worker is required")
@@ -38,4 +38,3 @@ public class BookingDtos {
         private String scheduledTime;
     }
 }
-

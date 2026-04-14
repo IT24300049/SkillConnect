@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Supplier Inventory Dashboard | SkilledWorker</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ecec",
+                        "background-light": "#f6f8f8",
+                        "background-dark": "#102222",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<div class="flex h-screen overflow-hidden">
+<!-- Sidebar Navigation -->
+<aside class="w-64 flex-shrink-0 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark flex flex-col justify-between p-4">
+<div class="flex flex-col gap-8">
+<!-- Logo Section -->
+<div class="flex items-center gap-3 px-2">
+<div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center text-slate-900">
+<span class="material-symbols-outlined font-bold">construction</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-slate-900 dark:text-slate-100 text-base font-bold leading-tight">SkilledWorker</h1>
+<p class="text-slate-500 dark:text-slate-400 text-xs font-medium">Supplier Portal</p>
+</div>
+</div>
+<!-- Nav Links -->
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20 text-slate-900 dark:text-primary font-semibold" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="text-sm">Inventory</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="text-sm">Bookings</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">build</span>
+<span class="text-sm">Maintenance</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="text-sm">Earnings</span>
+</a>
+</nav>
+</div>
+<!-- Profile Section -->
+<div class="flex items-center gap-3 p-2 border-t border-slate-200 dark:border-slate-800 pt-4">
+<div class="size-10 rounded-full bg-cover bg-center" data-alt="User profile photo of a male supplier" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDpEsWJJrMyWYQ85yMTgkwa-hoF4ptNcpZTdNXQdITM9Np7X93tpc4Q1AuxkilUJv5RVjFWdAtkqNVQmrQE6dLhEVZUwAbjDS-YAklOrqSSlAtpHKJKE5PsFED6yGibOOdcx9KLzGk-xOpuFu7VGIuOITq05BrLKdeVSq6XYiPCUYYtrFPdMTEmhLHqq5bLbSqhKSx_Xe-OinA_Gv2qr8_rJgeajQB7tghhVNHgDuBQsRzDI2s9y2TRdjlfZ3n6VUGA2nCCqTniB_4')"></div>
+<div class="flex flex-col overflow-hidden">
+<p class="text-sm font-bold truncate">Alex Thompson</p>
+<p class="text-xs text-slate-500 truncate">Heavy Equip Ltd.</p>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col overflow-y-auto bg-background-light dark:bg-background-dark">
+<!-- Header -->
+<header class="flex items-center justify-between p-6 bg-white dark:bg-background-dark border-b border-slate-200 dark:border-slate-800">
+<div>
+<h2 class="text-2xl font-black tracking-tight">Equipment Inventory</h2>
+<p class="text-slate-500 text-sm">Manage and track your active machinery rentals</p>
+</div>
+<button class="bg-primary hover:bg-primary/90 text-slate-900 font-bold py-2 px-6 rounded-lg flex items-center gap-2 transition-all">
+<span class="material-symbols-outlined text-[20px]">add_circle</span>
+<span>Add Equipment</span>
+</button>
+</header>
+<!-- Dashboard Stats & Charts -->
+<div class="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- Revenue Chart -->
+<div class="lg:col-span-2 bg-white dark:bg-background-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start mb-6">
+<div>
+<p class="text-slate-500 text-sm font-medium">Weekly Revenue</p>
+<h3 class="text-3xl font-black text-slate-900 dark:text-slate-100">$12,450.00</h3>
+</div>
+<div class="flex items-center gap-1 text-emerald-500 text-sm font-bold bg-emerald-50 dark:bg-emerald-500/10 px-2 py-1 rounded">
+<span class="material-symbols-outlined text-[18px]">trending_up</span>
+<span>+12.5%</span>
+</div>
+</div>
+<!-- Simple Bar Chart Placeholder -->
+<div class="flex items-end justify-between h-32 gap-3 px-2">
+<div class="flex-1 bg-primary/20 rounded-t-sm h-[60%] hover:bg-primary transition-all group relative">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity">Mon</div>
+</div>
+<div class="flex-1 bg-primary/20 rounded-t-sm h-[80%] hover:bg-primary transition-all group relative"></div>
+<div class="flex-1 bg-primary/20 rounded-t-sm h-[45%] hover:bg-primary transition-all group relative"></div>
+<div class="flex-1 bg-primary/20 rounded-t-sm h-[90%] hover:bg-primary transition-all group relative"></div>
+<div class="flex-1 bg-primary rounded-t-sm h-[100%] hover:bg-primary/80 transition-all group relative"></div>
+<div class="flex-1 bg-primary/20 rounded-t-sm h-[30%] hover:bg-primary transition-all group relative"></div>
+<div class="flex-1 bg-primary/20 rounded-t-sm h-[55%] hover:bg-primary transition-all group relative"></div>
+</div>
+<div class="flex justify-between mt-2 text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+<span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+</div>
+</div>
+<!-- Secondary Metric Cards -->
+<div class="flex flex-col gap-6">
+<div class="bg-white dark:bg-background-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex-1">
+<div class="flex justify-between items-center mb-2">
+<span class="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-lg">shopping_cart_checkout</span>
+<span class="text-emerald-500 text-xs font-bold">+5%</span>
+</div>
+<p class="text-slate-500 text-sm font-medium">Items Rented</p>
+<h3 class="text-2xl font-black">42</h3>
+<p class="text-xs text-slate-400 mt-2">Currently active rentals</p>
+</div>
+<div class="bg-white dark:bg-background-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex-1">
+<div class="flex justify-between items-center mb-2">
+<span class="material-symbols-outlined text-amber-500 p-2 bg-amber-500/10 rounded-lg">engineering</span>
+<span class="text-slate-400 text-xs font-bold">Stable</span>
+</div>
+<p class="text-slate-500 text-sm font-medium">Maintenance Pending</p>
+<h3 class="text-2xl font-black">04</h3>
+<p class="text-xs text-slate-400 mt-2">Scheduled for this week</p>
+</div>
+</div>
+</div>
+<!-- Inventory Table Section -->
+<div class="px-6 pb-6">
+<div class="bg-white dark:bg-background-dark rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+<div class="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+<h4 class="font-bold">Active Assets</h4>
+<div class="flex gap-2">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+<input class="pl-8 pr-4 py-1.5 text-sm bg-background-light dark:bg-slate-800 border-none rounded-lg w-64 focus:ring-1 focus:ring-primary" placeholder="Search inventory..." type="text"/>
+</div>
+<button class="p-1.5 bg-background-light dark:bg-slate-800 rounded-lg text-slate-500 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">filter_list</span>
+</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="bg-slate-50 dark:bg-slate-800/50">
+<tr>
+<th class="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Photo</th>
+<th class="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Equipment Name</th>
+<th class="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Category</th>
+<th class="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Daily Rate</th>
+<th class="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-center">Status</th>
+<th class="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+<!-- Row 1 -->
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-6 py-4">
+<div class="w-12 h-12 rounded-lg bg-center bg-cover border border-slate-200 dark:border-slate-700" data-alt="Yellow caterpillar excavator construction equipment" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDuOz_zUUzYo14eN0MSUKhPVHsg35vPvvIl2o9PoT8SBusZIcOYCFhELO-if2Erc3OooX2oAuZ4C6Ttkh9bz8W02BO7HA24NiYqWd0lC3AFI2i_mw15K7b-vXwDZ9S4fxa_7HAbNm9QJYgjzzra86Ue7l4eOkM2Wz5J_9nCudlnu3dManaNywL08_-Z6Lo6w485LwnrPEB8JVh8Gg5onOVXE8fp636UVzZkdSPpnX-xn_2ofxqnICGnS1re4nS1i0SkIM9RpB2OeOA')"></div>
+</td>
+<td class="px-6 py-4">
+<div class="font-semibold text-slate-900 dark:text-slate-100">Caterpillar 320</div>
+<div class="text-xs text-slate-400">ID: CAT-00982</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 text-xs font-medium bg-slate-100 dark:bg-slate-800 rounded">Heavy Machinery</span>
+</td>
+<td class="px-6 py-4">
+<div class="font-bold text-slate-900 dark:text-slate-100">$450.00</div>
+</td>
+<td class="px-6 py-4 text-center">
+<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400">
+                                            Available
+                                        </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-6 py-4">
+<div class="w-12 h-12 rounded-lg bg-center bg-cover border border-slate-200 dark:border-slate-700" data-alt="Industrial forklift in a warehouse" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCaTMwpC2RfCPcc_ar7ZYrSxUahChgq9bLmTI39tUt4fAiVEWBXEQugksVANG1fpcD27MsT_Y2ihhmL-3KdWbY47CKvauvvyNkOZeY_S8kPzb1vtoWIgWLOz2ZuA7ivBYnKHWsO5Kv9O_0Xsr5I775LOo1hb_6_rIRNvAQVrgvgeD-rMYw3OdkmSYXWZo8uGfLPKv2Ph-GNVD5g3k1O4Omf6WqmQRBWY6t4hGPmaVTQUHwuf34v9d01EN0GrylyBNIJV5XvnCrieVc')"></div>
+</td>
+<td class="px-6 py-4">
+<div class="font-semibold text-slate-900 dark:text-slate-100">Toyota 8FGCU25</div>
+<div class="text-xs text-slate-400">ID: TOY-44120</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 text-xs font-medium bg-slate-100 dark:bg-slate-800 rounded">Lifting Equipment</span>
+</td>
+<td class="px-6 py-4">
+<div class="font-bold text-slate-900 dark:text-slate-100">$120.00</div>
+</td>
+<td class="px-6 py-4 text-center">
+<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-primary/20 text-slate-800 dark:text-primary">
+                                            Rented
+                                        </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-6 py-4">
+<div class="w-12 h-12 rounded-lg bg-center bg-cover border border-slate-200 dark:border-slate-700" data-alt="Portable power generator unit" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDKWDHiHJd2rpXjThrVkjq5pNDOoYYPfr1PPzgT6aYVfwGnlfx-nNJ0-GV_Tqvlbb5V7E0JjsmOc6cy6jgy2IEfb3jr6SR5jZPRNgz3byjW9KlEy-Yf8Y3YwuiX1TPjDhZR5fdXdsbV70sAi9dE2JTfK8MlN1cwkV5y7jwyVwn6xIDHRLzQ9nK_mmbCwNbPBUgKZQqV8UXBCxIFZsTIehemg3sacWe7TDSivRIqnOC-gGwFNyNctXsrR0ppxMUIcDyZdjnQA3VR-1k')"></div>
+</td>
+<td class="px-6 py-4">
+<div class="font-semibold text-slate-900 dark:text-slate-100">Honda EU7000iS</div>
+<div class="text-xs text-slate-400">ID: HON-77610</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 text-xs font-medium bg-slate-100 dark:bg-slate-800 rounded">Power Tools</span>
+</td>
+<td class="px-6 py-4">
+<div class="font-bold text-slate-900 dark:text-slate-100">$85.00</div>
+</td>
+<td class="px-6 py-4 text-center">
+<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400">
+                                            Maintenance
+                                        </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-6 py-4">
+<div class="w-12 h-12 rounded-lg bg-center bg-cover border border-slate-200 dark:border-slate-700" data-alt="Commercial scissor lift equipment" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB_P9PJEti4Wt_BE5Su4cm27VXnbyvNrYNvVKTvjSDaywSNu1hRF5sCqJHjnf-8lRcqB5moeuXpmuStkXzuj52yRbPu7hlTMmhY_pI1iJKzAwDlNIh6Gbm9J1R6JUdrpzDe-LVunMJpi1DKAjlrXGGu63pXlWLJL2iDjY40Bv0pvsUb-jpM7zc5uQYRKSVMq7Iu58NUDB69_jLHb_-JvvbX4x_PQ_xZ_JqW8mtq34zdsbHGpz8-tyHI5a33sXvkPerO1PUNv0WWxHQ')"></div>
+</td>
+<td class="px-6 py-4">
+<div class="font-semibold text-slate-900 dark:text-slate-100">JLG Scissor Lift</div>
+<div class="text-xs text-slate-400">ID: JLG-99211</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 text-xs font-medium bg-slate-100 dark:bg-slate-800 rounded">Lifting Equipment</span>
+</td>
+<td class="px-6 py-4">
+<div class="font-bold text-slate-900 dark:text-slate-100">$210.00</div>
+</td>
+<td class="px-6 py-4 text-center">
+<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400">
+                                            Available
+                                        </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-4 bg-slate-50 dark:bg-slate-800/30 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center text-sm text-slate-500">
+<p>Showing 1 to 4 of 42 entries</p>
+<div class="flex gap-2">
+<button class="px-3 py-1 border border-slate-200 dark:border-slate-700 rounded bg-white dark:bg-slate-900 hover:bg-slate-50 transition-colors disabled:opacity-50" disabled="">Previous</button>
+<button class="px-3 py-1 border border-slate-200 dark:border-slate-700 rounded bg-white dark:bg-slate-900 hover:bg-slate-50 transition-colors">Next</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

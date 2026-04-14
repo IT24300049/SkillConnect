@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "primary": "#f97415",
+                "background-light": "#f8f7f5",
+                "background-dark": "#23170f",
+              },
+              fontFamily: {
+                "display": ["Inter"]
+              },
+              borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            },
+          },
+        }
+    </script>
+<title>Equipment Rental Details - SkilledWorker</title>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
+<div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
+<!-- Header -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 px-10 py-3 bg-white dark:bg-slate-900">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-4 text-primary">
+<div class="size-6 flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl">construction</span>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-[-0.015em]">SkilledWorker</h2>
+</div>
+<label class="flex flex-col min-w-40 !h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full overflow-hidden border border-slate-200 dark:border-slate-700">
+<div class="text-slate-500 bg-slate-100 dark:bg-slate-800 flex items-center justify-center pl-4 pr-2">
+<span class="material-symbols-outlined text-xl">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 border-none bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-0 h-full placeholder:text-slate-500 text-base font-normal" placeholder="Search equipment..." value=""/>
+</div>
+</label>
+</div>
+<div class="flex flex-1 justify-end gap-8">
+<nav class="flex items-center gap-9">
+<a class="text-slate-700 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Marketplace</a>
+<a class="text-slate-700 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Rentals</a>
+<a class="text-slate-700 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Suppliers</a>
+<a class="text-slate-700 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Support</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold">
+                    Sign In
+                </button>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary/20" data-alt="User profile avatar circle" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCfYpdyCkkA5YPjaBSp2D3mmE7r10hZ_NlaJqAXEf8dYWTR_hSe-2OXo7Kb13kcrRs62YSig0dt-mVO7AYr0lKba7clmfzY_TYsNblI-D2nJnnDKFYS-jwACoHMXkDN9mBi4TY84USYEHZN84xS8xT9DQjNodzXf7uEX4pfkQCUTAgTI022-6fJEib073_gkOHIg0w5yJ4juda65zemXDlesSAFzts9Q5-GSyg6nH7SXu-nvmXZLHFrV40ie3IOAIp-8V8SJJD3kb0");'></div>
+</div>
+</div>
+</header>
+<main class="max-w-[1280px] mx-auto w-full px-10 py-6">
+<!-- Breadcrumbs -->
+<nav class="flex flex-wrap gap-2 mb-6">
+<a class="text-slate-500 text-sm font-medium hover:underline" href="#">Home</a>
+<span class="text-slate-400 text-sm">/</span>
+<a class="text-slate-500 text-sm font-medium hover:underline" href="#">Equipment</a>
+<span class="text-slate-400 text-sm">/</span>
+<span class="text-slate-900 dark:text-slate-100 text-sm font-semibold">Power Drills</span>
+</nav>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Left Column: Content -->
+<div class="lg:col-span-2 space-y-8">
+<!-- Gallery Section -->
+<div class="space-y-4">
+<div class="rounded-xl overflow-hidden aspect-[16/9] bg-slate-200 dark:bg-slate-800">
+<div class="w-full h-full bg-cover bg-center" data-alt="High quality professional power drill in action" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAwmJswZYb9GPaT0vaB9dI9BeiDQ9SlKQGMFv8MQIk3lxvNpSVT1Cqag_DqMBL1N5sEKKlp4sLvLlA9lo_goPcXP40Sd-jzJfhbdp-GzbFFJc8c22uiTV-LPlTDaoJD8ixU97IY80HqWojjV1Ge65BRVNC4cbfFmKjZBjtv-U_2gHifXWdknTUx_wHgO5WQyV87NT6KLFfheg3ogNrbmgjYtCCFd03T9HS4M55JxEsInM6qgdHoIvWoZ6qFd9USWiPvItOMVC4qOUU");'></div>
+</div>
+<div class="grid grid-cols-4 gap-4">
+<div class="aspect-square rounded-lg overflow-hidden border-2 border-primary cursor-pointer">
+<div class="w-full h-full bg-cover bg-center" data-alt="Power drill main perspective view" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC2FOOH3uVANrApyatArwyrbcz4mtuwmwWGo4MrWil9XsUtIyJs_mcqsYDEeEu6KvBFyYNWywY_JT_ei8gxhLnX0l5aglvqTQyzQ8kB0niu_O9Y3QgtXg1JtMOKVADO1VA2ZyuCKwESQTB1uEfs-sa-dqFPkQjJVNXKqcHqRrj2eoJHZiToOWax0U01Py1SWnALJTNdTNJlD6KUrrKxm1IrLuOaVdugcSs58EKA2YeY91kHU5SvRXQ49gd6wJ_2VnXtd56VqJdU0k4");'></div>
+</div>
+<div class="aspect-square rounded-lg overflow-hidden bg-slate-200 cursor-pointer opacity-70 hover:opacity-100">
+<div class="w-full h-full bg-cover bg-center" data-alt="Power drill close up details" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA5vR0W4pqIjNbSqMN9sEE4sZeri1NvILDDNKA9lk_jQkltm4APLhIRK6dilAUK-f5zx-n57xrYStTSbN5xUn9abu-N1VPuGd7Q6N9q1RUg0elriLD9p7gO7dFS4nfY-UGUdG3c_5p7FYLCCuJyoXSzDm0LP7Agb9KHmLllN_E0Yo0Giv7HIkdBovaTNE-3DKAb1OS44s_qP4_zSNW8GMT9-ZsBFmolm50HAJlrbuN1tHmmajkLIgPAGPsEmRm1XneewSubWyfy-rY");'></div>
+</div>
+<div class="aspect-square rounded-lg overflow-hidden bg-slate-200 cursor-pointer opacity-70 hover:opacity-100">
+<div class="w-full h-full bg-cover bg-center" data-alt="Power drill accessories and battery pack" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBRJRaYoslkt_cGrbO76dSYMQ1VwSfEnwJkIzv38Ba_xmnEffKlCG-HeKiz2YNyrZ6s7hsnCiG9ZJN-AP-B88GFY8ph9IG2SlUN-mOLQYb-cpP76lMorUDu4Gvjn_Inx-c24U2FBsIIZ2N-66vklRTPrJvIW8Sv_5k_fiJoZzZATO9BY1AICRXswKToXij7txRslMnp8Xkuap5m8GVAPoWjmab7fdKjJvrw4I10xjtDhPrp_58qCtFJePtCEcHCdoN3dUNy2_xZvvE");'></div>
+</div>
+<div class="aspect-square rounded-lg overflow-hidden bg-slate-200 cursor-pointer opacity-70 hover:opacity-100 flex items-center justify-center relative">
+<div class="w-full h-full bg-cover bg-center absolute inset-0" data-alt="Power drill case and tools" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAFYHkeD-EVVlB7WsxVaHmJemYOr8W6K9-1pRU27oQLN7k0SxsToaEUY-9RFYiuPAxyyk7txXmofCzUSPKoumTRJmY0srDJHpA3EwrEo4Dy39klWJmFjths580-oJzii7rP_0Nd3mE3xne-uGmSVDBw27p6S9jj5Dq6_i2PINQP_hiHBBqDHsLrm1_y-ey4Bydi8UYX9xXIZLHLDMgelRuUy1F5keBA0aNCA7D4PbO_pwnymq2VH7a8f3xlS-lS-EdAjaY6NFHv07k");'></div>
+<div class="relative z-10 bg-black/40 w-full h-full flex items-center justify-center text-white font-bold">+5</div>
+</div>
+</div>
+</div>
+<!-- Product Info -->
+<div>
+<div class="flex items-center justify-between mb-2">
+<h1 class="text-3xl font-black text-slate-900 dark:text-slate-100 tracking-tight">DeWalt DCD771C2 20V Max Lithium-Ion Compact Drill/Driver Kit</h1>
+<div class="flex gap-2">
+<button class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+<span class="material-symbols-outlined">favorite</span>
+</button>
+<button class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+<span class="material-symbols-outlined">share</span>
+</button>
+</div>
+</div>
+<div class="flex items-center gap-4 mb-6">
+<div class="flex items-center text-amber-500">
+<span class="material-symbols-outlined !text-base">star</span>
+<span class="material-symbols-outlined !text-base">star</span>
+<span class="material-symbols-outlined !text-base">star</span>
+<span class="material-symbols-outlined !text-base">star</span>
+<span class="material-symbols-outlined !text-base">star_half</span>
+<span class="ml-1 text-slate-600 dark:text-slate-400 text-sm font-medium">4.8 (124 reviews)</span>
+</div>
+<span class="text-slate-300">|</span>
+<span class="text-emerald-600 dark:text-emerald-500 text-sm font-bold flex items-center gap-1">
+<span class="material-symbols-outlined !text-base">check_circle</span> In Stock
+                        </span>
+</div>
+<p class="text-slate-600 dark:text-slate-400 leading-relaxed mb-8">
+                        The DCD771C2 20V MAX* Lithium-Ion Compact Drill/Driver Kit is lightweight and compact for working in tight spaces for long periods of time. High-speed transmission delivers 2-speed variations allowing users to choose the level of performance needed for various applications.
+                    </p>
+<!-- Specifications -->
+<div class="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800">
+<h3 class="text-lg font-bold mb-4 text-slate-900 dark:text-slate-100">Technical Specifications</h3>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
+<div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+<span class="text-slate-500 text-sm">Voltage</span>
+<span class="text-slate-900 dark:text-slate-100 text-sm font-semibold">20 Volts</span>
+</div>
+<div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+<span class="text-slate-500 text-sm">Chuck Size</span>
+<span class="text-slate-900 dark:text-slate-100 text-sm font-semibold">1/2 inch</span>
+</div>
+<div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+<span class="text-slate-500 text-sm">No Load Speed</span>
+<span class="text-slate-900 dark:text-slate-100 text-sm font-semibold">0-450 / 0-1,500 RPM</span>
+</div>
+<div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+<span class="text-slate-500 text-sm">Max Power</span>
+<span class="text-slate-900 dark:text-slate-100 text-sm font-semibold">300 UWO</span>
+</div>
+<div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+<span class="text-slate-500 text-sm">Weight</span>
+<span class="text-slate-900 dark:text-slate-100 text-sm font-semibold">3.6 lbs</span>
+</div>
+<div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+<span class="text-slate-500 text-sm">Battery Type</span>
+<span class="text-slate-900 dark:text-slate-100 text-sm font-semibold">Lithium-Ion</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Supplier Info -->
+<div class="bg-primary/5 dark:bg-primary/10 rounded-xl p-8 border border-primary/20">
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center gap-4">
+<div class="size-16 rounded-full bg-cover bg-center border-2 border-primary" data-alt="Equipment supplier company logo" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCDGg_JKXMabMt1lTPXzD2otX-GeeP6M-YNUPjFwmzGhMzIztMY7iJjBNMZyyWoRY2ghH9YuGq0m5UGU9SS8BzFTaBG9dWLGzRAVtlEm6u3PHP_CrGg4anKJnRrgvNnyjePuQnIMAL485qEBZRD5-wJUm_xMOdPcjZ1ZWnmD9uwT7ao19BcFLitA-r1FSmN2BpEJjUDLPwzCV00kA3fLm-avqN8WHfweVi_RBKyIllaXP0z4FyVrHxhnV9NeyUA7gaAyb7ImXzj-aw");'></div>
+<div>
+<h4 class="text-xl font-bold text-slate-900 dark:text-slate-100">Industrial Tools &amp; Rentals Inc.</h4>
+<div class="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm">
+<span class="material-symbols-outlined !text-sm">location_on</span>
+<span>Brooklyn, NY • 4.2 miles away</span>
+</div>
+</div>
+</div>
+<div class="text-right">
+<div class="text-primary font-bold">Top Rated Pro</div>
+<div class="text-slate-500 text-sm">Since 2018</div>
+</div>
+</div>
+<div class="flex gap-3">
+<button class="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 py-3 rounded-lg text-slate-900 dark:text-slate-100 font-bold flex items-center justify-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined">mail</span>
+                            Message Supplier
+                        </button>
+<button class="px-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 py-3 rounded-lg text-slate-900 dark:text-slate-100 font-bold flex items-center justify-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                            View Profile
+                        </button>
+</div>
+</div>
+</div>
+<!-- Right Column: Booking Card -->
+<div class="lg:col-span-1">
+<div class="sticky top-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm">
+<div class="flex items-baseline gap-2 mb-6">
+<span class="text-3xl font-black text-slate-900 dark:text-slate-100">$45.00</span>
+<span class="text-slate-500">/ day</span>
+</div>
+<div class="space-y-4 mb-6">
+<div>
+<label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Rental Period</label>
+<div class="grid grid-cols-2 gap-0 border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+<div class="p-3 bg-slate-50 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700">
+<span class="block text-[10px] uppercase font-bold text-slate-500">Pick Up</span>
+<span class="text-sm text-slate-900 dark:text-slate-100 font-medium">Oct 24, 2023</span>
+</div>
+<div class="p-3 bg-slate-50 dark:bg-slate-800">
+<span class="block text-[10px] uppercase font-bold text-slate-500">Return</span>
+<span class="text-sm text-slate-900 dark:text-slate-100 font-medium">Oct 27, 2023</span>
+</div>
+</div>
+</div>
+<div>
+<label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Delivery Method</label>
+<div class="flex gap-2">
+<button class="flex-1 py-2 px-3 border-2 border-primary bg-primary/10 text-primary rounded-lg text-sm font-bold">Self Pickup</button>
+<button class="flex-1 py-2 px-3 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400">Delivery</button>
+</div>
+</div>
+</div>
+<!-- Price Calculator -->
+<div class="space-y-3 mb-6 pt-6 border-t border-slate-100 dark:border-slate-800">
+<div class="flex justify-between text-slate-600 dark:text-slate-400">
+<span class="text-sm">$45.00 x 3 days</span>
+<span class="text-sm font-medium">$135.00</span>
+</div>
+<div class="flex justify-between text-slate-600 dark:text-slate-400">
+<span class="text-sm">Security Deposit (Refundable)</span>
+<span class="text-sm font-medium">$50.00</span>
+</div>
+<div class="flex justify-between text-slate-600 dark:text-slate-400">
+<span class="text-sm">Service Fee</span>
+<span class="text-sm font-medium">$12.50</span>
+</div>
+<div class="flex justify-between text-slate-900 dark:text-slate-100 pt-3 border-t border-slate-100 dark:border-slate-800">
+<span class="font-bold">Total Price</span>
+<span class="font-bold text-xl">$197.50</span>
+</div>
+</div>
+<button class="w-full bg-primary hover:bg-primary/90 text-white font-black py-4 rounded-xl transition-colors mb-4 flex items-center justify-center gap-2">
+                        Reserve Now
+                        <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+<p class="text-center text-xs text-slate-400">You won't be charged yet</p>
+<div class="mt-8 flex items-start gap-3 p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-100 dark:border-emerald-800">
+<span class="material-symbols-outlined text-emerald-600 dark:text-emerald-500">verified_user</span>
+<div>
+<p class="text-xs font-bold text-emerald-800 dark:text-emerald-400 mb-1">Worker Protection Guarantee</p>
+<p class="text-[10px] text-emerald-700/80 dark:text-emerald-500/80">Every rental is covered for damage or malfunctions during your booking period.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Similar Equipment -->
+<section class="mt-16 mb-20">
+<h3 class="text-2xl font-black text-slate-900 dark:text-slate-100 mb-8">Related Equipment</h3>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- Card 1 -->
+<div class="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+<div class="aspect-[4/3] relative overflow-hidden">
+<div class="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-300" data-alt="Impact driver tool product card" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBIT3Z_smg7IIPmyEDjt05uJW5kpFMqt17oWXZ98VXhSxaT4jq8ZVZuFXenOPhuJDh_g_6BWXs3GhsAbf7H7IpqisMLINIyzY9y7ynqn5GSMW2W4So0vYfyvrbI381uakumz81Z5aW9KoG6LG6HEzj_8_vXg5Hg0ksHqWfUzuG47GsJXgLGigRav45pwDXoriag4NujX7_aENKk6VcW3o8i5XeXKUrsi_Md_nxE2WpYO1KzFWu-nozoEmZNwW-8m_aMapod1N3ZM8A");'></div>
+<div class="absolute top-3 right-3 bg-white/90 dark:bg-slate-800/90 p-1.5 rounded-full shadow-sm cursor-pointer">
+<span class="material-symbols-outlined !text-base text-slate-400 hover:text-red-500">favorite</span>
+</div>
+</div>
+<div class="p-4">
+<h4 class="font-bold text-slate-900 dark:text-slate-100 mb-1 truncate">Impact Driver Kit 20V</h4>
+<div class="flex items-center gap-1 text-xs text-slate-500 mb-3">
+<span class="material-symbols-outlined !text-xs text-amber-500">star</span>
+<span>4.9 (88)</span>
+</div>
+<div class="flex items-end justify-between">
+<div>
+<span class="text-lg font-black text-slate-900 dark:text-slate-100">$38</span>
+<span class="text-xs text-slate-500">/day</span>
+</div>
+<button class="size-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined !text-xl">add_shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+<div class="aspect-[4/3] relative overflow-hidden">
+<div class="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-300" data-alt="Rotary hammer drill tool" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDziRxUigcX0XPQ6MnZD-QkMU3xmiWkaWqL9I7Iiy-mZMozN4e85HLgIxz83cq6ox2vh-Z2651JL9p14htU-BdtlUJXHCwGf5NgN45G8iQk7QSGw-N_MZY8F3TugL-zuoux7ZbNyrfgk3XuARgDXVi46kMPk8LzpkazUpbfONaIGJk4jnpFzN1Kl3h86MUI2N_O2xh5x1EHkwDtnTtQUWZM703FGAyZt2pvYkFxDtlJeCTH1QnngDXweQD78AMY0wi-nzkha_86x3Q");'></div>
+<div class="absolute top-3 right-3 bg-white/90 dark:bg-slate-800/90 p-1.5 rounded-full shadow-sm cursor-pointer">
+<span class="material-symbols-outlined !text-base text-slate-400 hover:text-red-500">favorite</span>
+</div>
+</div>
+<div class="p-4">
+<h4 class="font-bold text-slate-900 dark:text-slate-100 mb-1 truncate">SDS-Plus Rotary Hammer</h4>
+<div class="flex items-center gap-1 text-xs text-slate-500 mb-3">
+<span class="material-symbols-outlined !text-xs text-amber-500">star</span>
+<span>4.7 (42)</span>
+</div>
+<div class="flex items-end justify-between">
+<div>
+<span class="text-lg font-black text-slate-900 dark:text-slate-100">$65</span>
+<span class="text-xs text-slate-500">/day</span>
+</div>
+<button class="size-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined !text-xl">add_shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+<div class="aspect-[4/3] relative overflow-hidden">
+<div class="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-300" data-alt="High capacity battery charger" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAQE_wgXXib7E1TcLLFrpz4x7BCfZlu9whMdyYp3C_0LNeZgFw7fji1UUkE7mMfVW_FB3BhCapFzqPNkQl7ETm9rvDGEneVqOmqgASGewDGPaThrcL9ny_ziEYpCA75_gB_0n709N0spe0loUp7XfDnHQxHhZuaz-9uflsTSLTTD4eb8VMHWWQ_1yHkh4DjSYYaDjAKYoGdhRIMBB3IKxog3qkKohtczr3vYmhac7pPuJCRpkNFQSnf-OFS3X_zL6sqRDzu6-dANng");'></div>
+<div class="absolute top-3 right-3 bg-white/90 dark:bg-slate-800/90 p-1.5 rounded-full shadow-sm cursor-pointer">
+<span class="material-symbols-outlined !text-base text-slate-400 hover:text-red-500">favorite</span>
+</div>
+</div>
+<div class="p-4">
+<h4 class="font-bold text-slate-900 dark:text-slate-100 mb-1 truncate">Rapid Battery Station</h4>
+<div class="flex items-center gap-1 text-xs text-slate-500 mb-3">
+<span class="material-symbols-outlined !text-xs text-amber-500">star</span>
+<span>5.0 (15)</span>
+</div>
+<div class="flex items-end justify-between">
+<div>
+<span class="text-lg font-black text-slate-900 dark:text-slate-100">$15</span>
+<span class="text-xs text-slate-500">/day</span>
+</div>
+<button class="size-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined !text-xl">add_shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+<div class="aspect-[4/3] relative overflow-hidden">
+<div class="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-300" data-alt="Drill bit accessory set" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuByFLayOTDbjjKzwzV2pqpEQzD3nS1Ui1Qw0ngr9OtpHC3RQvUIstfpVnPDOcWdK0h0M4YGD-U_pX6824pLIe_0Q03Byg-enXC47wp-1Gyao4g0M4vb5TEd19xJhyhipKAy5Q1Wf57iNOOzbo-ZVK-Md9F6S7e5nJOH_8ckt0RwkxTLFeSYRgc5zTh9aWAtJypFC4PXK21TNs9Qduu9g7fL6hawHfmifucnb0NwZNIx0iy9u4wWULdOzIvscdGYmLY7zpjoKgRmsFo");'></div>
+<div class="absolute top-3 right-3 bg-white/90 dark:bg-slate-800/90 p-1.5 rounded-full shadow-sm cursor-pointer">
+<span class="material-symbols-outlined !text-base text-slate-400 hover:text-red-500">favorite</span>
+</div>
+</div>
+<div class="p-4">
+<h4 class="font-bold text-slate-900 dark:text-slate-100 mb-1 truncate">Premium Drill Bit Set</h4>
+<div class="flex items-center gap-1 text-xs text-slate-500 mb-3">
+<span class="material-symbols-outlined !text-xs text-amber-500">star</span>
+<span>4.8 (112)</span>
+</div>
+<div class="flex items-end justify-between">
+<div>
+<span class="text-lg font-black text-slate-900 dark:text-slate-100">$12</span>
+<span class="text-xs text-slate-500">/day</span>
+</div>
+<button class="size-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined !text-xl">add_shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 pt-12 pb-8">
+<div class="max-w-[1280px] mx-auto px-10">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+<div class="col-span-1 md:col-span-1">
+<div class="flex items-center gap-2 text-primary mb-6">
+<span class="material-symbols-outlined">construction</span>
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold">SkilledWorker</h2>
+</div>
+<p class="text-sm text-slate-500 leading-relaxed">The premier marketplace for industrial and construction equipment rentals and sales. Connecting pros with quality gear.</p>
+</div>
+<div>
+<h5 class="font-bold text-slate-900 dark:text-slate-100 mb-4">Rent</h5>
+<ul class="space-y-2 text-sm text-slate-500">
+<li><a class="hover:text-primary" href="#">Power Tools</a></li>
+<li><a class="hover:text-primary" href="#">Heavy Machinery</a></li>
+<li><a class="hover:text-primary" href="#">Safety Gear</a></li>
+<li><a class="hover:text-primary" href="#">Material Handling</a></li>
+</ul>
+</div>
+<div>
+<h5 class="font-bold text-slate-900 dark:text-slate-100 mb-4">Company</h5>
+<ul class="space-y-2 text-sm text-slate-500">
+<li><a class="hover:text-primary" href="#">About Us</a></li>
+<li><a class="hover:text-primary" href="#">Careers</a></li>
+<li><a class="hover:text-primary" href="#">Press</a></li>
+<li><a class="hover:text-primary" href="#">Affiliate</a></li>
+</ul>
+</div>
+<div>
+<h5 class="font-bold text-slate-900 dark:text-slate-100 mb-4">Support</h5>
+<ul class="space-y-2 text-sm text-slate-500">
+<li><a class="hover:text-primary" href="#">Help Center</a></li>
+<li><a class="hover:text-primary" href="#">Safety</a></li>
+<li><a class="hover:text-primary" href="#">Cancellation Policy</a></li>
+<li><a class="hover:text-primary" href="#">Contact Us</a></li>
+</ul>
+</div>
+</div>
+<div class="border-t border-slate-100 dark:border-slate-800 pt-8 flex flex-col md:row items-center justify-between gap-4">
+<p class="text-xs text-slate-400">© 2023 SkilledWorker Technologies Inc. All rights reserved.</p>
+<div class="flex gap-6">
+<a class="text-slate-400 hover:text-slate-600" href="#"><span class="material-symbols-outlined">language</span></a>
+<a class="text-slate-400 hover:text-slate-600" href="#"><span class="material-symbols-outlined">public</span></a>
+<a class="text-slate-400 hover:text-slate-600" href="#"><span class="material-symbols-outlined">share</span></a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+</body></html>

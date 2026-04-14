@@ -1,17 +1,20 @@
 package com.itp.skilledworker.service;
 
+import com.itp.skilledworker.dto.ReviewComplaintDtos.PendingReviewResponse;
 import com.itp.skilledworker.entity.*;
 import com.itp.skilledworker.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class ReviewService {
+
+    private static final int REVIEW_WINDOW_DAYS = 14;
 
     private final ReviewRepository reviewRepository;
     private final ComplaintRepository complaintRepository;
@@ -19,6 +22,7 @@ public class ReviewService {
     private final MessageThreadRepository messageThreadRepository;
     private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
+    private final JobRepository jobRepository;
 
     @Transactional
     public Review submitReview(Integer bookingId, Integer reviewerUserId, Integer revieweeUserId,
@@ -36,13 +40,32 @@ public class ReviewService {
         User reviewee = userRepository.findById(revieweeUserId)
                 .orElseThrow(() -> new RuntimeException("Reviewee not found"));
 
+        boolean reviewerIsWorker = booking.getWorker().getUser().getUserId().equals(reviewerUserId);
+        boolean reviewerIsCustomer = booking.getCustomer().getUser().getUserId().equals(reviewerUserId);
+        if (!reviewerIsWorker && !reviewerIsCustomer) {
+            throw new RuntimeException("Reviewer is not part of this booking");
+        }
+
+        if (reviewerIsWorker && !reviewee.getUserId().equals(booking.getCustomer().getUser().getUserId())) {
+            throw new RuntimeException("Workers can only review the customer for this booking");
+        }
+        if (reviewerIsCustomer && !reviewee.getUserId().equals(booking.getWorker().getUser().getUserId())) {
+            throw new RuntimeException("Customers can only review the assigned worker");
+        }
+
+        Review.ReviewerType resolvedType = reviewerIsWorker ? Review.ReviewerType.worker : Review.ReviewerType.customer;
+        if (reviewerType != null && !resolvedType.name().equalsIgnoreCase(reviewerType)) {
+            throw new RuntimeException("Reviewer type does not match booking role");
+        }
+
         Review review = new Review();
         review.setBooking(booking);
+        review.setJob(booking.getJob());
         review.setReviewer(reviewer);
         review.setReviewee(reviewee);
         review.setOverallRating(rating);
         review.setReviewText(reviewText);
-        review.setReviewerType(Review.ReviewerType.valueOf(reviewerType.toLowerCase()));
+        review.setReviewerType(resolvedType);
         return reviewRepository.save(review);
     }
 
@@ -50,13 +73,69 @@ public class ReviewService {
         return reviewRepository.findByReviewee_UserId(workerUserId);
     }
 
+    public List<Review> getReviewsForCustomer(Integer customerUserId) {
+        return reviewRepository.findByReviewee_UserId(customerUserId);
+    }
+
     public List<Review> getAllReviews() {
         return reviewRepository.findAll();
     }
 
+    public List<Review> getMyReviews(Integer reviewerUserId) {
+        return reviewRepository.findByReviewer_UserId(reviewerUserId);
+    }
+
+    public List<Complaint> getMyComplaints(Integer complainantUserId) {
+        return complaintRepository.findByComplainant_UserId(complainantUserId);
+    }
+
+    public List<PendingReviewResponse> getPendingReviews(Integer reviewerUserId) {
+        LocalDateTime since = LocalDateTime.now().minusDays(REVIEW_WINDOW_DAYS);
+        return bookingRepository
+                .findCompletedBookingsForUser(reviewerUserId, Booking.BookingStatus.completed, since)
+                .stream()
+                .filter(booking -> !reviewRepository
+                        .existsByBooking_BookingIdAndReviewer_UserId(booking.getBookingId(), reviewerUserId))
+                .map(booking -> toPendingReviewResponse(booking, reviewerUserId))
+                .toList();
+    }
+
+        public List<PendingReviewResponse> getPendingReviewsForJob(Integer reviewerUserId, Integer jobId) {
+        Job job = jobRepository.findById(jobId)
+                .orElseThrow(() -> new RuntimeException("Job not found"));
+        User reviewer = userRepository.findById(reviewerUserId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Integer jobCustomerUserId = job.getCustomer().getUser().getUserId();
+
+        return getPendingReviews(reviewerUserId).stream()
+                .filter(p -> {
+                    // Prefer exact job match when booking is linked to this job
+                    if (p.getJobId() != null && p.getJobId().equals(jobId)) {
+                        return true;
+                    }
+
+                    // Fallback: when booking has no job link, map by counterpart
+                    // Worker viewing job: match on same customer
+                    if (reviewer.getRole() == User.Role.worker) {
+                        return p.getCustomerUserId() != null && p.getCustomerUserId().equals(jobCustomerUserId);
+                    }
+
+                    // Customer viewing job: keep only entries where the worker side exists
+                    // (typically there will be a single pending review at a time)
+                    if (reviewer.getRole() == User.Role.customer) {
+                        return p.getWorkerUserId() != null;
+                    }
+
+                    return false;
+                })
+                .toList();
+        }
+
     @Transactional
     public Complaint submitComplaint(Integer complainantUserId, String category,
-            String title, String description, Integer bookingId) {
+            String title, String description, Integer bookingId, Integer complainedAgainstUserId,
+            Integer reviewId) {
         User complainant = userRepository.findById(complainantUserId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         Complaint complaint = new Complaint();
@@ -65,18 +144,76 @@ public class ReviewService {
         complaint.setComplaintTitle(title);
         complaint.setComplaintDescription(description);
         complaint.setComplaintStatus(Complaint.ComplaintStatus.pending);
-        if (bookingId != null) {
-            bookingRepository.findById(bookingId).ifPresent(complaint::setBooking);
+
+        Integer effectiveBookingId = bookingId;
+        Integer effectiveComplainedAgainstId = complainedAgainstUserId;
+        if (reviewId != null) {
+            Review review = reviewRepository.findById(reviewId)
+                    .orElseThrow(() -> new RuntimeException("Review not found"));
+            complaint.setReview(review);
+            if (effectiveBookingId == null) {
+                effectiveBookingId = review.getBooking().getBookingId();
+            } else if (!effectiveBookingId.equals(review.getBooking().getBookingId())) {
+                throw new RuntimeException("Review does not belong to the provided booking");
+            }
+            if (effectiveComplainedAgainstId == null) {
+                effectiveComplainedAgainstId = review.getReviewee().getUserId();
+            }
+        }
+
+        if (effectiveComplainedAgainstId != null) {
+            User complainedAgainst = userRepository.findById(effectiveComplainedAgainstId)
+                    .orElseThrow(() -> new RuntimeException("Complained-against user not found"));
+            if (complainedAgainst.getUserId().equals(complainantUserId)) {
+                throw new RuntimeException("You cannot file a complaint against yourself");
+            }
+            complaint.setComplainedAgainst(complainedAgainst);
+        }
+
+        if (effectiveBookingId != null) {
+            Booking booking = bookingRepository.findById(effectiveBookingId)
+                    .orElseThrow(() -> new RuntimeException("Booking not found"));
+            complaint.setBooking(booking);
+
+            Integer bookingWorkerUserId = booking.getWorker().getUser().getUserId();
+            Integer bookingCustomerUserId = booking.getCustomer().getUser().getUserId();
+
+            if (complaint.getComplainedAgainst() == null) {
+                Integer counterpartId = bookingWorkerUserId.equals(complainantUserId)
+                        ? bookingCustomerUserId
+                        : bookingWorkerUserId;
+                if (counterpartId.equals(complainantUserId)) {
+                    throw new RuntimeException("Unable to determine a valid counterpart for this booking");
+                }
+                User counterpart = userRepository.findById(counterpartId)
+                        .orElseThrow(() -> new RuntimeException("Booking counterpart not found"));
+                complaint.setComplainedAgainst(counterpart);
+            } else {
+                Integer targetId = complaint.getComplainedAgainst().getUserId();
+                if (!targetId.equals(bookingWorkerUserId) && !targetId.equals(bookingCustomerUserId)) {
+                    throw new RuntimeException("Selected user is not part of this booking");
+                }
+            }
         }
         return complaintRepository.save(complaint);
     }
 
-    public List<Complaint> getAllComplaints() {
+    public List<Complaint> getAllComplaints(Integer requestingUserId) {
+        User actor = userRepository.findById(requestingUserId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        if (actor.getRole() != User.Role.admin) {
+            throw new RuntimeException("Not authorized to view all complaints");
+        }
         return complaintRepository.findAll();
     }
 
     @Transactional
-    public Complaint updateComplaintStatus(Integer complaintId, String status) {
+    public Complaint updateComplaintStatus(Integer complaintId, Integer requestingUserId, String status) {
+        User actor = userRepository.findById(requestingUserId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        if (actor.getRole() != User.Role.admin) {
+            throw new RuntimeException("Not authorized to update complaint status");
+        }
         Complaint complaint = complaintRepository.findById(complaintId)
                 .orElseThrow(() -> new RuntimeException("Complaint not found"));
         complaint.setComplaintStatus(Complaint.ComplaintStatus.valueOf(status.toLowerCase()));
@@ -160,5 +297,57 @@ public class ReviewService {
         if (reviewText != null)
             review.setReviewText(reviewText);
         return reviewRepository.save(review);
+    }
+
+    private PendingReviewResponse toPendingReviewResponse(Booking booking, Integer reviewerUserId) {
+        PendingReviewResponse pending = new PendingReviewResponse();
+        pending.setBookingId(booking.getBookingId());
+        pending.setJobId(booking.getJob() != null ? booking.getJob().getJobId() : null);
+        pending.setJobTitle(booking.getJob() != null ? booking.getJob().getJobTitle() : null);
+        pending.setCompletedAt(booking.getCompletedAt() != null ? booking.getCompletedAt().toString() : null);
+        pending.setReviewDeadline(booking.getCompletedAt() != null
+                ? booking.getCompletedAt().plusDays(REVIEW_WINDOW_DAYS).toString()
+                : null);
+
+        Integer workerUserId = booking.getWorker().getUser().getUserId();
+        Integer customerUserId = booking.getCustomer().getUser().getUserId();
+        pending.setWorkerUserId(workerUserId);
+        pending.setCustomerUserId(customerUserId);
+
+        boolean reviewerIsWorker = workerUserId.equals(reviewerUserId);
+        pending.setReviewerType(reviewerIsWorker ? "worker" : "customer");
+
+        if (reviewerIsWorker) {
+            User reviewee = booking.getCustomer().getUser();
+            pending.setRevieweeUserId(reviewee.getUserId());
+            pending.setRevieweeEmail(reviewee.getEmail());
+            pending.setRevieweeName(fullName(
+                    booking.getCustomer().getFirstName(),
+                    booking.getCustomer().getLastName(),
+                    reviewee.getEmail()));
+        } else {
+            User reviewee = booking.getWorker().getUser();
+            pending.setRevieweeUserId(reviewee.getUserId());
+            pending.setRevieweeEmail(reviewee.getEmail());
+            pending.setRevieweeName(fullName(
+                    booking.getWorker().getFirstName(),
+                    booking.getWorker().getLastName(),
+                    reviewee.getEmail()));
+        }
+        return pending;
+    }
+
+    private String fullName(String firstName, String lastName, String fallback) {
+        StringBuilder sb = new StringBuilder();
+        if (firstName != null)
+            sb.append(firstName.trim());
+        if (lastName != null) {
+            if (sb.length() > 0) {
+                sb.append(" ");
+            }
+            sb.append(lastName.trim());
+        }
+        String name = sb.toString().trim();
+        return name.isEmpty() ? fallback : name;
     }
 }

@@ -19,25 +19,62 @@ public class BookingService {
     private final BookingStatusHistoryRepository historyRepository;
     private final JobRepository jobRepository;
     private final WorkerProfileRepository workerProfileRepository;
+    private final WorkerAvailabilityRepository workerAvailabilityRepository;
     private final CustomerProfileRepository customerProfileRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public Booking createBooking(Integer jobId, Integer workerId, Integer customerUserId,
             String scheduledDate, String scheduledTime, String notes) {
-        Job job = jobRepository.findById(jobId)
-                .orElseThrow(() -> new RuntimeException("Job not found"));
+        // job is optional – customers can book workers directly
+        Job job = null;
+        if (jobId != null) {
+            job = jobRepository.findById(jobId)
+                    .orElseThrow(() -> new RuntimeException("Job not found"));
+        }
         WorkerProfile worker = workerProfileRepository.findById(workerId)
-                .orElseThrow(() -> new RuntimeException("Worker not found"));
+            .orElseThrow(() -> new RuntimeException("Worker not found"));
+        if (!Boolean.TRUE.equals(worker.getIsVerified())) {
+            throw new RuntimeException("Worker is not verified and cannot be booked yet.");
+        }
         CustomerProfile customer = customerProfileRepository.findByUser_UserId(customerUserId)
-                .orElseThrow(() -> new RuntimeException("Customer profile not found"));
+                .orElseThrow(
+                        () -> new RuntimeException("Customer profile not found. Please complete your profile first."));
+
+        LocalDate date = LocalDate.parse(scheduledDate);
+        LocalTime time = LocalTime.parse(scheduledTime);
+
+        // If the worker has configured availability entries for this date,
+        // enforce that the requested time falls inside at least one
+        // explicitly available window. If they have not configured anything
+        // for this date, treat the worker as available by default.
+        boolean workerAvailableAtTime = true;
+        List<WorkerAvailability> dayAvailability = workerAvailabilityRepository
+                .findByWorker_WorkerIdAndAvailableDate(worker.getWorkerId(), date);
+        if (!dayAvailability.isEmpty()) {
+            workerAvailableAtTime = workerAvailabilityRepository
+                    .existsAvailableSlot(worker.getWorkerId(), date, time);
+        }
+        if (!workerAvailableAtTime) {
+            throw new RuntimeException("Worker is not available at the selected date/time slot.");
+        }
+
+        List<Booking> slotConflicts = bookingRepository.findByWorker_WorkerIdAndScheduledDateAndScheduledTimeAndBookingStatusIn(
+            worker.getWorkerId(),
+            date,
+            time,
+            List.of(Booking.BookingStatus.requested, Booking.BookingStatus.accepted, Booking.BookingStatus.in_progress));
+        if (!slotConflicts.isEmpty()) {
+            throw new RuntimeException("Selected slot is already booked.");
+        }
 
         Booking booking = new Booking();
         booking.setJob(job);
         booking.setWorker(worker);
         booking.setCustomer(customer);
-        booking.setScheduledDate(LocalDate.parse(scheduledDate));
-        booking.setScheduledTime(LocalTime.parse(scheduledTime));
+        booking.setScheduledDate(date);
+        booking.setScheduledTime(time);
         booking.setNotes(notes);
         booking.setBookingStatus(Booking.BookingStatus.requested);
         booking = bookingRepository.save(booking);
@@ -85,6 +122,9 @@ public class BookingService {
 
         booking = bookingRepository.save(booking);
         logStatusChange(booking, oldStatus.name(), targetStatus.name(), actor, reason);
+        if (targetStatus == Booking.BookingStatus.completed) {
+            sendReviewReminders(booking);
+        }
         return booking;
     }
 
@@ -146,5 +186,63 @@ public class BookingService {
 
     public List<Booking> getAllBookings() {
         return bookingRepository.findAll();
+    }
+
+    public List<LocalDate> getWorkerBusyDates(Integer workerId) {
+        return bookingRepository.findConflictingBookings(
+                workerId,
+                List.of(Booking.BookingStatus.accepted, Booking.BookingStatus.in_progress))
+                .stream()
+                .map(Booking::getScheduledDate)
+                .distinct()
+                .toList();
+    }
+
+    public List<Map<String, String>> getWorkerBusySlots(Integer workerId) {
+        return bookingRepository.findConflictingBookings(
+                workerId,
+                List.of(Booking.BookingStatus.requested, Booking.BookingStatus.accepted, Booking.BookingStatus.in_progress))
+                .stream()
+                .map(b -> Map.of(
+                        "scheduledDate", b.getScheduledDate().toString(),
+                        "scheduledTime", b.getScheduledTime().toString()))
+                .toList();
+    }
+
+    private void sendReviewReminders(Booking booking) {
+        User workerUser = booking.getWorker().getUser();
+        User customerUser = booking.getCustomer().getUser();
+
+        String workerName = buildDisplayName(booking.getWorker().getFirstName(), booking.getWorker().getLastName(),
+                workerUser.getEmail());
+        String customerName = buildDisplayName(booking.getCustomer().getFirstName(), booking.getCustomer().getLastName(),
+                customerUser.getEmail());
+
+        notificationService.createNotification(
+                customerUser,
+                "Review your worker",
+                "Please rate " + workerName + " for booking #" + booking.getBookingId() + ".",
+                "/reviews");
+
+        notificationService.createNotification(
+                workerUser,
+                "Review your customer",
+                "Share feedback about " + customerName + " for booking #" + booking.getBookingId() + ".",
+                "/reviews");
+    }
+
+    private String buildDisplayName(String firstName, String lastName, String fallback) {
+        StringBuilder sb = new StringBuilder();
+        if (firstName != null && !firstName.isBlank()) {
+            sb.append(firstName.trim());
+        }
+        if (lastName != null && !lastName.isBlank()) {
+            if (sb.length() > 0) {
+                sb.append(" ");
+            }
+            sb.append(lastName.trim());
+        }
+        String result = sb.toString().trim();
+        return result.isEmpty() ? fallback : result;
     }
 }

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Unified Messaging Center - SkilledWorker</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ecec",
+                        "background-light": "#f6f8f8",
+                        "background-dark": "#102222",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100">
+<div class="relative flex h-screen w-full flex-col overflow-hidden">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark px-10 py-3 shrink-0">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-4 text-slate-900 dark:text-slate-100">
+<div class="size-6 text-primary">
+<span class="material-symbols-outlined text-3xl">auto_awesome</span>
+</div>
+<h2 class="text-lg font-bold leading-tight tracking-[-0.015em]">SkilledWorker</h2>
+</div>
+<label class="flex flex-col min-w-40 h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full bg-slate-100 dark:bg-slate-800">
+<div class="text-slate-500 flex items-center justify-center pl-4">
+<span class="material-symbols-outlined text-xl">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 border-none bg-transparent focus:ring-0 h-full placeholder:text-slate-500 px-4 pl-2 text-sm font-normal" placeholder="Search platform..." value=""/>
+</div>
+</label>
+</div>
+<div class="flex flex-1 justify-end gap-8 items-center">
+<nav class="flex items-center gap-6">
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary text-sm font-medium transition-colors" href="#">Dashboard</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary text-sm font-medium transition-colors" href="#">Jobs</a>
+<a class="text-primary text-sm font-semibold border-b-2 border-primary pb-1" href="#">Messages</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary text-sm font-medium transition-colors" href="#">Profile</a>
+</nav>
+<div class="flex gap-2">
+<button class="flex items-center justify-center rounded-lg h-10 w-10 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200">
+<span class="material-symbols-outlined text-xl">notifications</span>
+</button>
+<button class="flex items-center justify-center rounded-lg h-10 w-10 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200">
+<span class="material-symbols-outlined text-xl">settings</span>
+</button>
+</div>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border border-slate-200 dark:border-slate-700" data-alt="Profile picture of the logged-in user" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAzXQ4gEq76iXJ8L1nAR9B0dOU1ENCaYByVS2mOqqSTKWj7lRgQy7UP9K9PZ4uZmkEURsXZboIVOFiapjc-E-2CfRMgGhDiquE8JDSOySv57Va2yg-XeigH07KJ8ChBlqvy14BszqS8I7sDu3647kG4DUD2WZbED1Ik3znvlK_FutMHxBkgb2rNCWhMWtKlWPOWeBp8jK7VbG63ztQKizYfG4Rzg3k5g8UbjKBOg1wIqlFBV1b4q127pkH8bIxP0F1dSn5gKCBeo50");'></div>
+</div>
+</header>
+<main class="flex flex-1 overflow-hidden">
+<aside class="w-80 lg:w-96 flex flex-col border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark/50 shrink-0">
+<div class="p-4 border-b border-slate-200 dark:border-slate-800">
+<div class="flex items-center justify-between mb-4">
+<h1 class="text-xl font-bold">Messaging</h1>
+<button class="text-primary">
+<span class="material-symbols-outlined">edit_square</span>
+</button>
+</div>
+<div class="flex flex-col gap-2">
+<div class="flex w-full items-stretch rounded-lg bg-slate-100 dark:bg-slate-800 px-3 py-2">
+<span class="material-symbols-outlined text-slate-500 mr-2 text-xl">filter_list</span>
+<input class="w-full bg-transparent border-none p-0 focus:ring-0 text-sm" placeholder="Filter conversations" type="text"/>
+</div>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto">
+<div class="flex items-center gap-4 px-4 py-4 bg-primary/10 border-r-4 border-primary cursor-pointer">
+<div class="relative">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-12 w-12" data-alt="John Doe profile picture" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDFpeVcrgpmZlwZ7EyGdQ4GwlL1NPixmzYbEqHWob_wlLPV5MkrHIsbawLWE2K9jjHdrOG4t3Txam6WUMXoYzhopF3U7oA7R6hMuGGNhioIyFTyfMqbviZQtNINccQl3y1tmzq-VMDuGKFChJKWu4zN26Z5Ks8huyBWT9N0He_eSS1pYBeaCHdsTUuSPzMsaGezE_257nK4Nve8E0vyZU_J7r3fsXS4kNpAizlgV67LWPRCbapYhcJNJf0HDeNmPJpXZ-kZYnAkxa8");'></div>
+<div class="absolute bottom-0 right-0 size-3 bg-green-500 rounded-full border-2 border-white dark:border-slate-900"></div>
+</div>
+<div class="flex flex-col flex-1 min-w-0">
+<div class="flex justify-between items-center mb-0.5">
+<span class="font-semibold text-sm truncate">John Doe</span>
+<span class="text-xs text-slate-500">10:45 AM</span>
+</div>
+<div class="flex items-center gap-2 mb-1">
+<span class="text-[10px] px-1.5 py-0.5 rounded bg-primary/20 text-slate-700 dark:text-primary font-bold uppercase tracking-wider">Worker</span>
+</div>
+<p class="text-slate-500 text-xs truncate font-medium">Can we discuss the site requirements for tomorrow?</p>
+</div>
+</div>
+<div class="flex items-center gap-4 px-4 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer border-b border-slate-100 dark:border-slate-800">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-12 w-12" data-alt="Sarah Smith profile picture" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCO-3GE31PYDpow-Td5BIWfeAQyVsoXQnyuRPsRbDyJDezmIKjZuSu7bHmePejvmtw9Uy6uWsakn6yvIiM_HBLagKL41wfyL1Fp9jWuL1LjOsXasTX3jjDI9pyjS1UX2CMOunpOQCeU22vI9xDxXZwZduH5WTrolt_9gNeK18Fn4gcI1D6-dn2CGreLZY9f2lf9qxkGZ_A4ZYNPyb1PbK2UhdaYRUJP4lRl4OJWhO-pAh2q192ss7WZBpqB9LKcQYRvPOtdRUrovlo");'></div>
+<div class="flex flex-col flex-1 min-w-0">
+<div class="flex justify-between items-center mb-0.5">
+<span class="font-semibold text-sm truncate">Sarah Smith</span>
+<span class="text-xs text-slate-500">Yesterday</span>
+</div>
+<div class="flex items-center gap-2 mb-1">
+<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-bold uppercase tracking-wider">Employer</span>
+</div>
+<p class="text-slate-400 text-xs truncate">The contract has been updated and signed.</p>
+</div>
+<div class="size-2 bg-primary rounded-full shrink-0"></div>
+</div>
+<div class="flex items-center gap-4 px-4 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer border-b border-slate-100 dark:border-slate-800">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-12 w-12" data-alt="BuildCorp Inc. logo" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAdPEiExmwPKM9O1q45Yt1sN3bluoEVIf6YKi8iB5aD4OsPn_JiGwSS6z3fFWmVfY9Tjc9ET-nUfUVWwXkBfe6ApSzm2DUwaw8Mn9NrTkfXX1dN8z3NGgGW1VpMAmSwS79hv_g__4ar6Ff2lTw_L9egd8PM7-gcslt92PtmU-irnWul_ZmEE5qXGRDS65-lCgT7p-QqmVu3n5WGipGiMLB6wbrx6qJ4OvmSXedlj7Eq-lDlAFUy8dyu8ci4jzM0ZmFIItTjMoVUHr8");'></div>
+<div class="flex flex-col flex-1 min-w-0">
+<div class="flex justify-between items-center mb-0.5">
+<span class="font-semibold text-sm truncate">BuildCorp Inc.</span>
+<span class="text-xs text-slate-500">2 days ago</span>
+</div>
+<div class="flex items-center gap-2 mb-1">
+<span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold uppercase tracking-wider">Agency</span>
+</div>
+<p class="text-slate-400 text-xs truncate">Welcome to the project team!</p>
+</div>
+</div>
+<div class="flex items-center gap-4 px-4 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-12 w-12" data-alt="Mike Ross profile picture" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAOpyKmmLtEnRa4uPYldVv4UgcVpS2Nfs6rld0fEauhJRZlyUPUC7cItVeXbOSaGE51AFrjJxhQnOimW_-_lXlI5PEX0EirL1uDDOrquEe4PkZRExYbSGNgrgKuVM-NruS1waZF856XmfXPckC-DrHaHZEilLIfpUG3UKvgaEqFIL-qo9ArzOYw2a_Y6jmWYtJFmE3VUw5N3LPRSIvn1mKdjg59AepAt9ltFR_ml1uUjNeGrfNs8ERAnsYMCg8Py9arL8KRj1Kfqgc");'></div>
+<div class="flex flex-col flex-1 min-w-0">
+<div class="flex justify-between items-center mb-0.5">
+<span class="font-semibold text-sm truncate">Mike Ross</span>
+<span class="text-xs text-slate-500">Monday</span>
+</div>
+<div class="flex items-center gap-2 mb-1">
+<span class="text-[10px] px-1.5 py-0.5 rounded bg-primary/20 text-slate-700 dark:text-primary font-bold uppercase tracking-wider">Worker</span>
+</div>
+<p class="text-slate-400 text-xs truncate">Thanks for the feedback.</p>
+</div>
+</div>
+</div>
+</aside>
+<section class="flex-1 flex flex-col bg-white dark:bg-background-dark">
+<div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0">
+<div class="flex items-center gap-3">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-10 w-10" data-alt="Active chat profile: John Doe" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDW_zcbivCWuIMwzGs1GXCZgVqb-Xh9Z89htzZx-EW4M-sN-e0NjmSm_QPnPCWJceGey-r0njUZ9muI4_lpV-6IE5TvIPy1xxhrJ9KfeK0S0MAbe2ur5ZHj_iGCetMcJhFLgVuHCiI3p--Efe9Rnd1g2YsNIvYcqJ9QAlZ39lCbi_6uHt2DlUOvJi-rKAZ7naSi3Aheeg2GSgOSbOV572ZiG5ugxFMG99CJn9p5U5cVvLpVacj5mn6q0OjhETSxXhqiJp0sgtsPjqg");'></div>
+<div>
+<h3 class="font-bold text-slate-900 dark:text-slate-100 text-sm">John Doe</h3>
+<p class="text-xs text-green-500 font-medium">Online</p>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-slate-500 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">call</span>
+</button>
+<button class="text-slate-500 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">videocam</span>
+</button>
+<button class="text-slate-500 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">info</span>
+</button>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto p-6 space-y-6 flex flex-col">
+<div class="flex flex-col items-center">
+<span class="text-xs text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full uppercase tracking-widest font-semibold">Today</span>
+</div>
+<div class="flex gap-3 max-w-[80%]">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-8 w-8 shrink-0 self-end" data-alt="John Doe small avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCWBinDzH4tdbP_xMc2FzqdrMEiAfySlv8ls4Dy_f12FKTQVKnhpDWNRNe-T_qxIIkbTK_nS33ACrYZR-Pj9qY9LgTC-YTj8WtjWE3bIWqlBeAskOylSjxu5fY946DHUHiNiM_Q-p_lkBThFuHMX2o19MfJCmOVhfQd-AI-OcclFPjzMeAwb-lD-PhPNPDzgrBUqJLKnvHvf8Ugp9lNttpi-oUrB3CM_Pc6uSx8qdjANTMj8GniVabar-IoEQgVDm57G62WZhYOMBg");'></div>
+<div class="flex flex-col gap-1">
+<div class="bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 p-3 rounded-2xl rounded-bl-none text-sm shadow-sm">
+                                Hey! I saw the job posting for the renovation in Brooklyn. Are you still looking for help?
+                            </div>
+<span class="text-[10px] text-slate-400">10:42 AM</span>
+</div>
+</div>
+<div class="flex flex-row-reverse gap-3 max-w-[80%] self-end">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-8 w-8 shrink-0 self-end" data-alt="My small avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCdGIZY128Il35bgbYogeIrjCHNcHhADK5E4rlVQoRG2eGxnrPu_i8z4zIvbiB5iF7Yj9z6L1ltO4j25muKEq85kbwzVB-kS9hPhrF-AKa1c7ypFXmYFq1M6Ur89ev2xo7MSR2yzb7bK0MRC_geR3FHYblKJeyCejSVF1w-IiOugLsFkiW3EOkfwJp0Jqti64VZXdb8k1_6h5JVktF_ee4J2t0X_Fu9eXf4wpoTmDP_ViYtCcTOXuBT_q9l-jZc4eVSjQl6Z1iTC4w");'></div>
+<div class="flex flex-col items-end gap-1">
+<div class="bg-primary text-slate-900 p-3 rounded-2xl rounded-br-none text-sm font-medium shadow-sm">
+                                Hi John! Yes, the position is still open. We're looking for someone who can start next Monday.
+                            </div>
+<span class="text-[10px] text-slate-400">10:44 AM</span>
+</div>
+</div>
+<div class="flex gap-3 max-w-[80%]">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-8 w-8 shrink-0 self-end" data-alt="John Doe small avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAMowgKpNF2PvUTBKfQzR-neQ26H2FvzAxvbx9dyRqp5hxwimyHIMRWFHBAWSqU7bSiW9QVS-6SOXHwtUUekA0aamJeoHL-c9AaZvSTp8dA5p6DykgCC8Pa94uqY-dYxb6Z-kWneoxgWTLAdDZlQQQePcxt1SWohRZLMxON5YKu6APJd3l0AUFldjgYo4SSmqv_7cJK8MMhBBPKtiIVycNL4qWa9PQ5pyoaF9AmqAD0SsWX_lzlddCVb4Jyd7ZtPkr-dllbuc80e-o");'></div>
+<div class="flex flex-col gap-1">
+<div class="bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 p-3 rounded-2xl rounded-bl-none text-sm shadow-sm">
+                                That works perfectly for me. Can we discuss the site requirements for tomorrow? I'd like to prepare the gear.
+                            </div>
+<span class="text-[10px] text-slate-400">10:45 AM</span>
+</div>
+</div>
+<div class="flex flex-row-reverse gap-3 max-w-[80%] self-end">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-8 w-8 shrink-0 self-end" data-alt="My small avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDI6K8CuC7U_-nPRCXVEWDtjEJkAb5qA-Jb2EDeAtCtu0WdxGuTlSGgRNFyWu48lwHXEwNBOKFiERi1DIbRjF1xEmduw7awFg0HEL2qBmZjA_CHk-JnuUzLaHckNJI2MOlQG8RW5EzPH-AOOci7YNiGle8yW2zNiy3QGAotuWJLianPcr-1gARz6Ik4tDAXyl3wP1eCYlH2jMXf0WqJ0dhtkCnXgKU-XqWOy_MCmqoE_uDc7JZrDKsmJYyeJdpUtgankXSRzhtfUwA");'></div>
+<div class="flex flex-col items-end gap-1">
+<div class="bg-primary text-slate-900 p-3 rounded-2xl rounded-br-none text-sm font-medium shadow-sm">
+                                Absolutely. I'll send you the briefing document right now.
+                            </div>
+<span class="text-[10px] text-slate-400">10:46 AM</span>
+</div>
+</div>
+<div class="flex flex-row-reverse gap-3 max-w-[80%] self-end">
+<div class="flex flex-col items-end gap-1">
+<div class="bg-primary/20 border border-primary/30 p-3 rounded-xl flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-3xl">description</span>
+<div class="flex flex-col">
+<span class="text-xs font-bold truncate max-w-[150px]">site_brief_v2.pdf</span>
+<span class="text-[10px] text-slate-500">2.4 MB</span>
+</div>
+<button class="ml-2 bg-primary p-1 rounded-full text-slate-900">
+<span class="material-symbols-outlined text-sm">download</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<div class="p-6 bg-white dark:bg-background-dark shrink-0">
+<div class="flex items-center gap-3 bg-slate-100 dark:bg-slate-800 p-2 rounded-2xl border border-slate-200 dark:border-slate-700">
+<button class="p-2 text-slate-500 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">attach_file</span>
+</button>
+<button class="p-2 text-slate-500 hover:text-primary transition-colors hidden sm:block">
+<span class="material-symbols-outlined">mood</span>
+</button>
+<input class="flex-1 bg-transparent border-none focus:ring-0 text-sm py-2" placeholder="Type your message here..." type="text"/>
+<button class="bg-primary text-slate-900 px-4 py-2 rounded-xl flex items-center gap-2 font-bold text-sm shadow-sm transition-transform active:scale-95">
+<span>Send</span>
+<span class="material-symbols-outlined text-sm">send</span>
+</button>
+</div>
+<div class="mt-2 flex justify-center">
+<p class="text-[10px] text-slate-400 italic">Press Enter to send, Shift + Enter for new line</p>
+</div>
+</div>
+</section>
+</main>
+</div>
+</body></html>
