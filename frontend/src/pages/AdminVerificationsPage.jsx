@@ -76,7 +76,7 @@ export default function AdminVerificationsPage() {
         <div className="stat-card" style={{ padding: '30px 20px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', gap: 10 }}>
           <label
             className="hm-label"
-            style={{ marginBottom: 0, fontSize: 12, lineHeight: 1.4, paddingTop: 2 }}
+            style={{ marginBottom: 6, fontSize: 12, lineHeight: 1.2 }}
           >
             Filter by status
           </label>
@@ -84,7 +84,7 @@ export default function AdminVerificationsPage() {
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value)}
             className="hm-input"
-            style={{ height: 34, fontSize: 12 }}
+            style={{ height: 38, fontSize: 12 }}
           >
             {STATUS_OPTIONS.map(o => (
               <option key={o.value} value={o.value}>{o.label}</option>
