@@ -31,6 +31,7 @@ public class JwtUtil {
 
     public String generateToken(String email, String role) {
         Map<String, Object> claims = new HashMap<>();
+        // Role claim is used by the frontend for routing/permissions.
         claims.put("role", role);
         return createToken(claims, email);
     }

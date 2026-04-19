@@ -82,7 +82,7 @@ public class AuthService {
         user.setIsActive(true);
         user = userRepository.save(user);
 
-        // Create role-specific profile
+        // Create role-specific profile records for the new account.
         if ("customer".equalsIgnoreCase(role)) {
             CustomerProfile profile = new CustomerProfile();
             profile.setUser(user);
@@ -123,6 +123,7 @@ public class AuthService {
             throw new RuntimeException("Account is suspended");
         }
 
+        // Track last login for audits/analytics.
         user.setLastLogin(LocalDateTime.now());
         userRepository.save(user);
 
@@ -209,6 +210,7 @@ public class AuthService {
             throw new RuntimeException("Token has expired");
         }
 
+        // Apply the reset only after validation passes.
         validatePasswordStrength(newPassword);
 
         User user = recovery.getUser();

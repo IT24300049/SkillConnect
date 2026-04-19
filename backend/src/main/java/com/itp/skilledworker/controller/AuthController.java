@@ -25,6 +25,7 @@ public class AuthController {
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<User>> getCurrentUser(Authentication auth) {
         try {
+            // The principal is the email set by JwtFilter after token validation.
             User user = userRepository.findByEmail(auth.getName())
                     .orElseThrow(() -> new RuntimeException("User not found"));
             return ResponseEntity.ok(ApiResponse.ok("Current user", user));

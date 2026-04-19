@@ -107,6 +107,7 @@ public class UserService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        // Base user fields; role-specific fields are added below.
         var response = UserProfileResponse.builder()
                 .userId(user.getUserId())
                 .email(user.getEmail())
@@ -156,6 +157,7 @@ public class UserService {
             user.setPhone(updated.getPhone());
         userRepository.save(user);
 
+        // Update the profile table that matches the account role.
         if (user.getRole() == User.Role.worker) {
             WorkerProfile p = workerProfileRepository.findByUser_UserId(user.getUserId())
                     .orElseThrow(() -> new RuntimeException("Worker profile not found"));
@@ -239,6 +241,7 @@ public class UserService {
         WorkerProfile worker = workerProfileRepository.findByUser_UserId(user.getUserId())
                 .orElseThrow(() -> new RuntimeException("Worker profile not found"));
 
+        // Idempotent upsert based on worker/date/start/end.
         List<WorkerAvailability> saved = new ArrayList<>();
         for (WorkerAvailability slot : slotPayloads) {
             if (slot.getStartTime() == null || slot.getEndTime() == null) {
