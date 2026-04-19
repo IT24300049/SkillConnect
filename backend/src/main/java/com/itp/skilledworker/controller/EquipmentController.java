@@ -149,6 +149,7 @@ public class EquipmentController {
         return ResponseEntity.ok(ApiResponse.ok("Categories", equipmentService.getCategories()));
     }
 
+    
     @GetMapping("/supplier/mine")
     public ResponseEntity<ApiResponse<List<EquipmentInventory>>> getSupplierMine(Authentication auth) {
         try {
