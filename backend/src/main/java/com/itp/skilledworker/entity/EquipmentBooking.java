@@ -68,9 +68,6 @@ public class EquipmentBooking {
     @Column(name = "total_cost", nullable = false)
     private BigDecimal totalCost;
 
-    @Column(name = "deposit_amount", nullable = false)
-    private BigDecimal depositAmount;
-
     @Column(name = "deposit_returned")
     private Boolean depositReturned = false;
 

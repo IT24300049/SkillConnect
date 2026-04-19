@@ -169,7 +169,6 @@ CREATE TABLE equipment_inventory (
     equipment_description TEXT,
     equipment_condition ENUM('new_', 'excellent', 'good', 'fair') NOT NULL,
     rental_price_per_day DECIMAL(10, 2) NOT NULL,
-    deposit_amount DECIMAL(10, 2) NOT NULL,
     quantity_available INT DEFAULT 1,
     quantity_total INT DEFAULT 1,
     image_path VARCHAR(255),

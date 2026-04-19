@@ -41,9 +41,6 @@ public class EquipmentInventory {
     @Column(name = "rental_price_per_day", nullable = false)
     private BigDecimal rentalPricePerDay;
 
-    @Column(name = "deposit_amount", nullable = false)
-    private BigDecimal depositAmount;
-
     @Column(name = "quantity_available")
     private Integer quantityAvailable = 1;
 

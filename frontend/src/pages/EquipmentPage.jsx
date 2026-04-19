@@ -31,7 +31,7 @@ const MODAL_CARD = {
 
 const EMPTY_FORM = {
   equipmentName: '', equipmentDescription: '', equipmentCondition: 'good',
-  rentalPricePerDay: '', depositAmount: '', quantityAvailable: 1,
+  rentalPricePerDay: '', quantityAvailable: 1,
   equipmentCategoryId: '',
 };
 
@@ -96,7 +96,6 @@ export default function EquipmentPage() {
         equipmentDescription: form.equipmentDescription,
         equipmentCondition: form.equipmentCondition,
         rentalPricePerDay: form.rentalPricePerDay ? parseFloat(form.rentalPricePerDay) : null,
-        depositAmount: form.depositAmount ? parseFloat(form.depositAmount) : null,
         // Use the single quantity field as the total quantity for backend
         quantityTotal: form.quantityAvailable ? parseInt(form.quantityAvailable, 10) : 1,
       };
@@ -111,7 +110,7 @@ export default function EquipmentPage() {
     setForm({
       equipmentName: eq.equipmentName || '', equipmentDescription: eq.equipmentDescription || '',
       equipmentCondition: eq.equipmentCondition || 'good',
-      rentalPricePerDay: eq.rentalPricePerDay || '', depositAmount: eq.depositAmount || '',
+      rentalPricePerDay: eq.rentalPricePerDay || '',
       quantityAvailable: (eq.quantityAvailable ?? eq.quantityTotal ?? 1),
       equipmentCategoryId: eq.equipmentCategoryId || eq.categoryId || '',
     });
@@ -244,15 +243,9 @@ export default function EquipmentPage() {
                   </div>
                 )}
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div>
-                  <label className="hm-label">Daily Rate (LKR)</label>
-                  <input type="number" className="hm-input" required value={form.rentalPricePerDay} onChange={e => setForm({ ...form, rentalPricePerDay: e.target.value })} />
-                </div>
-                <div>
-                  <label className="hm-label">Deposit (LKR)</label>
-                  <input type="number" className="hm-input" required value={form.depositAmount} onChange={e => setForm({ ...form, depositAmount: e.target.value })} />
-                </div>
+              <div>
+                <label className="hm-label">Daily Rate (LKR)</label>
+                <input type="number" className="hm-input" required value={form.rentalPricePerDay} onChange={e => setForm({ ...form, rentalPricePerDay: e.target.value })} />
               </div>
               <div>
                 <label className="hm-label">Available Qty</label>
@@ -513,11 +506,6 @@ export default function EquipmentPage() {
                             /day
                           </span>
                         </div>
-                        {eq.depositAmount && (
-                          <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>
-                            Deposit Rs.{eq.depositAmount}
-                          </div>
-                        )}
                       </div>
 
                       {isSupplier ? (

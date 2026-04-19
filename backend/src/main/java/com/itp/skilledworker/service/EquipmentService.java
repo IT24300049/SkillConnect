@@ -25,7 +25,7 @@ public class EquipmentService {
     @Transactional
     public EquipmentInventory addEquipment(Integer supplierUserId, Integer categoryId,
             String name, String description, String condition,
-            BigDecimal pricePerDay, BigDecimal deposit, Integer qty) {
+            BigDecimal pricePerDay, Integer qty) {
         SupplierProfile supplier = supplierRepository.findByUser_UserId(supplierUserId)
                 .orElseThrow(() -> new RuntimeException("Supplier profile not found"));
         EquipmentCategory category = categoryRepository.findById(categoryId)
@@ -38,7 +38,6 @@ public class EquipmentService {
         equipment.setEquipmentDescription(description);
         equipment.setEquipmentCondition(EquipmentInventory.EquipmentCondition.valueOf(condition.toLowerCase()));
         equipment.setRentalPricePerDay(pricePerDay);
-        equipment.setDepositAmount(deposit);
         equipment.setQuantityTotal(qty);
         equipment.setQuantityAvailable(qty);
         equipment.setIsAvailable(true);
@@ -113,7 +112,6 @@ public class EquipmentService {
         booking.setQuantityRented(requestedQty);
         booking.setBaseRentalCost(baseCost);
         booking.setTotalCost(baseCost);
-        booking.setDepositAmount(equipment.getDepositAmount());
         booking.setNotes(notes);
         booking.setBookingStatus(EquipmentBooking.BookingStatus.reserved);
 

@@ -230,7 +230,6 @@ public class DataInitializer implements CommandLineRunner {
         item.setEquipmentDescription(description);
         item.setEquipmentCondition(EquipmentInventory.EquipmentCondition.good);
         item.setRentalPricePerDay(rentalPrice);
-        item.setDepositAmount(deposit);
         item.setQuantityTotal(quantity);
         item.setQuantityAvailable(quantity);
         item.setIsAvailable(true);

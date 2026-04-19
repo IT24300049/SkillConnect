@@ -56,7 +56,6 @@ public class EquipmentController {
                     body.getEquipmentDescription(),
                     body.getEquipmentCondition(),
                     body.getRentalPricePerDay(),
-                    body.getDepositAmount(),
                     body.getQuantityTotal());
             return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok("Equipment added", eq));
         } catch (Exception e) {

@@ -276,7 +276,6 @@ INSERT INTO equipment_inventory (
     equipment_description,
     equipment_condition,
     rental_price_per_day,
-    deposit_amount,
     quantity_total,
     quantity_available,
     is_available

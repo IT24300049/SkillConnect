@@ -27,10 +27,6 @@ public class EquipmentDtos {
         @DecimalMin(value = "0.0", inclusive = false, message = "Rental price must be positive")
         private BigDecimal rentalPricePerDay;
 
-        @NotNull(message = "Deposit amount is required")
-        @DecimalMin(value = "0.0", inclusive = false, message = "Deposit must be positive")
-        private BigDecimal depositAmount;
-
         @NotNull(message = "Quantity is required")
         @Min(value = 1, message = "Quantity must be at least 1")
         private Integer quantityTotal;

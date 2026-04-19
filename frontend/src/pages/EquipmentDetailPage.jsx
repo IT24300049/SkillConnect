@@ -50,9 +50,8 @@ export default function EquipmentDetailPage() {
           <span className="badge badge-blue capitalize">{condition}</span>
           <span className="badge badge-gray">Qty: {equipment.quantityAvailable}/{equipment.quantityTotal}</span>
         </div>
-        <div className="mt-6 grid grid-cols-2 gap-4">
+        <div className="mt-6 grid grid-cols-1 gap-4">
           <div><p className="text-xs text-slate-500">Daily Rate</p><p className="font-bold text-cyan-600">Rs. {equipment.rentalPricePerDay} / day</p></div>
-          <div><p className="text-xs text-slate-500">Deposit</p><p className="font-semibold">Rs. {equipment.depositAmount}</p></div>
         </div>
         {!isSupplier && (equipment.quantityAvailable || 0) > 0 && (
           <button onClick={() => setShowBook(true)} className="btn-primary mt-6">
