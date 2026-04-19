@@ -76,7 +76,7 @@ export default function AdminVerificationsPage() {
         <div className="stat-card" style={{ padding: '30px 20px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', gap: 10 }}>
           <label
             className="hm-label"
-            style={{ marginBottom: 0, fontSize: 11.5, lineHeight: 1.3 }}
+            style={{ marginBottom: 0, fontSize: 12, lineHeight: 1.4, paddingTop: 2 }}
           >
             Filter by status
           </label>
@@ -199,32 +199,40 @@ export default function AdminVerificationsPage() {
                         {v.rejectionReason || '-'}
                       </td>
                       <td style={{ padding: '8px 12px' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                          <button
-                            type="button"
-                            className="btn-secondary"
-                            style={{ fontSize: 11, padding: '4px 10px' }}
-                            onClick={() => handleUpdateStatus(v.workerId, 'PROCESSING')}
-                          >
-                            Mark Processing
-                          </button>
-                          <button
-                            type="button"
-                            className="btn-primary"
-                            style={{ fontSize: 11, padding: '4px 10px' }}
-                            onClick={() => handleUpdateStatus(v.workerId, 'APPROVED')}
-                          >
-                            Approve
-                          </button>
-                          <button
-                            type="button"
-                            className="btn-danger"
-                            style={{ fontSize: 11, padding: '4px 10px' }}
-                            onClick={() => handleUpdateStatus(v.workerId, 'REJECTED')}
-                          >
-                            Reject
-                          </button>
-                        </div>
+                        {v.status === 'APPROVED' ? (
+                          <span style={{ fontSize: 12, color: '#94a3b8' }}>Approved</span>
+                        ) : v.status === 'REJECTED' ? (
+                          <span style={{ fontSize: 12, color: '#94a3b8' }}>Rejected</span>
+                        ) : (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                            {v.status !== 'PROCESSING' && (
+                              <button
+                                type="button"
+                                className="btn-secondary"
+                                style={{ fontSize: 11, padding: '4px 10px' }}
+                                onClick={() => handleUpdateStatus(v.workerId, 'PROCESSING')}
+                              >
+                                Mark Processing
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              className="btn-primary"
+                              style={{ fontSize: 11, padding: '4px 10px' }}
+                              onClick={() => handleUpdateStatus(v.workerId, 'APPROVED')}
+                            >
+                              Approve
+                            </button>
+                            <button
+                              type="button"
+                              className="btn-danger"
+                              style={{ fontSize: 11, padding: '4px 10px' }}
+                              onClick={() => handleUpdateStatus(v.workerId, 'REJECTED')}
+                            >
+                              Reject
+                            </button>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   );
