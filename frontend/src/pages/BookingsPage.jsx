@@ -1,309 +1,326 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { bookingAPI, jobAPI, workerAPI } from '../api';
+import { bookingAPI, equipmentAPI } from '../api';
 import { useAuth } from '../AuthContext';
+import toast from 'react-hot-toast';
 
 const STATUS_STYLE = {
-    requested: { bg: '#fef3c7', color: '#92400e', label: '⏳ Requested' },
-    accepted: { bg: '#dbeafe', color: '#1e40af', label: '✓ Accepted' },
-    in_progress: { bg: '#ede9fe', color: '#5b21b6', label: '🔨 In Progress' },
-    completed: { bg: '#d1fae5', color: '#065f46', label: '✅ Completed' },
-    cancelled: { bg: '#fee2e2', color: '#991b1b', label: '❌ Cancelled' },
-    rejected: { bg: '#f1f5f9', color: '#475569', label: '🚫 Rejected' },
+    requested: { bg: 'bg-yellow-100', color: 'text-yellow-800', label: '⏳ Requested' },
+    accepted: { bg: 'bg-blue-100', color: 'text-blue-800', label: '✓ Accepted' },
+    in_progress: { bg: 'bg-purple-100', color: 'text-purple-800', label: '🔨 In Progress' },
+    completed: { bg: 'bg-green-100', color: 'text-green-800', label: '✅ Completed' },
+    cancelled: { bg: 'bg-red-100', color: 'text-red-800', label: '❌ Cancelled' },
+    rejected: { bg: 'bg-gray-100', color: 'text-gray-800', label: '🚫 Rejected' },
+};
+
+const EQUIPMENT_STATUS_STYLE = {
+    reserved: { bg: 'bg-yellow-100', color: 'text-yellow-800', label: 'Reserved' },
+    rented_out: { bg: 'bg-blue-100', color: 'text-blue-800', label: 'Rented Out' },
+    returned: { bg: 'bg-green-100', color: 'text-green-800', label: 'Returned' },
+    cancelled: { bg: 'bg-red-100', color: 'text-red-800', label: 'Cancelled' },
+    damaged: { bg: 'bg-red-100', color: 'text-red-800', label: 'Damaged' },
 };
 
 const TRANSITIONS = {
     requested: ['accepted', 'rejected', 'cancelled'],
     accepted: ['in_progress', 'cancelled'],
     in_progress: ['completed', 'cancelled'],
-    completed: [], cancelled: [], rejected: [],
+    completed: [],
+    cancelled: [],
+    rejected: [],
 };
 
-const MODAL = {
-    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
-    display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: 16, paddingTop: 125
-};
-const CARD_MODAL = {
-    background: '#fff', borderRadius: 20, boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
-    padding: 32, width: '100%', maxWidth: 480, maxHeight: '90vh', overflowY: 'auto'
-};
+const TABS = ['Pending', 'Upcoming', 'Completed', 'Cancelled'];
+const SECTION_TABS = [
+    { key: 'services', label: 'Service Bookings' },
+    { key: 'equipment', label: 'Equipment Rentals' },
+];
+
+function matchesServiceTab(status, tab) {
+    if (tab === 'Pending') return status === 'requested';
+    if (tab === 'Upcoming') return ['accepted', 'in_progress'].includes(status);
+    if (tab === 'Completed') return status === 'completed';
+    if (tab === 'Cancelled') return ['cancelled', 'rejected'].includes(status);
+    return true;
+}
 
 export default function BookingsPage() {
     const navigate = useNavigate();
     const { user } = useAuth();
+
+    const [activeSection, setActiveSection] = useState('services');
     const [bookings, setBookings] = useState([]);
+    const [equipmentBookings, setEquipmentBookings] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [equipmentLoading, setEquipmentLoading] = useState(false);
     const [viewAs, setViewAs] = useState(user?.role === 'worker' ? 'worker' : 'customer');
-    const [showForm, setShowForm] = useState(false);
-    const [jobs, setJobs] = useState([]);
-    const [workers, setWorkers] = useState([]);
-    const [form, setForm] = useState({ workerId: '', scheduledDate: '', scheduledTime: '', notes: '' });
-    const [history, setHistory] = useState([]);
-    const [historyBookingId, setHistoryBookingId] = useState(null);
-    const [editBooking, setEditBooking] = useState(null);
-    const [editForm, setEditForm] = useState({ notes: '', scheduledDate: '', scheduledTime: '' });
+    const [activeTab, setActiveTab] = useState('Pending');
     const [error, setError] = useState('');
 
-    const today = new Date().toISOString().split('T')[0];
-
-    const load = async () => {
+    const loadServiceBookings = useCallback(async () => {
         setLoading(true);
         setError('');
-        try { const res = await bookingAPI.getMine(viewAs); setBookings(res.data.data || []); }
-        catch (err) {
+        try {
+            const res = await bookingAPI.getMine(viewAs);
+            setBookings(res.data.data || []);
+        } catch (err) {
             if (err.response?.status === 404 && viewAs === 'worker') {
-                setError('You do not have a worker profile yet. Register as a worker to manage incoming bookings.');
+                setError('You do not have a worker profile yet.');
                 setBookings([]);
             } else {
-                setError('Failed to load bookings. Check your connection or login status.');
+                setError('Failed to load bookings.');
             }
+        } finally {
+            setLoading(false);
         }
-        finally { setLoading(false); }
-    };
+    }, [viewAs]);
 
-    const loadFormData = async () => {
+    const loadEquipmentBookings = useCallback(async () => {
+        setEquipmentLoading(true);
         try {
-            const [j, w] = await Promise.all([jobAPI.getAll({}), workerAPI.getAll()]);
-            setJobs(j.data.data || []); setWorkers(w.data.data || []);
-        } catch { }
-    };
-
-    useEffect(() => { load(); }, [viewAs]);
-
-    const handleCreate = async (e) => {
-        e.preventDefault();
-        try {
-            await bookingAPI.create({
-                ...form,
-                workerId: parseInt(form.workerId),
-                notes: form.notes || null,
-            });
-            setShowForm(false); load();
+            const res = await equipmentAPI.getMyBookings();
+            setEquipmentBookings(res.data.data || []);
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Failed to load equipment rentals');
+            setEquipmentBookings([]);
+        } finally {
+            setEquipmentLoading(false);
         }
-        catch (err) { alert('Error: ' + (err.response?.data?.message || 'Failed')); }
-    };
+    }, []);
+
+    useEffect(() => {
+        loadServiceBookings();
+    }, [loadServiceBookings]);
+
+    useEffect(() => {
+        if (activeSection === 'equipment') {
+            loadEquipmentBookings();
+        }
+    }, [activeSection, loadEquipmentBookings]);
 
     const handleStatusChange = async (bookingId, status) => {
-        const reason = (status === 'cancelled' || status === 'rejected') ? prompt('Enter a reason (optional):') || '' : '';
-        try { await bookingAPI.updateStatus(bookingId, status, reason); load(); }
-        catch (err) { alert('Error: ' + (err.response?.data?.message || 'Failed')); }
+        const reason = (status === 'cancelled' || status === 'rejected')
+            ? prompt('Enter a reason (optional):') || ''
+            : '';
+        try {
+            await bookingAPI.updateStatus(bookingId, status, reason);
+            toast.success(`Status updated to ${status.replace('_', ' ')}`);
+            loadServiceBookings();
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Failed to update status');
+        }
     };
 
-    const viewHistory = async (bookingId) => {
-        try { const res = await bookingAPI.getHistory(bookingId); setHistory(res.data.data || []); setHistoryBookingId(bookingId); }
-        catch { alert('Failed to load history'); }
+    const handleEquipmentReturn = async (equipmentBookingId) => {
+        try {
+            await equipmentAPI.returnEquipment(equipmentBookingId);
+            toast.success('Equipment marked as returned');
+            loadEquipmentBookings();
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Failed to return equipment');
+        }
     };
 
-    const handleDelete = async (bookingId) => {
-        if (!confirm('Delete this booking?')) return;
-        try { await bookingAPI.delete(bookingId); load(); }
-        catch (err) { alert('Error: ' + (err.response?.data?.message || 'Failed')); }
-    };
+    const filterBookings = () => bookings.filter((b) => matchesServiceTab(b.bookingStatus, activeTab));
+    const countByTab = (tab) => bookings.filter((b) => matchesServiceTab(b.bookingStatus, tab)).length;
 
-    const openEdit = (b) => { setEditBooking(b); setEditForm({ notes: b.notes || '', scheduledDate: b.scheduledDate || '', scheduledTime: b.scheduledTime || '' }); };
-
-    const handleEdit = async (e) => {
-        e.preventDefault();
-        try { await bookingAPI.update(editBooking.bookingId, editForm); setEditBooking(null); load(); }
-        catch (err) { alert('Error: ' + (err.response?.data?.message || 'Failed')); }
-    };
+    const filteredBookings = filterBookings();
 
     return (
-        <div className="fade-in">
-            {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+        <div className="max-w-7xl mx-auto px-4 py-8 animate-fade-in">
+            <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
                 <div>
-                    <h1 style={{ fontSize: 22, fontWeight: 900, color: '#0c4a6e', marginBottom: 2 }}>📅 Bookings</h1>
-                    <p style={{ fontSize: 13, color: '#64748b' }}>Manage and track your service bookings</p>
+                    <h1 className="text-3xl font-extrabold text-slate-900 flex items-center gap-2">
+                        <span>📅</span> My Bookings
+                    </h1>
+                    <p className="text-slate-500 mt-1">
+                        Viewing as a <strong className="text-cyan-700 capitalize">{viewAs}</strong>
+                    </p>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                    {/* Toggle view - only show if user has potential for both roles */}
-                    <div style={{ display: 'flex', background: '#e0f2fe', borderRadius: 10, padding: 3, gap: 3 }}>
-                        <button onClick={() => setViewAs('customer')}
-                            style={{
-                                padding: '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',
-                                fontSize: 12, fontWeight: 700,
-                                background: viewAs === 'customer' ? '#fff' : 'transparent',
-                                color: viewAs === 'customer' ? '#0891b2' : '#64748b',
-                                boxShadow: viewAs === 'customer' ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
-                                transition: 'all 0.15s'
-                            }}>
-                            As customer
-                        </button>
-                        {user?.role === 'worker' && (
-                            <button onClick={() => setViewAs('worker')}
-                                style={{
-                                    padding: '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',
-                                    fontSize: 12, fontWeight: 700,
-                                    background: viewAs === 'worker' ? '#fff' : 'transparent',
-                                    color: viewAs === 'worker' ? '#0891b2' : '#64748b',
-                                    boxShadow: viewAs === 'worker' ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
-                                    transition: 'all 0.15s'
-                                }}>
-                                As worker
-                            </button>
-                        )}
-                    </div>
-                    {user?.role === 'worker' && viewAs === 'worker' && (
-                        <button className="btn-primary" onClick={() => { loadFormData(); setShowForm(true); }}>
-                            + New Booking
+
+                <div className="flex bg-slate-100 p-1 rounded-lg border border-slate-200">
+                    <button
+                        onClick={() => setViewAs('customer')}
+                        className={`px-4 py-2 rounded-md text-sm font-semibold transition-all ${viewAs === 'customer' ? 'bg-white text-cyan-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                    >
+                        As Customer
+                    </button>
+                    {user?.role === 'worker' && (
+                        <button
+                            onClick={() => setViewAs('worker')}
+                            className={`px-4 py-2 rounded-md text-sm font-semibold transition-all ${viewAs === 'worker' ? 'bg-white text-cyan-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                        >
+                            As Worker
                         </button>
                     )}
                 </div>
             </div>
 
-            {error && (
-                <div className="alert-error" style={{ marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                    <span>❌ {error}</span>
-                    <button className="btn-secondary" style={{ padding: '5px 14px', fontSize: 12, flexShrink: 0 }} onClick={load}>Retry</button>
-                </div>
-            )}
+            <div className="flex gap-2 mb-5">
+                {SECTION_TABS.map((section) => (
+                    <button
+                        key={section.key}
+                        onClick={() => setActiveSection(section.key)}
+                        className={`px-4 py-2 rounded-xl text-sm font-bold transition ${activeSection === section.key ? 'bg-cyan-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                    >
+                        {section.label}
+                    </button>
+                ))}
+            </div>
 
-            {loading ? (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 200, gap: 12, color: '#0891b2' }}>
-                    <span className="spinner" /> Loading bookings...
-                </div>
-            ) : bookings.length === 0 ? (
-                <div className="hm-card" style={{ padding: 48, textAlign: 'center' }}>
-                    <div style={{ fontSize: 48, marginBottom: 12 }}>📅</div>
-                    <p style={{ color: '#64748b' }}>No bookings yet.</p>
-                </div>
-            ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                    {bookings.map(b => {
-                        const s = STATUS_STYLE[b.bookingStatus] || { bg: '#f1f5f9', color: '#475569', label: b.bookingStatus };
-                        return (
-                            <div key={b.bookingId} className="hm-card" style={{ padding: '20px 24px' }}>
-                                <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-                                    {/* Left: info */}
-                                    <div style={{ flex: 1, minWidth: 0 }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
-                                            <span style={{ fontWeight: 800, color: '#0c4a6e', fontSize: 14 }}>Booking #{b.bookingId}</span>
-                                            <span className="badge" style={{ background: s.bg, color: s.color }}>{s.label}</span>
-                                        </div>
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 5, fontSize: 13, color: '#475569' }}>
-                                            {b.job?.jobTitle && <span>📋 <strong>{b.job.jobTitle}</strong></span>}
-                                            {(b.worker?.firstName) && <span>👷 {b.worker.firstName} {b.worker.lastName}</span>}
-                                            {b.scheduledDate && <span>📅 {b.scheduledDate} {b.scheduledTime && `at ${b.scheduledTime}`}</span>}
-                                            {b.notes && <span>📝 {b.notes}</span>}
-                                            {b.cancellationReason && <span style={{ color: '#ef4444' }}>❌ {b.cancellationReason}</span>}
-                                        </div>
-                                    </div>
+            {activeSection === 'services' && (
+                <>
+                    <div className="flex gap-2 border-b border-slate-200 mb-6 overflow-x-auto pb-1">
+                        {TABS.map((tab) => (
+                            <button
+                                key={tab}
+                                onClick={() => setActiveTab(tab)}
+                                className={`px-4 py-2 font-medium text-sm rounded-t-lg transition-colors border-b-2 whitespace-nowrap ${activeTab === tab ? 'border-cyan-600 text-cyan-700 bg-cyan-50/50' : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50'}`}
+                            >
+                                {tab} ({countByTab(tab)})
+                            </button>
+                        ))}
+                    </div>
 
-                                    {/* Right: action buttons */}
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
-                                        <button className="btn-primary" style={{ padding: '6px 14px', fontSize: 11, justifyContent: 'center' }}
-                                            onClick={() => navigate(`/bookings/${b.bookingId}`)}>View Details</button>
-                                        {TRANSITIONS[b.bookingStatus]?.map(status => {
-                                            const isCancellation = status === 'cancelled';
-                                            const canWorkerChange = user?.role === 'worker' && viewAs === 'worker';
-                                            const canCustomerCancel = viewAs === 'customer' && isCancellation;
-                                            if (!canWorkerChange && !canCustomerCancel) return null;
-                                            return (
-                                                <button
-                                                    key={status}
-                                                    onClick={() => handleStatusChange(b.bookingId, status)}
-                                                    className={['accepted', 'in_progress', 'completed'].includes(status) ? 'btn-primary' : 'btn-danger'}
-                                                    style={{ padding: '6px 14px', fontSize: 11, justifyContent: 'center' }}
-                                                >
-                                                    → {status.replace(/_/g, ' ')}
+                    {error && (
+                        <div className="bg-red-50 text-red-700 p-4 rounded-xl flex items-center justify-between mb-6 border border-red-100">
+                            <span className="flex items-center gap-2">❌ {error}</span>
+                            <button onClick={loadServiceBookings} className="px-3 py-1 bg-red-100 hover:bg-red-200 text-red-800 rounded-lg text-sm font-medium transition-colors">Retry</button>
+                        </div>
+                    )}
+
+                    {loading ? (
+                        <div className="flex justify-center items-center h-48 text-cyan-600 font-medium text-lg">
+                            <span className="spinner mr-3" /> Loading bookings...
+                        </div>
+                    ) : filteredBookings.length === 0 ? (
+                        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-16 flex flex-col items-center justify-center text-center">
+                            <span className="text-6xl mb-4">📭</span>
+                            <h3 className="text-xl font-bold text-slate-800 mb-2">No {activeTab} Bookings</h3>
+                            <p className="text-slate-500 max-w-md">You don't have any {activeTab.toLowerCase()} bookings at the moment.</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {filteredBookings.map((b) => {
+                                const s = STATUS_STYLE[b.bookingStatus] || { bg: 'bg-slate-100', color: 'text-slate-800', label: b.bookingStatus };
+                                const isWorkerSide = viewAs === 'worker';
+                                return (
+                                    <div key={b.bookingId} className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition-shadow group">
+                                        <div className="p-6">
+                                            <div className="flex justify-between items-start mb-4">
+                                                <h3 className="text-lg font-bold text-slate-800">Booking #{b.bookingId}</h3>
+                                                <span className={`px-3 py-1 rounded-full text-xs font-bold ${s.bg} ${s.color}`}>{s.label}</span>
+                                            </div>
+
+                                            <div className="space-y-3 mb-6">
+                                                {isWorkerSide && b.customer && (
+                                                    <div className="flex flex-col bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                                        <span className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Customer</span>
+                                                        <span className="text-sm font-semibold text-slate-700">{b.customer.firstName} {b.customer.lastName}</span>
+                                                    </div>
+                                                )}
+                                                {!isWorkerSide && b.worker && (
+                                                    <div className="flex flex-col bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                                        <span className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Worker</span>
+                                                        <span className="text-sm font-semibold text-slate-700">{b.worker.firstName} {b.worker.lastName}</span>
+                                                    </div>
+                                                )}
+
+                                                <div className="flex items-center gap-3 text-sm text-slate-600">
+                                                    <div className="bg-cyan-50 p-2 rounded-lg text-cyan-600">📅</div>
+                                                    <div className="font-medium">{b.scheduledDate} {b.scheduledTime && `• ${b.scheduledTime}`}</div>
+                                                </div>
+
+                                                {b.notes && (
+                                                    <div className="text-sm text-slate-500 bg-slate-50/50 p-3 rounded-lg border border-slate-100 italic line-clamp-2">
+                                                        "{b.notes}"
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="mt-4 pt-4 border-t border-slate-100 space-y-2">
+                                                <button className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-medium py-2 px-4 rounded-xl transition-colors text-sm" onClick={() => navigate(`/bookings/${b.bookingId}`)}>
+                                                    View Details
                                                 </button>
-                                            );
-                                        })}
-                                        <button className="btn-secondary" style={{ padding: '6px 14px', fontSize: 11 }}
-                                            onClick={() => viewHistory(b.bookingId)}>📜 History</button>
-                                        {b.bookingStatus === 'requested' && (
-                                            <button className="btn-secondary" style={{ padding: '6px 14px', fontSize: 11 }}
-                                                onClick={() => openEdit(b)}>✏️ Edit</button>
-                                        )}
-                                        {['requested', 'completed', 'cancelled', 'rejected'].includes(b.bookingStatus) && (
-                                            <button className="btn-danger" style={{ padding: '6px 14px', fontSize: 11 }}
-                                                onClick={() => handleDelete(b.bookingId)}>🗑 Delete</button>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            )}
 
-            {/* Create Booking Modal */}
-            {showForm && (
-                <div style={MODAL} onClick={() => setShowForm(false)}>
-                    <div style={CARD_MODAL} onClick={e => e.stopPropagation()}>
-                        <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0c4a6e', marginBottom: 18 }}>📅 New Booking</h2>
-                        <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                                                <div className="grid grid-cols-2 gap-2 mt-2">
+                                                    {TRANSITIONS[b.bookingStatus]?.map((status) => {
+                                                        const isCancellation = status === 'cancelled';
+                                                        const canWorkerChange = isWorkerSide;
+                                                        const canCustomerCancel = !isWorkerSide && isCancellation;
+                                                        if (!canWorkerChange && !canCustomerCancel) return null;
 
-                            <div>
-                                <label className="hm-label">Worker</label>
-                                <select className="hm-input" required value={form.workerId} onChange={e => setForm({ ...form, workerId: e.target.value })}>
-                                    <option value="">Select a worker</option>
-                                    {workers.map(w => <option key={w.workerId} value={w.workerId}>{w.firstName} {w.lastName}</option>)}
-                                </select>
-                            </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                                <div><label className="hm-label">Date</label><input className="hm-input" type="date" required min={today} value={form.scheduledDate} onChange={e => setForm({ ...form, scheduledDate: e.target.value })} /></div>
-                                <div><label className="hm-label">Time</label><input className="hm-input" type="time" required value={form.scheduledTime} onChange={e => setForm({ ...form, scheduledTime: e.target.value })} /></div>
-                            </div>
-                            <div>
-                                <label className="hm-label">Notes (optional)</label>
-                                <textarea className="hm-input" rows={2} style={{ resize: 'vertical' }} value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} />
-                            </div>
-                            <div style={{ display: 'flex', gap: 10 }}>
-                                <button type="submit" className="btn-primary" style={{ flex: 1, justifyContent: 'center' }}>Send Request</button>
-                                <button type="button" className="btn-secondary" style={{ flex: 1, textAlign: 'center' }} onClick={() => setShowForm(false)}>Cancel</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
+                                                        const btnClass = ['accepted', 'in_progress', 'completed'].includes(status)
+                                                            ? 'bg-green-100 hover:bg-green-200 text-green-700 font-semibold'
+                                                            : 'bg-red-100 hover:bg-red-200 text-red-700 font-semibold';
 
-            {/* History Modal */}
-            {historyBookingId && (
-                <div style={MODAL} onClick={() => setHistoryBookingId(null)}>
-                    <div style={CARD_MODAL} onClick={e => e.stopPropagation()}>
-                        <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0c4a6e', marginBottom: 18 }}>📜 Booking #{historyBookingId} History</h2>
-                        {history.length === 0 ? <p style={{ color: '#64748b', fontSize: 13 }}>No history yet.</p> : (
-                            <div style={{ position: 'relative', paddingLeft: 20, borderLeft: '2px solid #bae6fd' }}>
-                                {history.map((h, i) => (
-                                    <div key={h.historyId} style={{ marginBottom: 16, position: 'relative' }}>
-                                        <div style={{ position: 'absolute', left: -25, top: 4, width: 10, height: 10, borderRadius: '50%', background: '#0891b2', border: '2px solid #fff' }} />
-                                        <div style={{ fontWeight: 700, fontSize: 13, color: '#0c4a6e' }}>
-                                            {h.oldStatus ? `${h.oldStatus} → ${h.newStatus}` : `Created (${h.newStatus})`}
+                                                        return (
+                                                            <button key={status} onClick={() => handleStatusChange(b.bookingId, status)} className={`col-span-1 py-2 px-3 rounded-lg text-xs transition-colors ${btnClass}`}>
+                                                                {status.replace(/_/g, ' ')}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
                                         </div>
-                                        {h.changeReason && <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{h.changeReason}</div>}
-                                        <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{new Date(h.changedAt).toLocaleString()}</div>
                                     </div>
-                                ))}
-                            </div>
-                        )}
-                        <button className="btn-secondary" style={{ width: '100%', marginTop: 16, textAlign: 'center' }} onClick={() => setHistoryBookingId(null)}>Close</button>
-                    </div>
-                </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </>
             )}
 
-            {/* Edit Booking Modal */}
-            {editBooking && (
-                <div style={MODAL} onClick={() => setEditBooking(null)}>
-                    <div style={CARD_MODAL} onClick={e => e.stopPropagation()}>
-                        <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0c4a6e', marginBottom: 18 }}>✏️ Edit Booking #{editBooking.bookingId}</h2>
-                        <form onSubmit={handleEdit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                                <div><label className="hm-label">Date</label><input className="hm-input" type="date" min={today} value={editForm.scheduledDate} onChange={e => setEditForm({ ...editForm, scheduledDate: e.target.value })} /></div>
-                                <div><label className="hm-label">Time</label><input className="hm-input" type="time" value={editForm.scheduledTime} onChange={e => setEditForm({ ...editForm, scheduledTime: e.target.value })} /></div>
-                            </div>
-                            <div>
-                                <label className="hm-label">Notes</label>
-                                <textarea className="hm-input" rows={3} style={{ resize: 'vertical' }} value={editForm.notes} onChange={e => setEditForm({ ...editForm, notes: e.target.value })} />
-                            </div>
-                            <div style={{ display: 'flex', gap: 10 }}>
-                                <button type="submit" className="btn-primary" style={{ flex: 1, justifyContent: 'center' }}>Save</button>
-                                <button type="button" className="btn-secondary" style={{ flex: 1, textAlign: 'center' }} onClick={() => setEditBooking(null)}>Cancel</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+            {activeSection === 'equipment' && (
+                <>
+                    {equipmentLoading ? (
+                        <div className="flex justify-center items-center h-48 text-cyan-600 font-medium text-lg">
+                            <span className="spinner mr-3" /> Loading equipment rentals...
+                        </div>
+                    ) : equipmentBookings.length === 0 ? (
+                        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-16 flex flex-col items-center justify-center text-center">
+                            <span className="text-6xl mb-4">🔧</span>
+                            <h3 className="text-xl font-bold text-slate-800 mb-2">No Equipment Rentals</h3>
+                            <p className="text-slate-500 max-w-md">Your equipment rental bookings will appear here.</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {equipmentBookings.map((b) => {
+                                const statusMeta = EQUIPMENT_STATUS_STYLE[b.bookingStatus] || { bg: 'bg-slate-100', color: 'text-slate-700', label: b.bookingStatus || 'Unknown' };
+                                const isActive = b.bookingStatus === 'reserved' || b.bookingStatus === 'rented_out';
+                                const hasLateFee = Number(b.lateFee || 0) > 0;
+                                return (
+                                    <div key={b.equipmentBookingId || b.id} className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <h3 className="text-lg font-bold text-slate-800">{b.equipmentName || b.equipment?.equipmentName || 'Equipment'}</h3>
+                                            <span className={`px-3 py-1 rounded-full text-xs font-bold ${statusMeta.bg} ${statusMeta.color}`}>
+                                                {statusMeta.label}
+                                            </span>
+                                        </div>
+
+                                        <div className="space-y-2 text-sm text-slate-600 mb-5">
+                                            <div>📅 {b.rentalStartDate} → {b.rentalEndDate}</div>
+                                            <div>💰 Daily Rate: Rs.{b.dailyRate || b.equipment?.dailyRate || 0}</div>
+                                            <div>🧾 Total Cost: Rs.{b.totalCost || 0}</div>
+                                            {hasLateFee && (
+                                                <div className="text-red-600 font-semibold">⚠️ Late fee: Rs.{b.lateFee}</div>
+                                            )}
+                                        </div>
+
+                                        {isActive && (
+                                            <button
+                                                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 px-4 rounded-xl transition"
+                                                onClick={() => handleEquipmentReturn(b.equipmentBookingId || b.id)}
+                                            >
+                                                Return Now
+                                            </button>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </>
             )}
         </div>
     );

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { workerAPI, reviewAPI, bookingAPI } from '../api';
+import { workerAPI, reviewAPI, bookingAPI, jobAPI } from '../api';
 import { useAuth } from '../AuthContext';
+import toast from 'react-hot-toast';
 
 function Stars({ rating = 0 }) {
     return (
@@ -31,11 +32,14 @@ export default function WorkerDetailPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [showBooking, setShowBooking] = useState(false);
-    const [bookForm, setBookForm] = useState({ scheduledDate: '', scheduledHour: '09', scheduledMinute: '00', scheduledPeriod: 'AM', notes: '' });
+    const [bookForm, setBookForm] = useState({ jobId: '', scheduledDate: '', scheduledHour: '09', scheduledMinute: '00', scheduledPeriod: 'AM', notes: '' });
     const [booking, setBooking] = useState(false);
     const [busyDates, setBusyDates] = useState([]);
     const [availability, setAvailability] = useState([]);
     const [busySlots, setBusySlots] = useState([]);
+    const [myJobs, setMyJobs] = useState([]);
+
+    const availableJobOptions = myJobs.filter(job => ['active', 'assigned'].includes(String(job.jobStatus || '').toLowerCase()));
 
     useEffect(() => {
         const load = async () => {
@@ -48,6 +52,7 @@ export default function WorkerDetailPage() {
                 ]);
                 const aRes = await workerAPI.getAvailability(id).catch(() => null);
                 const bsRes = await bookingAPI.getBusySlots(id).catch(() => null);
+                const jobsRes = user?.role === 'customer' ? await jobAPI.getMine().catch(() => null) : null;
                 if (wRes.status === 'fulfilled') setWorker(wRes.value.data.data);
                 else setError('Worker not found.');
 
@@ -55,11 +60,12 @@ export default function WorkerDetailPage() {
                 if (bRes.status === 'fulfilled') setBusyDates(bRes.value.data.data || []);
                 if (aRes?.data?.data) setAvailability(aRes.data.data || []);
                 if (bsRes?.data?.data) setBusySlots(bsRes.data.data || []);
+                if (jobsRes?.data?.data) setMyJobs(jobsRes.data.data || []);
             } catch { setError('Failed to load worker.'); }
             finally { setLoading(false); }
         };
         load();
-    }, [id]);
+    }, [id, user?.role]);
 
     const toDateKey = (dateObj) => {
         const year = dateObj.getFullYear();
@@ -137,11 +143,16 @@ export default function WorkerDetailPage() {
         return windows.some((w) => slotMinutes >= w.start && slotMinutes < w.end);
     };
 
+    const to24Hour = (hour12, period) => {
+        let hour = parseInt(hour12, 10);
+        if (period === 'PM' && hour !== 12) hour += 12;
+        if (period === 'AM' && hour === 12) hour = 0;
+        return hour;
+    };
+
     const getSelectedSlotMinutes = () => {
-        let hour = parseInt(bookForm.scheduledHour);
-        if (bookForm.scheduledPeriod === 'PM' && hour !== 12) hour += 12;
-        if (bookForm.scheduledPeriod === 'AM' && hour === 12) hour = 0;
-        return hour * 60 + parseInt(bookForm.scheduledMinute || '0');
+        const hour24 = to24Hour(bookForm.scheduledHour, bookForm.scheduledPeriod);
+        return hour24 * 60 + parseInt(bookForm.scheduledMinute || '0', 10);
     };
 
     const selectedSlotAvailable = bookForm.scheduledDate
@@ -163,24 +174,27 @@ export default function WorkerDetailPage() {
 
     const handleBook = async (e) => {
         e.preventDefault();
+        if (!bookForm.scheduledDate) {
+            toast.error('Please select a date first.');
+            return;
+        }
         setBooking(true);
         // Build HH:mm time string from friendly selects
-        let hour = parseInt(bookForm.scheduledHour);
-        if (bookForm.scheduledPeriod === 'PM' && hour !== 12) hour += 12;
-        if (bookForm.scheduledPeriod === 'AM' && hour === 12) hour = 0;
-        const scheduledTime = `${String(hour).padStart(2, '0')}:${bookForm.scheduledMinute}`;
+        const hour24 = to24Hour(bookForm.scheduledHour, bookForm.scheduledPeriod);
+        const scheduledTime = `${String(hour24).padStart(2, '0')}:${bookForm.scheduledMinute}`;
         try {
             await bookingAPI.create({
+                jobId: bookForm.jobId ? parseInt(bookForm.jobId, 10) : null,
                 workerId: worker.workerId,
                 scheduledDate: bookForm.scheduledDate,
                 scheduledTime,
                 notes: bookForm.notes,
             });
-            alert('Booking created successfully!');
+            toast.success('Booking created successfully!');
             setShowBooking(false);
-            setBookForm({ scheduledDate: '', scheduledHour: '09', scheduledMinute: '00', scheduledPeriod: 'AM', notes: '' });
+            setBookForm({ jobId: '', scheduledDate: '', scheduledHour: '09', scheduledMinute: '00', scheduledPeriod: 'AM', notes: '' });
         } catch (err) {
-            alert('Error: ' + (err.response?.data?.message || 'Booking failed'));
+            toast.error(err.response?.data?.message || 'Booking failed');
         } finally { setBooking(false); }
     };
 
@@ -304,62 +318,79 @@ export default function WorkerDetailPage() {
                 </div>
             </div>
 
-            {/* Booking Modal */}
+            {/* Booking Modal (Tailwind) */}
             {showBooking && (
-                <div style={MODAL} onClick={() => setShowBooking(false)}>
-                    <div style={CARD_MODAL} onClick={e => e.stopPropagation()}>
-                        <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0c4a6e', marginBottom: 18 }}>📅 Book {worker.firstName}</h2>
-                        <form onSubmit={handleBook} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowBooking(false)}>
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 lg:p-8" onClick={e => e.stopPropagation()}>
+                        <h2 className="text-2xl font-extrabold text-slate-800 mb-6 flex items-center gap-2">
+                            <span className="text-3xl">📅</span> Book {worker.firstName}
+                        </h2>
+                        
+                        <form onSubmit={handleBook} className="space-y-6">
                             <div>
-                                <label className="hm-label">Date</label>
-                                <input className="hm-input" type="date" required
+                                <label className="block text-sm font-bold text-slate-700 mb-2">Link to My Job (Optional)</label>
+                                <select
+                                    className="w-full border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-cyan-500 outline-none transition"
+                                    value={bookForm.jobId}
+                                    onChange={e => setBookForm({ ...bookForm, jobId: e.target.value })}
+                                >
+                                    <option value="">No linked job</option>
+                                    {availableJobOptions.map(job => (
+                                        <option key={job.jobId} value={job.jobId}>
+                                            #{job.jobId} - {job.jobTitle}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">Select Date</label>
+                                <input type="date" required
+                                    className="w-full border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-cyan-500 outline-none transition"
                                     min={new Date().toISOString().split('T')[0]}
-                                    value={bookForm.scheduledDate} onChange={e => setBookForm({ ...bookForm, scheduledDate: e.target.value })} />
+                                    value={bookForm.scheduledDate} 
+                                    onChange={e => setBookForm({ ...bookForm, scheduledDate: e.target.value })} 
+                                />
                                 {busyDates.includes(bookForm.scheduledDate) && (
-                                    <div style={{ color: '#ef4444', fontSize: 12, marginTop: 4, fontWeight: 600 }}>
-                                        ⚠️ Worker has bookings on this date. Select a green free slot below.
+                                    <div className="text-red-500 text-xs mt-2 font-bold bg-red-50 p-2 rounded-lg border border-red-100">
+                                        ⚠️ Worker has existing bookings on this date. Please ensure you select an available time.
                                     </div>
                                 )}
                             </div>
-                            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: 12 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                                    <label className="hm-label" style={{ marginBottom: 0 }}>7-Day Schedule</label>
-                                    <div style={{ display: 'flex', gap: 8, fontSize: 11 }}>
-                                        <span style={{ background: '#dcfce7', color: '#166534', padding: '2px 8px', borderRadius: 999, fontWeight: 700 }}>Free</span>
-                                        <span style={{ background: '#fee2e2', color: '#991b1b', padding: '2px 8px', borderRadius: 999, fontWeight: 700 }}>Not available</span>
+
+                            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                                <div className="flex items-center justify-between mb-3">
+                                    <label className="text-sm font-bold text-slate-700">7-Day Availability</label>
+                                    <div className="flex gap-2 text-[10px] uppercase font-bold tracking-wider">
+                                        <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full">Free</span>
+                                        <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full">Busy</span>
                                     </div>
                                 </div>
 
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                <div className="flex flex-col gap-2">
                                     {nextSevenDays.map(day => {
                                         const slots = getDaySlots(day.key);
                                         const freeCount = slots.filter(s => s.available).length;
                                         return (
-                                            <details key={day.key} style={{ border: '1px solid #e2e8f0', borderRadius: 10, background: '#fff' }}>
-                                                <summary style={{ listStyle: 'none', cursor: 'pointer', padding: '10px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 13, fontWeight: 700, color: '#0c4a6e' }}>
+                                            <details key={day.key} className="bg-white border text-sm border-slate-200 rounded-lg overflow-hidden group">
+                                                <summary className="list-none cursor-pointer p-3 flex items-center justify-between font-semibold text-slate-700 hover:bg-slate-50">
                                                     <span>{day.label}</span>
-                                                    <span style={{ fontSize: 11, color: freeCount > 0 ? '#166534' : '#991b1b', fontWeight: 800 }}>
-                                                        {freeCount > 0 ? `${freeCount} free slot(s)` : 'No free slots'}
+                                                    <span className={`text-xs px-2 py-1 rounded-full ${freeCount > 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}>
+                                                        {freeCount > 0 ? `${freeCount} free slot(s)` : 'Not available'}
                                                     </span>
                                                 </summary>
-                                                <div style={{ padding: '0 12px 12px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                                                <div className="p-3 bg-slate-50 border-t border-slate-100 grid grid-cols-3 sm:grid-cols-4 gap-2">
                                                     {slots.map(slot => (
                                                         <button
                                                             type="button"
                                                             key={slot.label}
                                                             onClick={() => slot.available && applySlotToForm(day.key, slot.minutes)}
-                                                            style={{
-                                                                border: '1px solid',
-                                                                borderColor: slot.available ? '#86efac' : '#fecaca',
-                                                                background: slot.available ? '#dcfce7' : '#fee2e2',
-                                                                color: slot.available ? '#166534' : '#991b1b',
-                                                                borderRadius: 8,
-                                                                padding: '8px 6px',
-                                                                fontSize: 11,
-                                                                fontWeight: 700,
-                                                                cursor: slot.available ? 'pointer' : 'not-allowed',
-                                                                opacity: slot.available ? 1 : 0.7,
-                                                            }}
+                                                            disabled={!slot.available}
+                                                            className={`text-xs font-bold py-2 rounded-lg transition border ${
+                                                                slot.available 
+                                                                    ? 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100 hover:border-green-300' 
+                                                                    : 'bg-red-50 border-red-100 text-red-400 cursor-not-allowed opacity-60'
+                                                            }`}
                                                         >
                                                             {slot.label}
                                                         </button>
@@ -370,27 +401,22 @@ export default function WorkerDetailPage() {
                                     })}
                                 </div>
                             </div>
+
                             <div>
-                                <label className="hm-label">Time</label>
-                                <div style={{ display: 'flex', gap: 8 }}>
-                                    {/* Hour */}
-                                    <select className="hm-input" style={{ flex: 1 }}
+                                <label className="block text-sm font-bold text-slate-700 mb-2">Exact Time</label>
+                                <div className="flex gap-2">
+                                    <select className="flex-1 border border-slate-200 bg-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-cyan-500 outline-none"
                                         value={bookForm.scheduledHour}
                                         onChange={e => setBookForm({ ...bookForm, scheduledHour: e.target.value })}>
-                                        {['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'].map(h => (
-                                            <option key={h} value={h}>{h}</option>
-                                        ))}
+                                        {['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'].map(h => <option key={h} value={h}>{h}</option>)}
                                     </select>
-                                    {/* Minute */}
-                                    <select className="hm-input" style={{ flex: 1 }}
+                                    <span className="text-xl font-bold text-slate-400 self-center">:</span>
+                                    <select className="flex-1 border border-slate-200 bg-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-cyan-500 outline-none"
                                         value={bookForm.scheduledMinute}
                                         onChange={e => setBookForm({ ...bookForm, scheduledMinute: e.target.value })}>
-                                        {['00', '15', '30', '45'].map(m => (
-                                            <option key={m} value={m}>{m}</option>
-                                        ))}
+                                        {['00', '15', '30', '45'].map(m => <option key={m} value={m}>{m}</option>)}
                                     </select>
-                                    {/* AM/PM */}
-                                    <select className="hm-input" style={{ flex: 1 }}
+                                    <select className="flex-1 border border-slate-200 bg-slate-50 font-bold text-slate-700 rounded-xl px-4 py-3 focus:ring-2 focus:ring-cyan-500 outline-none"
                                         value={bookForm.scheduledPeriod}
                                         onChange={e => setBookForm({ ...bookForm, scheduledPeriod: e.target.value })}>
                                         <option value="AM">AM</option>
@@ -398,27 +424,34 @@ export default function WorkerDetailPage() {
                                     </select>
                                 </div>
                             </div>
-                            {busyDates.length > 0 && (
-                                <div style={{ background: '#f8fafc', padding: 12, borderRadius: 10, fontSize: 12 }}>
-                                    <div style={{ fontWeight: 700, color: '#64748b', marginBottom: 4 }}>Busy Dates:</div>
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                                        {busyDates.map(d => <span key={d} style={{ background: '#fee2e2', color: '#991b1b', padding: '2px 8px', borderRadius: 4 }}>{d}</span>)}
-                                    </div>
-                                </div>
-                            )}
+
                             <div>
-                                <label className="hm-label">Notes</label>
-                                <textarea className="hm-input" rows={3} style={{ resize: 'vertical' }}
-                                    placeholder="Describe the work needed..."
-                                    value={bookForm.notes} onChange={e => setBookForm({ ...bookForm, notes: e.target.value })} />
+                                <label className="block text-sm font-bold text-slate-700 mb-2">Notes for Worker</label>
+                                <textarea 
+                                    className="w-full border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-cyan-500 outline-none transition resize-y" 
+                                    rows={3} 
+                                    placeholder="Describe what you need help with..."
+                                    value={bookForm.notes} 
+                                    onChange={e => setBookForm({ ...bookForm, notes: e.target.value })} 
+                                />
                             </div>
-                            <div style={{ display: 'flex', gap: 10 }}>
-                                <button type="submit" className="btn-primary"
+
+                            <div className="flex gap-3 pt-2">
+                                <button type="submit" 
                                     disabled={booking || !selectedSlotAvailable}
-                                    style={{ flex: 1, justifyContent: 'center', opacity: !selectedSlotAvailable ? 0.5 : 1 }}>
-                                    {booking ? 'Booking...' : (!selectedSlotAvailable ? 'Choose a free slot' : 'Confirm Booking')}
+                                    className={`flex-1 font-bold py-3 px-4 rounded-xl transition shadow-sm
+                                        ${(!selectedSlotAvailable || booking)
+                                            ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                                            : 'bg-cyan-600 text-white hover:bg-cyan-700 hover:shadow-cyan-200 hover:shadow-lg'
+                                        }`}
+                                >
+                                    {booking ? 'Confirming...' : (!selectedSlotAvailable ? 'Time Slot Unavailable' : 'Confirm Booking')}
                                 </button>
-                                <button type="button" className="btn-secondary" style={{ flex: 1, textAlign: 'center' }} onClick={() => setShowBooking(false)}>Cancel</button>
+                                <button type="button" 
+                                    className="flex-none bg-slate-100 text-slate-600 hover:bg-slate-200 font-bold py-3 px-6 rounded-xl transition" 
+                                    onClick={() => setShowBooking(false)}>
+                                    Cancel
+                                </button>
                             </div>
                         </form>
                     </div>

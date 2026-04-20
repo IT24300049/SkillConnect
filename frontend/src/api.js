@@ -97,6 +97,7 @@ export const bookingAPI = {
     getHistory: (id) => API.get(`/bookings/${id}/history`),
     getBusyDates: (workerId) => API.get(`/bookings/worker/${workerId}/busy-dates`),
     getBusySlots: (workerId) => API.get(`/bookings/worker/${workerId}/busy-slots`),
+    getStats: () => API.get('/bookings/stats'),
 };
 
 // Reviews & Complaints (Member 4)
