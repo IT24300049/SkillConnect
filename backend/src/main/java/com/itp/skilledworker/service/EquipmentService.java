@@ -25,7 +25,7 @@ public class EquipmentService {
     @Transactional
     public EquipmentInventory addEquipment(Integer supplierUserId, Integer categoryId,
             String name, String description, String condition,
-            BigDecimal pricePerDay, Integer qty) {
+            BigDecimal pricePerDay, BigDecimal lateFeePerDay, Integer qty) {
         SupplierProfile supplier = supplierRepository.findByUser_UserId(supplierUserId)
                 .orElseThrow(() -> new RuntimeException("Supplier profile not found"));
         EquipmentCategory category = categoryRepository.findById(categoryId)
@@ -38,6 +38,7 @@ public class EquipmentService {
         equipment.setEquipmentDescription(description);
         equipment.setEquipmentCondition(EquipmentInventory.EquipmentCondition.valueOf(condition.toLowerCase()));
         equipment.setRentalPricePerDay(pricePerDay);
+        equipment.setLateFeePerDay(lateFeePerDay == null ? BigDecimal.ZERO : lateFeePerDay);
         equipment.setQuantityTotal(qty);
         equipment.setQuantityAvailable(qty);
         equipment.setIsAvailable(true);
@@ -59,7 +60,7 @@ public class EquipmentService {
 
     @Transactional
     public EquipmentInventory updateEquipment(Integer equipmentId, String name, String description,
-            BigDecimal pricePerDay) {
+            BigDecimal pricePerDay, BigDecimal lateFeePerDay) {
         EquipmentInventory eq = getEquipmentById(equipmentId);
         if (name != null)
             eq.setEquipmentName(name);
@@ -67,6 +68,8 @@ public class EquipmentService {
             eq.setEquipmentDescription(description);
         if (pricePerDay != null)
             eq.setRentalPricePerDay(pricePerDay);
+        if (lateFeePerDay != null)
+            eq.setLateFeePerDay(lateFeePerDay);
         return inventoryRepository.save(eq);
     }
 
@@ -108,6 +111,8 @@ public class EquipmentService {
         booking.setRentalStartDate(start);
         booking.setRentalEndDate(end);
         booking.setDailyRate(equipment.getRentalPricePerDay());
+        booking.setLateFeePerDaySnapshot(
+            equipment.getLateFeePerDay() == null ? BigDecimal.ZERO : equipment.getLateFeePerDay());
         booking.setTotalDays((int) days);
         booking.setQuantityRented(requestedQty);
         booking.setBaseRentalCost(baseCost);
@@ -143,7 +148,9 @@ public class EquipmentService {
 
         booking.setActualReturnDate(LocalDate.now());
         booking.setBookingStatus(EquipmentBooking.BookingStatus.returned);
-        return bookingRepository.save(booking);
+        EquipmentBooking returned = bookingRepository.save(booking);
+        bookingRepository.callCalculateLateFee(bookingId);
+        return bookingRepository.findById(bookingId).orElse(returned);
     }
 
     public Map<String, Object> calculateLateFee(Integer bookingId) {
@@ -161,16 +168,17 @@ public class EquipmentService {
             return Map.of(
                     "bookingId", bookingId,
                     "daysOverdue", 0,
-                    "dailyLateFeeRate", BigDecimal.ZERO,
+                "dailyLateFeeRate", updated.getLateFeePerDaySnapshot() == null ? BigDecimal.ZERO
+                    : updated.getLateFeePerDaySnapshot(),
                     "totalLateFee", BigDecimal.ZERO,
                     "rentalEndDate", updated.getRentalEndDate().toString(),
                     "message", "Not overdue");
         }
 
-        long daysOverdue = ChronoUnit.DAYS.between(updated.getRentalEndDate(), LocalDate.now());
-        BigDecimal dailyLateFeeRate = daysOverdue > 0
-                ? updated.getLateFee().divide(BigDecimal.valueOf(daysOverdue), 2, java.math.RoundingMode.HALF_UP)
-                : BigDecimal.ZERO;
+        int daysOverdue = updated.getOverdueDays() == null ? 0 : updated.getOverdueDays();
+        BigDecimal dailyLateFeeRate = updated.getLateFeePerDaySnapshot() == null
+            ? BigDecimal.ZERO
+            : updated.getLateFeePerDaySnapshot();
 
         return Map.of(
                 "bookingId", bookingId,

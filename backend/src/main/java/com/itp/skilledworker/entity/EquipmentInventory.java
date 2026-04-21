@@ -41,6 +41,9 @@ public class EquipmentInventory {
     @Column(name = "rental_price_per_day", nullable = false)
     private BigDecimal rentalPricePerDay;
 
+    @Column(name = "late_fee_per_day", nullable = false)
+    private BigDecimal lateFeePerDay = BigDecimal.ZERO;
+
     @Column(name = "quantity_available")
     private Integer quantityAvailable = 1;
 

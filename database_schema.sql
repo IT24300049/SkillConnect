@@ -761,6 +761,7 @@ CREATE TABLE equipment_inventory (
     equipment_description TEXT,
     equipment_condition ENUM('new', 'excellent', 'good', 'fair') NOT NULL,
     rental_price_per_day DECIMAL(10, 2) NOT NULL,
+    late_fee_per_day DECIMAL(10, 2) NOT NULL DEFAULT 0,
     quantity_available INT NOT NULL DEFAULT 1,
     quantity_total INT NOT NULL DEFAULT 1,
     location_details VARCHAR(500),
@@ -786,7 +787,9 @@ CREATE TABLE equipment_bookings (
     actual_return_date DATE NULL,
     quantity_rented INT DEFAULT 1,
     daily_rate DECIMAL(10, 2) NOT NULL,
+    late_fee_per_day_snapshot DECIMAL(10, 2) NOT NULL DEFAULT 0,
     total_days INT NOT NULL,
+    overdue_days INT NOT NULL DEFAULT 0,
     base_rental_cost DECIMAL(10, 2) NOT NULL,
     late_fee DECIMAL(10, 2) DEFAULT 0,
     damage_fee DECIMAL(10, 2) DEFAULT 0,
@@ -816,6 +819,7 @@ CREATE TABLE equipment_late_fees (
     calculated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     paid_at TIMESTAMP NULL,
     FOREIGN KEY (equipment_booking_id) REFERENCES equipment_bookings(equipment_booking_id) ON DELETE CASCADE,
+    UNIQUE KEY uk_equipment_booking_id (equipment_booking_id),
     INDEX idx_fee_status (fee_status)
 ) ENGINE=InnoDB;
 
@@ -1010,59 +1014,50 @@ DELIMITER //
 -- Calculate Late Fee for Equipment Rental
 CREATE PROCEDURE calculate_late_fee(IN booking_id INT)
 BEGIN
-    DECLARE overdue_days INT;
-    DECLARE daily_rate DECIMAL(10, 2);
-    DECLARE late_fee_rate DECIMAL(10, 2);
-    DECLARE total_late_fee DECIMAL(10, 2);
-    
-    -- Get overdue days and daily rate
-    SELECT 
-        DATEDIFF(CURDATE(), rental_end_date),
-        daily_rate
-    INTO overdue_days, daily_rate
+    DECLARE v_due_date DATE;
+    DECLARE v_effective_return_date DATE;
+    DECLARE v_daily_late_fee_rate DECIMAL(10, 2);
+    DECLARE v_quantity_rented INT;
+    DECLARE v_overdue_days INT;
+    DECLARE v_total_late_fee DECIMAL(10, 2);
+
+    SELECT
+        rental_end_date,
+        COALESCE(actual_return_date, CURDATE()),
+        COALESCE(late_fee_per_day_snapshot, 0),
+        COALESCE(quantity_rented, 1)
+    INTO v_due_date, v_effective_return_date, v_daily_late_fee_rate, v_quantity_rented
     FROM equipment_bookings
-    WHERE equipment_booking_id = booking_id
-    AND actual_return_date IS NULL
-    AND CURDATE() > rental_end_date;
-    
-    -- Get late fee rate from settings (default 10% if not set)
-    SELECT CAST(setting_value AS DECIMAL(10, 2)) INTO late_fee_rate
-    FROM system_settings
-    WHERE setting_key = 'late_fee_percentage';
-    
-    IF late_fee_rate IS NULL THEN
-        SET late_fee_rate = 10;
-    END IF;
-    
-    -- Calculate total late fee
-    IF overdue_days > 0 THEN
-        SET total_late_fee = overdue_days * daily_rate * (late_fee_rate / 100);
-        
-        -- Insert into late fees table
-        INSERT INTO equipment_late_fees (
-            equipment_booking_id,
-            days_overdue,
-            daily_late_fee_rate,
-            total_late_fee,
-            fee_status
-        ) VALUES (
-            booking_id,
-            overdue_days,
-            daily_rate * (late_fee_rate / 100),
-            total_late_fee,
-            'pending'
-        )
-        ON DUPLICATE KEY UPDATE
-            days_overdue = overdue_days,
-            total_late_fee = total_late_fee,
-            calculated_at = CURRENT_TIMESTAMP;
-        
-        -- Update equipment booking
-        UPDATE equipment_bookings
-        SET late_fee = total_late_fee,
-            total_cost = base_rental_cost + total_late_fee + damage_fee
-        WHERE equipment_booking_id = booking_id;
-    END IF;
+    WHERE equipment_booking_id = booking_id;
+
+    SET v_overdue_days = GREATEST(DATEDIFF(v_effective_return_date, v_due_date), 0);
+    SET v_total_late_fee = v_overdue_days * v_daily_late_fee_rate * v_quantity_rented;
+
+    INSERT INTO equipment_late_fees (
+        equipment_booking_id,
+        days_overdue,
+        daily_late_fee_rate,
+        total_late_fee,
+        fee_status
+    ) VALUES (
+        booking_id,
+        v_overdue_days,
+        v_daily_late_fee_rate,
+        v_total_late_fee,
+        CASE WHEN v_total_late_fee > 0 THEN 'pending' ELSE 'waived' END
+    )
+    ON DUPLICATE KEY UPDATE
+        days_overdue = VALUES(days_overdue),
+        daily_late_fee_rate = VALUES(daily_late_fee_rate),
+        total_late_fee = VALUES(total_late_fee),
+        fee_status = CASE WHEN VALUES(total_late_fee) > 0 THEN fee_status ELSE 'waived' END,
+        calculated_at = CURRENT_TIMESTAMP;
+
+    UPDATE equipment_bookings
+    SET overdue_days = v_overdue_days,
+        late_fee = v_total_late_fee,
+        total_cost = base_rental_cost + v_total_late_fee + COALESCE(damage_fee, 0)
+    WHERE equipment_booking_id = booking_id;
 END //
 
 -- Update Worker Trust Score
@@ -1132,8 +1127,8 @@ BEFORE INSERT ON equipment_bookings
 FOR EACH ROW
 BEGIN
     SET NEW.total_days = DATEDIFF(NEW.rental_end_date, NEW.rental_start_date);
-    SET NEW.base_rental_cost = NEW.daily_rate * NEW.total_days;
-    SET NEW.total_cost = NEW.base_rental_cost;
+    SET NEW.base_rental_cost = NEW.daily_rate * NEW.total_days * COALESCE(NEW.quantity_rented, 1);
+    SET NEW.total_cost = NEW.base_rental_cost + COALESCE(NEW.late_fee, 0) + COALESCE(NEW.damage_fee, 0);
 END //
 
 -- Update equipment availability after booking

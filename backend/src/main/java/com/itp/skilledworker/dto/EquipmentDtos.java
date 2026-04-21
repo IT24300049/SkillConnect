@@ -27,6 +27,10 @@ public class EquipmentDtos {
         @DecimalMin(value = "0.0", inclusive = false, message = "Rental price must be positive")
         private BigDecimal rentalPricePerDay;
 
+        @NotNull(message = "Late fee per day is required")
+        @DecimalMin(value = "0.0", inclusive = true, message = "Late fee per day cannot be negative")
+        private BigDecimal lateFeePerDay;
+
         @NotNull(message = "Quantity is required")
         @Min(value = 1, message = "Quantity must be at least 1")
         private Integer quantityTotal;
@@ -37,6 +41,9 @@ public class EquipmentDtos {
         private String equipmentName;
         private String equipmentDescription;
         private BigDecimal rentalPricePerDay;
+
+        @DecimalMin(value = "0.0", inclusive = true, message = "Late fee per day cannot be negative")
+        private BigDecimal lateFeePerDay;
     }
 
     @Data

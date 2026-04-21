@@ -53,8 +53,14 @@ public class EquipmentBooking {
     @Column(name = "daily_rate", nullable = false)
     private BigDecimal dailyRate;
 
+    @Column(name = "late_fee_per_day_snapshot", nullable = false)
+    private BigDecimal lateFeePerDaySnapshot = BigDecimal.ZERO;
+
     @Column(name = "total_days", nullable = false)
     private Integer totalDays;
+
+    @Column(name = "overdue_days", nullable = false)
+    private Integer overdueDays = 0;
 
     @Column(name = "base_rental_cost", nullable = false)
     private BigDecimal baseRentalCost;

@@ -31,7 +31,7 @@ const MODAL_CARD = {
 
 const EMPTY_FORM = {
   equipmentName: '', equipmentDescription: '', equipmentCondition: 'good',
-  rentalPricePerDay: '', quantityAvailable: 1,
+  rentalPricePerDay: '', lateFeePerDay: '', quantityAvailable: 1,
   equipmentCategoryId: '',
 };
 
@@ -96,6 +96,7 @@ export default function EquipmentPage() {
         equipmentDescription: form.equipmentDescription,
         equipmentCondition: form.equipmentCondition,
         rentalPricePerDay: form.rentalPricePerDay ? parseFloat(form.rentalPricePerDay) : null,
+        lateFeePerDay: form.lateFeePerDay === '' ? 0 : parseFloat(form.lateFeePerDay),
         // Use the single quantity field as the total quantity for backend
         quantityTotal: form.quantityAvailable ? parseInt(form.quantityAvailable, 10) : 1,
       };
@@ -111,6 +112,7 @@ export default function EquipmentPage() {
       equipmentName: eq.equipmentName || '', equipmentDescription: eq.equipmentDescription || '',
       equipmentCondition: eq.equipmentCondition || 'good',
       rentalPricePerDay: eq.rentalPricePerDay || '',
+      lateFeePerDay: eq.lateFeePerDay ?? 0,
       quantityAvailable: (eq.quantityAvailable ?? eq.quantityTotal ?? 1),
       equipmentCategoryId: eq.equipmentCategoryId || eq.categoryId || '',
     });
@@ -194,7 +196,7 @@ export default function EquipmentPage() {
         {TABS.map(t => (
           <button key={t.key} onClick={() => setTab(t.key)}
             style={{
-              padding: '10px 20px', borderRadius: 12, border: 'none', cursor: 'pointer',
+              padding: '10px 20px', borderRadius: 12, cursor: 'pointer',
               fontSize: 13, fontWeight: 700,
               background: tab === t.key ? 'linear-gradient(135deg,#f97316,#ea580c)' : '#fff',
               color: tab === t.key ? '#fff' : '#64748b',
@@ -246,6 +248,18 @@ export default function EquipmentPage() {
               <div>
                 <label className="hm-label">Daily Rate (LKR)</label>
                 <input type="number" className="hm-input" required value={form.rentalPricePerDay} onChange={e => setForm({ ...form, rentalPricePerDay: e.target.value })} />
+              </div>
+              <div>
+                <label className="hm-label">Late Fee Per Day (LKR)</label>
+                <input
+                  type="number"
+                  className="hm-input"
+                  min="0"
+                  step="0.01"
+                  required
+                  value={form.lateFeePerDay}
+                  onChange={e => setForm({ ...form, lateFeePerDay: e.target.value })}
+                />
               </div>
               <div>
                 <label className="hm-label">Available Qty</label>
@@ -506,6 +520,9 @@ export default function EquipmentPage() {
                             /day
                           </span>
                         </div>
+                        <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>
+                          Late fee: Rs.{eq.lateFeePerDay || 0} / day
+                        </div>
                       </div>
 
                       {isSupplier ? (
@@ -659,6 +676,8 @@ export default function EquipmentPage() {
                     <th style={{ textAlign: 'left', padding: '16px 20px', fontWeight: 700, color: '#64748b' }}>Equipment</th>
                     <th style={{ textAlign: 'left', padding: '16px 20px', fontWeight: 700, color: '#64748b' }}>Rental Period</th>
                     <th style={{ textAlign: 'left', padding: '16px 20px', fontWeight: 700, color: '#64748b' }}>Status</th>
+                    <th style={{ textAlign: 'left', padding: '16px 20px', fontWeight: 700, color: '#64748b' }}>Late Fee/Day</th>
+                    <th style={{ textAlign: 'left', padding: '16px 20px', fontWeight: 700, color: '#64748b' }}>Late Fee</th>
                     <th style={{ textAlign: 'left', padding: '16px 20px', fontWeight: 700, color: '#64748b' }}>Total Cost</th>
                     <th style={{ textAlign: 'right', padding: '16px 20px', fontWeight: 700, color: '#64748b' }}>Actions</th>
                   </tr>
@@ -678,6 +697,13 @@ export default function EquipmentPage() {
                         <span className={`badge ${BOOKING_STATUS_COLORS[b.bookingStatus] || 'badge-gray'}`} style={{ textTransform: 'capitalize' }}>
                           {(b.bookingStatus || '').replace('_', ' ')}
                         </span>
+                      </td>
+                      <td style={{ padding: '16px 20px', color: '#475569' }}>
+                        Rs.{b.lateFeePerDaySnapshot || 0}
+                      </td>
+                      <td style={{ padding: '16px 20px', color: '#475569' }}>
+                        <div>Rs.{b.lateFee || 0}</div>
+                        <div style={{ fontSize: 11, color: '#94a3b8' }}>Overdue: {b.overdueDays || 0} day(s)</div>
                       </td>
                       <td style={{ padding: '16px 20px', fontWeight: 800, color: '#0891b2' }}>Rs.{b.totalCost || 0}</td>
                       <td style={{ padding: '16px 20px', textAlign: 'right' }}>

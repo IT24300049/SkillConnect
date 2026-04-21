@@ -52,6 +52,7 @@ export default function EquipmentDetailPage() {
         </div>
         <div className="mt-6 grid grid-cols-1 gap-4">
           <div><p className="text-xs text-slate-500">Daily Rate</p><p className="font-bold text-cyan-600">Rs. {equipment.rentalPricePerDay} / day</p></div>
+          <div><p className="text-xs text-slate-500">Late Fee</p><p className="font-bold text-amber-600">Rs. {equipment.lateFeePerDay || 0} / day</p></div>
         </div>
         {!isSupplier && (equipment.quantityAvailable || 0) > 0 && (
           <button onClick={() => setShowBook(true)} className="btn-primary mt-6">
@@ -82,6 +83,9 @@ export default function EquipmentDetailPage() {
                 <textarea value={bookForm.notes} onChange={e => setBookForm({ ...bookForm, notes: e.target.value })}
                   rows={2} className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:border-cyan-500 outline-none resize-none" />
               </div>
+              <p className="text-xs text-slate-500">
+                Late penalty rule: Rs. {equipment.lateFeePerDay || 0} x overdue day(s).
+              </p>
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setShowBook(false)} className="flex-1 h-11 rounded-xl border border-slate-200 text-slate-700 font-semibold text-sm">Cancel</button>
                 <button type="submit" className="flex-1 h-11 rounded-xl bg-cyan-500 text-white font-bold text-sm hover:bg-cyan-600">Rent Now</button>

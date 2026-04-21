@@ -56,6 +56,7 @@ public class EquipmentController {
                     body.getEquipmentDescription(),
                     body.getEquipmentCondition(),
                     body.getRentalPricePerDay(),
+                    body.getLateFeePerDay(),
                     body.getQuantityTotal());
             return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok("Equipment added", eq));
         } catch (Exception e) {
@@ -71,7 +72,8 @@ public class EquipmentController {
                     id,
                     body.getEquipmentName(),
                     body.getEquipmentDescription(),
-                    body.getRentalPricePerDay());
+                    body.getRentalPricePerDay(),
+                    body.getLateFeePerDay());
             return ResponseEntity.ok(ApiResponse.ok("Equipment updated", eq));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
