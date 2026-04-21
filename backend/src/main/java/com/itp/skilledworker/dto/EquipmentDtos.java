@@ -61,6 +61,7 @@ public class EquipmentDtos {
         private Integer quantity = 1;
 
         private String notes;
+        
     }
 }
 
