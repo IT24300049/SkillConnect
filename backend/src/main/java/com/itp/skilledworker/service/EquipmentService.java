@@ -149,16 +149,21 @@ public class EquipmentService {
         booking.setActualReturnDate(LocalDate.now());
         booking.setBookingStatus(EquipmentBooking.BookingStatus.returned);
         EquipmentBooking returned = bookingRepository.save(booking);
-        bookingRepository.callCalculateLateFee(bookingId);
-        return bookingRepository.findById(bookingId).orElse(returned);
+        // Avoid calling the stored procedure within this transaction; if the procedure
+        // is missing, the transaction can become rollback-only.
+        return recalculateLateFeeInApp(returned);
     }
 
     public Map<String, Object> calculateLateFee(Integer bookingId) {
         EquipmentBooking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Equipment booking not found"));
 
-        // Delegate late fee calculation to the database stored procedure
-        bookingRepository.callCalculateLateFee(bookingId);
+        try {
+            // Delegate late fee calculation to the database stored procedure when available.
+            bookingRepository.callCalculateLateFee(bookingId);
+        } catch (Exception ex) {
+            recalculateLateFeeInApp(booking);
+        }
 
         // Reload booking to get updated late fee and total cost
         EquipmentBooking updated = bookingRepository.findById(bookingId)
@@ -186,6 +191,30 @@ public class EquipmentService {
                 "dailyLateFeeRate", dailyLateFeeRate,
                 "totalLateFee", updated.getLateFee(),
                 "rentalEndDate", updated.getRentalEndDate().toString());
+    }
+
+    private EquipmentBooking recalculateLateFeeInApp(EquipmentBooking booking) {
+        LocalDate dueDate = booking.getRentalEndDate();
+        LocalDate effectiveReturnDate = booking.getActualReturnDate() != null ? booking.getActualReturnDate() : LocalDate.now();
+
+        long overdueLong = ChronoUnit.DAYS.between(dueDate, effectiveReturnDate);
+        int overdueDays = (int) Math.max(0, overdueLong);
+
+        BigDecimal dailyLate = booking.getLateFeePerDaySnapshot() == null ? BigDecimal.ZERO : booking.getLateFeePerDaySnapshot();
+        int qty = booking.getQuantityRented() == null ? 1 : booking.getQuantityRented();
+
+        BigDecimal totalLate = dailyLate
+                .multiply(BigDecimal.valueOf(overdueDays))
+                .multiply(BigDecimal.valueOf(qty));
+
+        BigDecimal baseCost = booking.getBaseRentalCost() == null ? BigDecimal.ZERO : booking.getBaseRentalCost();
+        BigDecimal damageFee = booking.getDamageFee() == null ? BigDecimal.ZERO : booking.getDamageFee();
+
+        booking.setOverdueDays(overdueDays);
+        booking.setLateFee(totalLate);
+        booking.setTotalCost(baseCost.add(totalLate).add(damageFee));
+
+        return bookingRepository.save(booking);
     }
 
     public List<EquipmentBooking> getCustomerBookings(Integer customerUserId) {

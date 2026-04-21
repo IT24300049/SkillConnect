@@ -29,6 +29,16 @@ const MODAL_CARD = {
   padding: 32, width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto'
 };
 
+const ERROR_OVERLAY = {
+  position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.22)',
+  display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1300, padding: 16
+};
+
+const ERROR_CARD = {
+  background: '#fff', borderRadius: 16, boxShadow: '0 20px 50px rgba(15, 23, 42, 0.25)',
+  border: '1px solid #fecaca', width: '100%', maxWidth: 520, padding: 20
+};
+
 const EMPTY_FORM = {
   equipmentName: '', equipmentDescription: '', equipmentCondition: 'good',
   rentalPricePerDay: '', lateFeePerDay: '', quantityAvailable: 1,
@@ -42,6 +52,7 @@ export default function EquipmentPage() {
   const [myBookings, setMyBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showErrorPopup, setShowErrorPopup] = useState(false);
   const [tab, setTab] = useState('browse');
   const [search, setSearch] = useState('');
   const [filterCategoryId, setFilterCategoryId] = useState('');
@@ -57,6 +68,13 @@ export default function EquipmentPage() {
   const isSupplier = user?.role === 'supplier';
 
   useEffect(() => { loadData(); }, []);
+
+  useEffect(() => {
+    if (!error) return;
+    setShowErrorPopup(true);
+    const id = setTimeout(() => setShowErrorPopup(false), 4500);
+    return () => clearTimeout(id);
+  }, [error]);
 
   const getEquipmentImage = (eq) => {
     if (eq.imagePath) return eq.imagePath;
@@ -207,7 +225,24 @@ export default function EquipmentPage() {
         ))}
       </div>
 
-      {error && <div className="alert-error" style={{ marginBottom: 20 }}>❌ {error}</div>}
+      {showErrorPopup && error && (
+        <div style={ERROR_OVERLAY} onClick={() => { setShowErrorPopup(false); setError(''); }}>
+          <div style={ERROR_CARD} onClick={e => e.stopPropagation()}>
+            <h3 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: '#b91c1c' }}>Cannot complete action</h3>
+            <p style={{ margin: '10px 0 16px', color: '#7f1d1d', fontSize: 14 }}>{error}</p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => { setShowErrorPopup(false); setError(''); }}
+                style={{ minWidth: 90 }}
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Equipment Form Modal */}
       {showForm && (

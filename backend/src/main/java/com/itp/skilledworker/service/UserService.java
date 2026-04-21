@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -23,6 +24,8 @@ public class UserService {
     private final CustomerProfileRepository customerProfileRepository;
     private final SupplierProfileRepository supplierProfileRepository;
     private final WorkerAvailabilityRepository workerAvailabilityRepository;
+    private final ReviewRepository reviewRepository;
+    private final BookingRepository bookingRepository;
 
     public List<WorkerProfile> getAllWorkers(String district, String category) {
         boolean hasDistrict = district != null && !district.isBlank();
@@ -46,16 +49,34 @@ public class UserService {
     }
 
     public WorkerProfile getWorkerById(Integer workerId) {
-        return workerProfileRepository.findById(workerId)
-                .orElseThrow(() -> new RuntimeException("Worker not found"));
+        WorkerProfile profile = workerProfileRepository.findById(workerId)
+            .orElseThrow(() -> new RuntimeException("Worker not found"));
+        return applyLiveWorkerStats(profile);
     }
 
     public WorkerProfile getWorkerByEmail(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        return workerProfileRepository.findByUser_UserId(user.getUserId())
-                .orElseThrow(() -> new RuntimeException("Worker profile not found"));
+        WorkerProfile profile = workerProfileRepository.findByUser_UserId(user.getUserId())
+            .orElseThrow(() -> new RuntimeException("Worker profile not found"));
+        return applyLiveWorkerStats(profile);
     }
+
+        private WorkerProfile applyLiveWorkerStats(WorkerProfile profile) {
+        if (profile == null || profile.getWorkerId() == null) {
+            return profile;
+        }
+
+        long completedJobs = bookingRepository.countByWorker_WorkerIdAndBookingStatus(
+            profile.getWorkerId(), Booking.BookingStatus.completed);
+
+        Integer workerUserId = profile.getUser() != null ? profile.getUser().getUserId() : null;
+        Double avgRating = workerUserId == null ? 0.0 : reviewRepository.findAverageRatingByRevieweeUserId(workerUserId);
+
+        profile.setTotalJobs((int) completedJobs);
+        profile.setAverageRating(BigDecimal.valueOf(avgRating == null ? 0.0 : avgRating));
+        return profile;
+        }
 
     @Transactional
     public WorkerProfile updateWorkerProfile(String email, WorkerProfileUpdateRequest updated) {

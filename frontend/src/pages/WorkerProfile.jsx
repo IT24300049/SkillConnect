@@ -26,17 +26,26 @@ export default function WorkerProfile() {
     const load = async () => {
       setLoading(true);
       try {
-        const [workerRes, reviewsRes] = await Promise.allSettled([
-          workerAPI.getById(id),
-          reviewAPI.getForWorker(id),
-        ]);
-        if (workerRes.status === 'fulfilled') setWorker(workerRes.value?.data?.data);
-        if (reviewsRes.status === 'fulfilled') setReviews(reviewsRes.value?.data?.data || []);
+        const workerRes = await workerAPI.getById(id);
+        const workerData = workerRes?.data?.data;
+        setWorker(workerData);
+
+        const workerUserId = workerData?.user?.userId ?? workerData?.userId ?? id;
+        const reviewsRes = await reviewAPI.getForWorker(workerUserId).catch(() => null);
+        setReviews(reviewsRes?.data?.data || []);
       } catch (err) { setError('Failed to load worker profile.'); }
       finally { setLoading(false); }
     };
     load();
   }, [id]);
+
+  const averageFromReviews = reviews.length > 0
+    ? reviews.reduce((sum, r) => sum + Number(r?.overallRating || r?.rating || 0), 0) / reviews.length
+    : 0;
+  const displayAverageRating = reviews.length > 0
+    ? averageFromReviews
+    : Number(worker?.averageRating || 0);
+  const displayTotalJobs = Math.max(Number(worker?.totalJobs || 0), reviews.length);
 
   if (loading) return <div className="flex justify-center py-12"><span className="spinner" /></div>;
   if (error) return <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">{error}</div>;
@@ -69,8 +78,8 @@ export default function WorkerProfile() {
               <h1 className="text-2xl font-bold text-slate-900">{worker.firstName} {worker.lastName}</h1>
               <p className="text-sm text-slate-500">{worker.district || 'Location not set'}{worker.city ? `, ${worker.city}` : ''}</p>
               <div className="flex items-center gap-3 mt-2">
-                <Stars rating={worker.averageRating || 0} />
-                <span className="text-sm text-slate-500">({worker.totalJobs || 0} jobs completed)</span>
+                <Stars rating={displayAverageRating} />
+                <span className="text-sm text-slate-500">({displayTotalJobs} jobs completed)</span>
               </div>
             </div>
             {user?.role === 'customer' && (
@@ -150,7 +159,7 @@ export default function WorkerProfile() {
                 </div>
                 <div>
                   <p className="text-xs text-slate-500">Jobs Completed</p>
-                  <p className="text-sm font-semibold text-slate-900">{worker.totalJobs || 0}</p>
+                  <p className="text-sm font-semibold text-slate-900">{displayTotalJobs}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -159,7 +168,7 @@ export default function WorkerProfile() {
                 </div>
                 <div>
                   <p className="text-xs text-slate-500">Rating</p>
-                  <p className="text-sm font-semibold text-slate-900">{worker.averageRating?.toFixed(1) || '0.0'} / 5.0</p>
+                  <p className="text-sm font-semibold text-slate-900">{displayAverageRating.toFixed(1)} / 5.0</p>
                 </div>
               </div>
               {worker.isVerified && (

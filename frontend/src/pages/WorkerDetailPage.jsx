@@ -41,17 +41,29 @@ export default function WorkerDetailPage() {
         const load = async () => {
             setLoading(true);
             try {
-                const [wRes, rRes, bRes] = await Promise.allSettled([
+                const [wRes, bRes] = await Promise.allSettled([
                     workerAPI.getById(id),
-                    reviewAPI.getForWorker(id),
                     bookingAPI.getBusyDates(id)
                 ]);
                 const aRes = await workerAPI.getAvailability(id).catch(() => null);
                 const bsRes = await bookingAPI.getBusySlots(id).catch(() => null);
-                if (wRes.status === 'fulfilled') setWorker(wRes.value.data.data);
-                else setError('Worker not found.');
 
-                if (rRes.status === 'fulfilled') setReviews(rRes.value.data.data || []);
+                let workerData = null;
+                if (wRes.status === 'fulfilled') {
+                    workerData = wRes.value.data.data;
+                    setWorker(workerData);
+                } else {
+                    setError('Worker not found.');
+                }
+
+                if (workerData) {
+                    const workerUserId = workerData?.user?.userId ?? workerData?.userId ?? id;
+                    const rRes = await reviewAPI.getForWorker(workerUserId).catch(() => null);
+                    setReviews(rRes?.data?.data || []);
+                } else {
+                    setReviews([]);
+                }
+
                 if (bRes.status === 'fulfilled') setBusyDates(bRes.value.data.data || []);
                 if (aRes?.data?.data) setAvailability(aRes.data.data || []);
                 if (bsRes?.data?.data) setBusySlots(bsRes.data.data || []);
@@ -60,6 +72,17 @@ export default function WorkerDetailPage() {
         };
         load();
     }, [id]);
+
+    const averageFromReviews = reviews.length > 0
+        ? reviews.reduce((sum, r) => sum + Number(r?.overallRating || 0), 0) / reviews.length
+        : 0;
+    const displayAverageRating = reviews.length > 0
+        ? averageFromReviews
+        : Number(worker?.averageRating || 0);
+    const displayAverageRatingText = Number.isFinite(displayAverageRating)
+        ? displayAverageRating.toFixed(1).replace(/\.0$/, '')
+        : '0';
+    const displayTotalJobs = Math.max(Number(worker?.totalJobs || 0), reviews.length);
 
     const toDateKey = (dateObj) => {
         const year = dateObj.getFullYear();
@@ -230,9 +253,9 @@ export default function WorkerDetailPage() {
                                     {worker.district && <span className="badge badge-teal">📍 {worker.city ? `${worker.city}, ` : ''}{worker.district}</span>}
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                    <Stars rating={worker.averageRating} />
+                                    <Stars rating={displayAverageRating} />
                                     <span style={{ fontSize: 14, color: '#64748b', fontWeight: 600 }}>
-                                        {worker.averageRating || '0'} ({reviews.length} reviews)
+                                        {displayAverageRatingText} ({reviews.length} reviews)
                                     </span>
                                 </div>
                             </div>
@@ -297,7 +320,7 @@ export default function WorkerDetailPage() {
                             </button>
                             <hr className="hm-divider" />
                             <div style={{ fontSize: 12, color: '#94a3b8' }}>
-                                <div>Total Jobs: <strong style={{ color: '#0c4a6e' }}>{worker.totalJobs || 0}</strong></div>
+                                <div>Total Jobs: <strong style={{ color: '#0c4a6e' }}>{displayTotalJobs}</strong></div>
                             </div>
                         </div>
                     </div>
