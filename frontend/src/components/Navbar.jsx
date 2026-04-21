@@ -24,7 +24,7 @@ const ROLE_STYLES = {
 function getNavItems(role) {
     switch (role) {
         case 'worker': return NAV_ITEMS.filter(i => i.path !== '/workers');
-        case 'supplier': return NAV_ITEMS.filter(i => ['/dashboard', '/bookings', '/equipment', '/messages'].includes(i.path));
+        case 'supplier': return NAV_ITEMS.filter(i => ['/dashboard', '/equipment', '/messages'].includes(i.path));
         case 'admin': return [
             ...NAV_ITEMS,
             { path: '/admin/users', label: 'Users', icon: '👥' },

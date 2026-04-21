@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { bookingAPI } from '../api';
+import { bookingAPI, reviewAPI, complaintAPI } from '../api';
 import { useAuth } from '../AuthContext';
 import StatusBadge from '../components/StatusBadge';
 
@@ -8,6 +8,9 @@ const STATUS_COLOR = {
     pending: '#f59e0b', accepted: '#3b82f6', in_progress: '#8b5cf6',
     completed: '#10b981', cancelled: '#ef4444', rejected: '#ef4444',
 };
+
+const STARS = [1, 2, 3, 4, 5];
+const COMPLAINT_CATEGORIES = ['service_quality', 'inappropriate_behavior', 'fraud', 'payment_issue', 'other'];
 
 export default function BookingDetailPage() {
     const { id } = useParams();
@@ -17,6 +20,18 @@ export default function BookingDetailPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [reason, setReason] = useState('');
+    const [reviewForm, setReviewForm] = useState({ rating: 5, reviewText: '' });
+    const [complaintForm, setComplaintForm] = useState({
+        complaintCategory: 'other',
+        complaintTitle: '',
+        complaintDescription: '',
+    });
+    const [myReviewForBooking, setMyReviewForBooking] = useState(null);
+    const [myComplaintsForBooking, setMyComplaintsForBooking] = useState([]);
+    const [feedbackLoading, setFeedbackLoading] = useState(false);
+    const [reviewSubmitting, setReviewSubmitting] = useState(false);
+    const [complaintSubmitting, setComplaintSubmitting] = useState(false);
+    const [feedbackMessage, setFeedbackMessage] = useState('');
 
     const load = async () => {
         setLoading(true);
@@ -44,8 +59,116 @@ export default function BookingDetailPage() {
 
     const formatDate = (dt) => dt ? new Date(dt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
 
-    const isCustomer = booking?.customer?.userId === user?.userId;
-    const isWorker = booking?.worker?.user?.userId === user?.userId;
+    const customerUserId = booking?.customer?.user?.userId
+        ?? booking?.customer?.userId
+        ?? null;
+    const workerUserId = booking?.worker?.user?.userId
+        ?? booking?.worker?.userId
+        ?? null;
+
+    const isCustomer = customerUserId === user?.userId;
+    const isWorker = workerUserId === user?.userId;
+    const isParticipant = isCustomer || isWorker;
+    const isCompleted = booking?.bookingStatus === 'completed';
+    const canLeaveFeedback = isCompleted && isParticipant;
+    const counterpartUserId = isCustomer ? workerUserId : customerUserId;
+    const reviewerType = isWorker ? 'worker' : 'customer';
+
+    const loadFeedbackData = async () => {
+        if (!canLeaveFeedback || !booking?.bookingId) {
+            setMyReviewForBooking(null);
+            setMyComplaintsForBooking([]);
+            return;
+        }
+
+        setFeedbackLoading(true);
+        try {
+            const [reviewsRes, complaintsRes] = await Promise.allSettled([
+                reviewAPI.getMine(),
+                complaintAPI.getMine(),
+            ]);
+
+            if (reviewsRes.status === 'fulfilled') {
+                const mine = reviewsRes.value.data.data || [];
+                const found = mine.find(r => r.booking?.bookingId === booking.bookingId) || null;
+                setMyReviewForBooking(found);
+            } else {
+                setMyReviewForBooking(null);
+            }
+
+            if (complaintsRes.status === 'fulfilled') {
+                const mine = complaintsRes.value.data.data || [];
+                const linked = mine.filter(c => c.booking?.bookingId === booking.bookingId);
+                setMyComplaintsForBooking(linked);
+            } else {
+                setMyComplaintsForBooking([]);
+            }
+        } finally {
+            setFeedbackLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        loadFeedbackData();
+    }, [booking?.bookingId, booking?.bookingStatus, user?.userId]);
+
+    const submitReview = async (e) => {
+        e.preventDefault();
+        if (!counterpartUserId) {
+            setFeedbackMessage('Unable to identify who should be reviewed for this booking.');
+            return;
+        }
+
+        setReviewSubmitting(true);
+        setFeedbackMessage('');
+        try {
+            await reviewAPI.submit({
+                bookingId: booking.bookingId,
+                revieweeId: counterpartUserId,
+                rating: reviewForm.rating,
+                reviewText: reviewForm.reviewText,
+                reviewerType,
+            });
+            setFeedbackMessage('Review submitted successfully.');
+            await loadFeedbackData();
+        } catch (err) {
+            setFeedbackMessage(err.response?.data?.message || 'Failed to submit review.');
+        } finally {
+            setReviewSubmitting(false);
+        }
+    };
+
+    const submitComplaint = async (e) => {
+        e.preventDefault();
+        if (!counterpartUserId) {
+            setFeedbackMessage('Unable to identify who the complaint should be against for this booking.');
+            return;
+        }
+
+        setComplaintSubmitting(true);
+        setFeedbackMessage('');
+        try {
+            await complaintAPI.submit({
+                complaintCategory: complaintForm.complaintCategory,
+                complaintTitle: complaintForm.complaintTitle,
+                complaintDescription: complaintForm.complaintDescription,
+                bookingId: booking.bookingId,
+                complainedAgainstUserId: counterpartUserId,
+                reviewId: myReviewForBooking?.reviewId || null,
+            });
+            setComplaintForm({
+                complaintCategory: 'other',
+                complaintTitle: '',
+                complaintDescription: '',
+            });
+            setFeedbackMessage('Complaint submitted successfully.');
+            await loadFeedbackData();
+        } catch (err) {
+            setFeedbackMessage(err.response?.data?.message || 'Failed to submit complaint.');
+        } finally {
+            setComplaintSubmitting(false);
+        }
+    };
 
     if (loading) return (
         <div className="fade-in" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 300, gap: 12, color: '#0891b2' }}>
@@ -78,7 +201,9 @@ export default function BookingDetailPage() {
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
                             <div>
                                 <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>Customer</div>
-                                <div style={{ fontSize: 14, fontWeight: 600, color: '#0c4a6e' }}>{booking.customer?.email || 'N/A'}</div>
+                                <div style={{ fontSize: 14, fontWeight: 600, color: '#0c4a6e' }}>
+                                    {booking.customer?.user?.email || booking.customer?.email || 'N/A'}
+                                </div>
                             </div>
                             <div>
                                 <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>Worker</div>
@@ -140,6 +265,150 @@ export default function BookingDetailPage() {
                             <input className="hm-input" placeholder="Add reason for status change..." value={reason} onChange={e => setReason(e.target.value)} />
                         </div>
                     </div>
+
+                    {canLeaveFeedback && (
+                        <div className="hm-card" style={{ padding: 20, marginBottom: 20 }}>
+                            <h3 style={{ fontSize: 16, fontWeight: 800, color: '#0c4a6e', marginBottom: 6 }}>Post-Completion Feedback</h3>
+                            <p style={{ fontSize: 13, color: '#64748b', marginBottom: 16 }}>
+                                Add your rating, review, or complaint directly for this booking.
+                            </p>
+
+                            {feedbackMessage && (
+                                <div className={feedbackMessage.toLowerCase().includes('success') ? 'alert-success' : 'alert-error'} style={{ marginBottom: 12 }}>
+                                    {feedbackMessage}
+                                </div>
+                            )}
+
+                            {feedbackLoading ? (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#0891b2', fontSize: 13 }}>
+                                    <span className="spinner" /> Loading feedback details...
+                                </div>
+                            ) : (
+                                <>
+                                    <div style={{ marginBottom: 18, padding: 14, border: '1px solid #e2e8f0', borderRadius: 12, background: '#f8fafc' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                                            <h4 style={{ fontSize: 14, fontWeight: 800, color: '#0c4a6e', margin: 0 }}>Rating & Review</h4>
+                                            {myReviewForBooking && <span className="badge badge-green">Submitted</span>}
+                                        </div>
+
+                                        {myReviewForBooking ? (
+                                            <div>
+                                                <div style={{ fontSize: 20, marginBottom: 6 }}>
+                                                    {STARS.map(s => (
+                                                        <span key={s} style={{ color: s <= myReviewForBooking.overallRating ? '#f59e0b' : '#cbd5e1' }}>★</span>
+                                                    ))}
+                                                </div>
+                                                <div style={{ fontSize: 13, color: '#475569' }}>
+                                                    {myReviewForBooking.reviewText || 'No written review provided.'}
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <form onSubmit={submitReview} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                                                <div>
+                                                    <label className="hm-label">Rating</label>
+                                                    <div style={{ display: 'flex', gap: 4 }}>
+                                                        {STARS.map(s => (
+                                                            <button
+                                                                key={s}
+                                                                type="button"
+                                                                onClick={() => setReviewForm(prev => ({ ...prev, rating: s }))}
+                                                                style={{
+                                                                    background: 'none',
+                                                                    border: 'none',
+                                                                    cursor: 'pointer',
+                                                                    fontSize: 28,
+                                                                    color: s <= reviewForm.rating ? '#f59e0b' : '#cbd5e1',
+                                                                    lineHeight: 1,
+                                                                }}
+                                                            >
+                                                                ★
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="hm-label">Review (optional)</label>
+                                                    <textarea
+                                                        className="hm-input"
+                                                        rows={3}
+                                                        style={{ resize: 'vertical' }}
+                                                        placeholder="Share your experience..."
+                                                        value={reviewForm.reviewText}
+                                                        onChange={e => setReviewForm(prev => ({ ...prev, reviewText: e.target.value }))}
+                                                    />
+                                                </div>
+                                                <button type="submit" className="btn-primary" disabled={reviewSubmitting} style={{ alignSelf: 'flex-start' }}>
+                                                    {reviewSubmitting ? 'Submitting...' : 'Submit Review'}
+                                                </button>
+                                            </form>
+                                        )}
+                                    </div>
+
+                                    <div style={{ padding: 14, border: '1px solid #e2e8f0', borderRadius: 12, background: '#fff7ed' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                                            <h4 style={{ fontSize: 14, fontWeight: 800, color: '#9a3412', margin: 0 }}>Complaint</h4>
+                                            {myComplaintsForBooking.length > 0 && (
+                                                <span className="badge badge-orange">{myComplaintsForBooking.length} submitted</span>
+                                            )}
+                                        </div>
+
+                                        {myComplaintsForBooking.length > 0 && (
+                                            <div style={{ marginBottom: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                                {myComplaintsForBooking.map(c => (
+                                                    <div key={c.complaintId} style={{ padding: 10, borderRadius: 10, border: '1px solid #fed7aa', background: '#fff' }}>
+                                                        <div style={{ fontSize: 13, fontWeight: 700, color: '#9a3412' }}>{c.complaintTitle}</div>
+                                                        <div style={{ fontSize: 12, color: '#7c2d12', textTransform: 'capitalize' }}>
+                                                            {c.complaintCategory?.replace(/_/g, ' ')} · {c.complaintStatus}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        <form onSubmit={submitComplaint} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                                            <div>
+                                                <label className="hm-label">Category</label>
+                                                <select
+                                                    className="hm-input"
+                                                    value={complaintForm.complaintCategory}
+                                                    onChange={e => setComplaintForm(prev => ({ ...prev, complaintCategory: e.target.value }))}
+                                                >
+                                                    {COMPLAINT_CATEGORIES.map(c => (
+                                                        <option key={c} value={c}>{c.replace(/_/g, ' ')}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="hm-label">Title</label>
+                                                <input
+                                                    className="hm-input"
+                                                    required
+                                                    value={complaintForm.complaintTitle}
+                                                    onChange={e => setComplaintForm(prev => ({ ...prev, complaintTitle: e.target.value }))}
+                                                    placeholder="Short summary of the issue"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="hm-label">Description</label>
+                                                <textarea
+                                                    className="hm-input"
+                                                    rows={3}
+                                                    required
+                                                    style={{ resize: 'vertical' }}
+                                                    value={complaintForm.complaintDescription}
+                                                    onChange={e => setComplaintForm(prev => ({ ...prev, complaintDescription: e.target.value }))}
+                                                    placeholder="Provide details to help investigation"
+                                                />
+                                            </div>
+                                            <button type="submit" className="btn-secondary" disabled={complaintSubmitting} style={{ alignSelf: 'flex-start' }}>
+                                                {complaintSubmitting ? 'Submitting...' : 'Submit Complaint'}
+                                            </button>
+                                        </form>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {/* Right: Timeline */}

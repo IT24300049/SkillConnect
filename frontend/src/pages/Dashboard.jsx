@@ -24,6 +24,7 @@ const ROUTE_MAP = {
 export default function Dashboard() {
     const navigate = useNavigate();
     const { user } = useAuth();
+    const isSupplier = user?.role === 'supplier';
     const go = (key) => navigate(ROUTE_MAP[key] || `/${key}`);
     const [stats, setStats] = useState([]);
     const [myWorkerId, setMyWorkerId] = useState(null);
@@ -96,6 +97,19 @@ export default function Dashboard() {
     useEffect(() => {
         const fetchStats = async () => {
             try {
+                if (user?.role === 'supplier') {
+                    const results = await Promise.allSettled([
+                        equipmentAPI.getSupplierMine(),
+                        equipmentAPI.getAvailable(),
+                    ]);
+                    const get = (i) => results[i]?.status === 'fulfilled' ? (results[i].value?.data?.data?.length ?? 0) : 0;
+                    setStats([
+                        { label: 'My Equipment', value: get(0), icon: '🧰', color: '#ede9fe', text: '#5b21b6' },
+                        { label: 'Available Equipment', value: get(1), icon: '🔧', color: '#d1fae5', text: '#065f46' },
+                    ]);
+                    return;
+                }
+
                 const results = await Promise.allSettled([
                     workerAPI.getAll(),
                     jobAPI.getAll({}),
@@ -239,24 +253,26 @@ export default function Dashboard() {
             )}
 
             {/* ── Categories ── */}
-            <div style={{ marginBottom: 28 }}>
-                <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0c4a6e', marginBottom: 4 }}>Browse by Category</h2>
-                <p style={{ fontSize: 13, color: '#64748b', marginBottom: 16 }}>Find the right professional for your needs</p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(120px,1fr))', gap: 12 }}>
-                    {CATEGORIES.map(c => (
-                        <button
-                            key={c.label}
-                            className="cat-card"
-                            onClick={() => navigate(`/workers?category=${encodeURIComponent(c.skillCategory)}`)}
-                        >
-                            <div className="cat-icon" style={{ background: c.color }}>
-                                {c.icon}
-                            </div>
-                            <div style={{ fontSize: 12, fontWeight: 700, color: c.text }}>{c.label}</div>
-                        </button>
-                    ))}
+            {!isSupplier && (
+                <div style={{ marginBottom: 28 }}>
+                    <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0c4a6e', marginBottom: 4 }}>Browse by Category</h2>
+                    <p style={{ fontSize: 13, color: '#64748b', marginBottom: 16 }}>Find the right professional for your needs</p>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(120px,1fr))', gap: 12 }}>
+                        {CATEGORIES.map(c => (
+                            <button
+                                key={c.label}
+                                className="cat-card"
+                                onClick={() => navigate(`/workers?category=${encodeURIComponent(c.skillCategory)}`)}
+                            >
+                                <div className="cat-icon" style={{ background: c.color }}>
+                                    {c.icon}
+                                </div>
+                                <div style={{ fontSize: 12, fontWeight: 700, color: c.text }}>{c.label}</div>
+                            </button>
+                        ))}
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* ── Quick Access ── */}
             <div>
@@ -273,7 +289,12 @@ export default function Dashboard() {
                             ? [{ key: 'worker-schedule', icon: '🗓️', label: 'My Schedule', desc: 'Manage monthly time slots', color: '#e0f2fe' }]
                             : []),
                         ...(user?.role === 'admin' ? [{ key: 'admin-users', icon: '🛡', label: 'Manage Users', desc: 'View, suspend & activate users', color: '#fee2e2' }] : []),
-                    ].map(m => (
+                    ].filter(m => {
+                        if (isSupplier) {
+                            return ['equipment', 'messages'].includes(m.key);
+                        }
+                        return true;
+                    }).map(m => (
                         <button key={m.key} onClick={() => go(m.key)}
                             className="hm-card"
                             style={{ border: 'none', cursor: 'pointer', padding: '20px', textAlign: 'left', width: '100%' }}>

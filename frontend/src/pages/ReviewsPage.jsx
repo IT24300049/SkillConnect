@@ -47,6 +47,7 @@ function StarInput({ rating, onChange }) {
 export default function ReviewsPage() {
     const navigate = useNavigate();
     const { user } = useAuth();
+    const isAdmin = String(user?.role || '').toLowerCase() === 'admin';
     const [tab, setTab] = useState('reviews');
     const [reviews, setReviews] = useState([]);
     const [complaints, setComplaints] = useState([]);
@@ -77,7 +78,7 @@ export default function ReviewsPage() {
         setLoading(true);
         setError('');
         try {
-            const r = await complaintAPI.getAll();
+            const r = isAdmin ? await complaintAPI.getAll() : await complaintAPI.getMine();
             setComplaints(r.data.data || []);
         } catch {
             setError('Failed to load complaints. Check your connection or login status.');

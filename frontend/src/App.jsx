@@ -8,6 +8,7 @@ import Footer from './components/Footer';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import Dashboard from './pages/Dashboard';
 import JobsPage from './pages/JobsPage';
 import JobDetailPage from './pages/JobDetailPage';
@@ -53,6 +54,7 @@ function App() {
             <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <LandingPage />} />
             <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />} />
             <Route path="/register" element={user ? <Navigate to="/dashboard" replace /> : <RegisterPage />} />
+            <Route path="/reset-password" element={user ? <Navigate to="/dashboard" replace /> : <ResetPasswordPage />} />
             <Route path="/about" element={<AppLayout><AboutPage /></AppLayout>} />
             <Route path="/privacy" element={<AppLayout><PrivacyPage /></AppLayout>} />
             <Route path="/terms" element={<AppLayout><TermsPage /></AppLayout>} />
@@ -60,16 +62,16 @@ function App() {
 
             {/* Protected routes wrapped in layout */}
             <Route path="/dashboard" element={<ProtectedRoute><AppLayout><Dashboard /></AppLayout></ProtectedRoute>} />
-            <Route path="/workers" element={<ProtectedRoute><AppLayout><WorkersPage /></AppLayout></ProtectedRoute>} />
-            <Route path="/workers/:id" element={<ProtectedRoute><AppLayout><WorkerDetailPage /></AppLayout></ProtectedRoute>} />
+            <Route path="/workers" element={<ProtectedRoute roles={['customer', 'worker', 'admin']}><AppLayout><WorkersPage /></AppLayout></ProtectedRoute>} />
+            <Route path="/workers/:id" element={<ProtectedRoute roles={['customer', 'worker', 'admin']}><AppLayout><WorkerDetailPage /></AppLayout></ProtectedRoute>} />
             <Route path="/worker/schedule" element={<ProtectedRoute roles={['worker']}><AppLayout><WorkerSchedulePage /></AppLayout></ProtectedRoute>} />
-            <Route path="/jobs" element={<ProtectedRoute><AppLayout><JobsPage /></AppLayout></ProtectedRoute>} />
-            <Route path="/jobs/:id" element={<ProtectedRoute><AppLayout><JobDetailPage /></AppLayout></ProtectedRoute>} />
-            <Route path="/bookings" element={<ProtectedRoute><AppLayout><BookingsPage /></AppLayout></ProtectedRoute>} />
-            <Route path="/bookings/:id" element={<ProtectedRoute><AppLayout><BookingDetailPage /></AppLayout></ProtectedRoute>} />
+            <Route path="/jobs" element={<ProtectedRoute roles={['customer', 'worker', 'admin']}><AppLayout><JobsPage /></AppLayout></ProtectedRoute>} />
+            <Route path="/jobs/:id" element={<ProtectedRoute roles={['customer', 'worker', 'admin']}><AppLayout><JobDetailPage /></AppLayout></ProtectedRoute>} />
+            <Route path="/bookings" element={<ProtectedRoute roles={['customer', 'worker', 'admin']}><AppLayout><BookingsPage /></AppLayout></ProtectedRoute>} />
+            <Route path="/bookings/:id" element={<ProtectedRoute roles={['customer', 'worker', 'admin']}><AppLayout><BookingDetailPage /></AppLayout></ProtectedRoute>} />
             <Route path="/equipment" element={<ProtectedRoute><AppLayout><EquipmentPage /></AppLayout></ProtectedRoute>} />
-            <Route path="/reviews" element={<ProtectedRoute><AppLayout><ReviewsPage /></AppLayout></ProtectedRoute>} />
-            <Route path="/complaints" element={<ProtectedRoute><AppLayout><ComplaintsPage /></AppLayout></ProtectedRoute>} />
+            <Route path="/reviews" element={<ProtectedRoute roles={['customer', 'worker', 'admin']}><AppLayout><ReviewsPage /></AppLayout></ProtectedRoute>} />
+            <Route path="/complaints" element={<ProtectedRoute roles={['customer', 'worker', 'admin']}><AppLayout><ComplaintsPage /></AppLayout></ProtectedRoute>} />
             <Route path="/messages" element={<ProtectedRoute><AppLayout><MessagesPage /></AppLayout></ProtectedRoute>} />
             <Route path="/messages/:threadId" element={<ProtectedRoute><AppLayout><MessagesPage /></AppLayout></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><AppLayout><ProfilePage /></AppLayout></ProtectedRoute>} />

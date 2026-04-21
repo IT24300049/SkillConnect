@@ -21,6 +21,7 @@ export default function LoginPage() {
     const [forgotMode, setForgotMode] = useState(false);
     const [forgotEmail, setForgotEmail] = useState('');
     const [forgotMsg, setForgotMsg] = useState('');
+    const [forgotToken, setForgotToken] = useState('');
 
     const handleGoogleResponse = async (response) => {
         setError(''); setLoading(true);
@@ -60,10 +61,18 @@ export default function LoginPage() {
 
     const handleForgot = async (e) => {
         e.preventDefault();
+        setForgotToken('');
         try {
             const { authAPI } = await import('../api');
             const res = await authAPI.forgotPassword(forgotEmail);
-            setForgotMsg(res.data.data || res.data.message);
+            const rawMessage = String(res.data.data || res.data.message || 'Reset instructions sent.');
+            setForgotMsg(rawMessage);
+
+            // Demo mode: backend returns token in message as "...: <token>".
+            const tokenMatch = rawMessage.match(/:\s*([A-Za-z0-9-]{20,})\s*$/);
+            if (tokenMatch?.[1]) {
+                setForgotToken(tokenMatch[1]);
+            }
         } catch (err) { setForgotMsg('Error: ' + (err.response?.data?.message || 'Something went wrong')); }
     };
 
@@ -93,6 +102,16 @@ export default function LoginPage() {
                             Send Reset Link
                         </button>
                         {forgotMsg && <div className="alert-info">{forgotMsg}</div>}
+                        {forgotToken && (
+                            <button
+                                type="button"
+                                className="btn-secondary"
+                                style={{ width: '100%', justifyContent: 'center' }}
+                                onClick={() => navigate(`/reset-password?token=${encodeURIComponent(forgotToken)}`)}
+                            >
+                                Continue to Reset Password
+                            </button>
+                        )}
                         <button type="button" onClick={() => setForgotMode(false)}
                             style={{ background: 'none', border: 'none', color: '#0891b2', fontSize: 13, fontWeight: 600, cursor: 'pointer', paddingTop: 4 }}>
                             ← Back to Login
