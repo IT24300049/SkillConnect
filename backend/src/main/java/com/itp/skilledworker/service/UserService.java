@@ -45,6 +45,7 @@ public class UserService {
         // Only return workers whose underlying user accounts are active
         return base.stream()
                 .filter(w -> w.getUser() != null && Boolean.TRUE.equals(w.getUser().getIsActive()))
+                .map(this::applyLiveWorkerStats)
                 .toList();
     }
 

@@ -18,10 +18,19 @@ API.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response?.status === 401) {
-            // Token expired or invalid — clear and redirect
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            window.location.reload();
+            const requestUrl = error.config?.url || '';
+            const isAuthFlowRequest = requestUrl.includes('/auth/login')
+                || requestUrl.includes('/auth/register')
+                || requestUrl.includes('/auth/google')
+                || requestUrl.includes('/auth/forgot-password')
+                || requestUrl.includes('/auth/reset-password');
+
+            // Only force logout on protected API failures, not on normal auth form failures.
+            if (!isAuthFlowRequest && localStorage.getItem('token')) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.reload();
+            }
         }
         return Promise.reject(error);
     }
