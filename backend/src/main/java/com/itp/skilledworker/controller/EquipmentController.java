@@ -13,7 +13,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -157,6 +159,23 @@ public class EquipmentController {
         try {
             Integer userId = getUserId(auth);
             return ResponseEntity.ok(ApiResponse.ok("My supplier inventory", equipmentService.getSupplierEquipment(userId)));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        }
+    }
+
+    @PostMapping("/{id}/upload-image")
+    public ResponseEntity<ApiResponse<EquipmentInventory>> uploadEquipmentImage(
+            @PathVariable Integer id,
+            @RequestParam("image") MultipartFile image) {
+        try {
+            if (image == null || image.isEmpty()) {
+                return ResponseEntity.badRequest().body(ApiResponse.error("Image file is required"));
+            }
+            EquipmentInventory equipment = equipmentService.uploadEquipmentImage(id, image);
+            return ResponseEntity.ok(ApiResponse.ok("Equipment image uploaded", equipment));
+        } catch (IOException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Failed to save image: " + e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
         }

@@ -45,6 +45,8 @@ const EMPTY_FORM = {
   equipmentCategoryId: '',
 };
 
+const BACKEND_BASE_URL = 'http://localhost:8083';
+
 export default function EquipmentPage() {
   const { user } = useAuth();
   const [equipment, setEquipment] = useState([]);
@@ -62,6 +64,11 @@ export default function EquipmentPage() {
   const [editId, setEditId] = useState(null);
   const [bookForm, setBookForm] = useState({ equipmentId: '', rentalStartDate: '', rentalEndDate: '', quantity: 1 });
   const [showBook, setShowBook] = useState(false);
+  const [showImageUpload, setShowImageUpload] = useState(false);
+  const [imageUploadId, setImageUploadId] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -77,7 +84,12 @@ export default function EquipmentPage() {
   }, [error]);
 
   const getEquipmentImage = (eq) => {
-    if (eq.imagePath) return eq.imagePath;
+    if (eq.imagePath) {
+      const imagePath = String(eq.imagePath).trim();
+      if (/^https?:\/\//i.test(imagePath)) return imagePath;
+      if (imagePath.startsWith('/')) return `${BACKEND_BASE_URL}${imagePath}`;
+      return `${BACKEND_BASE_URL}/${imagePath}`;
+    }
 
     const name = (eq.equipmentName || '').toLowerCase();
 
@@ -118,11 +130,66 @@ export default function EquipmentPage() {
         // Use the single quantity field as the total quantity for backend
         quantityTotal: form.quantityAvailable ? parseInt(form.quantityAvailable, 10) : 1,
       };
-      if (editId) { await equipmentAPI.update(editId, payload); }
-      else { await equipmentAPI.add(payload); }
-      setShowForm(false); setForm(EMPTY_FORM); setEditId(null);
-      loadData();
+      let result;
+      if (editId) { 
+        await equipmentAPI.update(editId, payload); 
+        result = editId;
+      }
+      else { 
+        result = await equipmentAPI.add(payload); 
+        result = result.data?.data?.equipmentId;
+      }
+      setShowForm(false); 
+      setForm(EMPTY_FORM); 
+      setEditId(null);
+      
+      // Show image upload modal for new equipment
+      if (result && !editId) {
+        setImageUploadId(result);
+        setShowImageUpload(true);
+      } else {
+        loadData();
+      }
     } catch (err) { setError(err.response?.data?.message || 'Failed to save equipment.'); }
+  };
+
+  const handleImageSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setImagePreview(event.target?.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleUploadImage = async () => {
+    if (!selectedImage || !imageUploadId) {
+      setError('Please select an image');
+      return;
+    }
+    
+    setUploadingImage(true);
+    try {
+      await equipmentAPI.uploadImage(imageUploadId, selectedImage);
+      setShowImageUpload(false);
+      setSelectedImage(null);
+      setImagePreview(null);
+      loadData();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to upload image.');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const skipImageUpload = () => {
+    setShowImageUpload(false);
+    setSelectedImage(null);
+    setImagePreview(null);
+    loadData();
   };
 
   const handleEdit = (eq) => {
@@ -136,6 +203,11 @@ export default function EquipmentPage() {
     });
     setEditId(eq.equipmentId || eq.id);
     setShowForm(true);
+  };
+
+  const handleEditImage = (equipmentId) => {
+    setImageUploadId(equipmentId);
+    setShowImageUpload(true);
   };
 
   const handleDelete = async (id) => {
@@ -340,6 +412,108 @@ export default function EquipmentPage() {
                 <button type="button" onClick={() => setShowBook(false)} className="btn-secondary" style={{ flex: 1 }}>Cancel</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Image Upload Modal */}
+      {showImageUpload && (
+        <div style={MODAL_OVERLAY} onClick={() => skipImageUpload()}>
+          <div style={MODAL_CARD} onClick={e => e.stopPropagation()} className="scale-in">
+            <h2 style={{ fontSize: 20, fontWeight: 800, color: '#0c4a6e', marginBottom: 20 }}>
+              📸 Add Equipment Photo
+            </h2>
+            <p style={{ color: '#64748b', marginBottom: 16, fontSize: 14 }}>
+              Upload a photo to help customers see what they're renting
+            </p>
+
+            {!imagePreview ? (
+              <div
+                style={{
+                  border: '2px dashed #cbd5e1',
+                  borderRadius: 12,
+                  padding: 32,
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  background: '#f8fafc',
+                  transition: 'all 0.2s',
+                  marginBottom: 16,
+                }}
+              >
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  onChange={handleImageSelect}
+                  style={{ display: 'none' }}
+                  id="equipment-image-input"
+                  disabled={uploadingImage}
+                />
+                <label
+                  htmlFor="equipment-image-input"
+                  style={{ cursor: uploadingImage ? 'not-allowed' : 'pointer', display: 'block' }}
+                >
+                  <div style={{ fontSize: 40, marginBottom: 8 }}>📷</div>
+                  <p style={{ margin: 0, fontWeight: 700, color: '#0c4a6e', marginBottom: 4 }}>
+                    Click to upload or drag & drop
+                  </p>
+                  <p style={{ margin: 0, fontSize: 12, color: '#94a3b8' }}>
+                    JPG, PNG, WebP or GIF (max 5MB)
+                  </p>
+                </label>
+              </div>
+            ) : (
+              <div style={{ marginBottom: 16 }}>
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  style={{
+                    width: '100%',
+                    height: 240,
+                    objectFit: 'cover',
+                    borderRadius: 12,
+                    marginBottom: 12,
+                    border: '1px solid #e2e8f0',
+                  }}
+                />
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => {
+                    setSelectedImage(null);
+                    setImagePreview(null);
+                  }}
+                  style={{ width: '100%' }}
+                  disabled={uploadingImage}
+                >
+                  Choose Different Image
+                </button>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={handleUploadImage}
+                disabled={!selectedImage || uploadingImage}
+                style={{
+                  flex: 1,
+                  opacity: !selectedImage || uploadingImage ? 0.6 : 1,
+                  cursor: !selectedImage || uploadingImage ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {uploadingImage ? '⏳ Uploading...' : '✓ Upload Photo'}
+              </button>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={skipImageUpload}
+                disabled={uploadingImage}
+                style={{ flex: 1 }}
+              >
+                Skip for now
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -569,6 +743,14 @@ export default function EquipmentPage() {
                           >
                             Edit
                           </button>
+                            <button
+                              onClick={() => handleEditImage(eq.equipmentId || eq.id)}
+                              className="btn-secondary"
+                              style={{ padding: '6px 10px', fontSize: 12 }}
+                              title="Add or change equipment photo"
+                            >
+                              📸
+                            </button>
                           <button
                             onClick={() => handleDelete(eq.equipmentId || eq.id)}
                             className="btn-danger"

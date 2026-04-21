@@ -3,14 +3,21 @@ package com.itp.skilledworker.service;
 import com.itp.skilledworker.entity.*;
 import com.itp.skilledworker.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +28,12 @@ public class EquipmentService {
     private final EquipmentCategoryRepository categoryRepository;
     private final SupplierProfileRepository supplierRepository;
     private final CustomerProfileRepository customerProfileRepository;
+
+    @Value("${upload.equipment-dir:uploads/equipment}")
+    private String uploadDir;
+
+    private static final long MAX_FILE_BYTES = 5L * 1024 * 1024; // 5 MB
+    private static final String[] ALLOWED_TYPES = { "image/jpeg", "image/png", "image/webp", "image/gif" };
 
     @Transactional
     public EquipmentInventory addEquipment(Integer supplierUserId, Integer categoryId,
@@ -237,5 +250,61 @@ public class EquipmentService {
         SupplierProfile supplier = supplierRepository.findByUser_UserId(supplierUserId)
                 .orElseThrow(() -> new RuntimeException("Supplier profile not found"));
         return inventoryRepository.findBySupplier_SupplierId(supplier.getSupplierId());
+    }
+
+    @Transactional
+    public EquipmentInventory uploadEquipmentImage(Integer equipmentId, MultipartFile imageFile) throws IOException {
+        EquipmentInventory equipment = getEquipmentById(equipmentId);
+
+        if (imageFile == null || imageFile.isEmpty()) {
+            throw new RuntimeException("Image file is required");
+        }
+
+        validateImage(imageFile);
+
+        Path baseDir = Paths.get(uploadDir).toAbsolutePath().normalize();
+        Files.createDirectories(baseDir);
+
+        String imagePath = saveFile(baseDir, equipmentId, imageFile);
+        equipment.setImagePath(imagePath);
+
+        return inventoryRepository.save(equipment);
+    }
+
+    private void validateImage(MultipartFile file) {
+        if (file.getSize() > MAX_FILE_BYTES) {
+            throw new RuntimeException("Image file size exceeds 5MB limit");
+        }
+
+        String contentType = file.getContentType();
+        boolean isAllowed = false;
+        for (String type : ALLOWED_TYPES) {
+            if (type.equals(contentType)) {
+                isAllowed = true;
+                break;
+            }
+        }
+
+        if (!isAllowed) {
+            throw new RuntimeException("Only JPEG, PNG, WebP, and GIF images are allowed");
+        }
+    }
+
+    private String saveFile(Path baseDir, Integer equipmentId, MultipartFile file) throws IOException {
+        String originalFilename = file.getOriginalFilename();
+        String extension = "";
+        if (originalFilename != null && originalFilename.contains(".")) {
+            extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+        }
+
+        String filename = "equipment_" + equipmentId + "_" + UUID.randomUUID() + extension;
+        Path filePath = baseDir.resolve(filename).normalize();
+
+        if (!filePath.getParent().equals(baseDir.normalize())) {
+            throw new RuntimeException("Invalid file path");
+        }
+
+        file.transferTo(filePath.toFile());
+        return "/uploads/equipment/" + filename;
     }
 }

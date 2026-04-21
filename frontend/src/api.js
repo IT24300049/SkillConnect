@@ -154,6 +154,13 @@ export const equipmentAPI = {
     getSupplierBookings: () => API.get('/equipment/supplier/bookings'),
     getCategories: () => API.get('/equipment/categories'),
     getSupplierMine: () => API.get('/equipment/supplier/mine'),
+    uploadImage: (id, imageFile) => {
+        const formData = new FormData();
+        formData.append('image', imageFile);
+        return API.post(`/equipment/${id}/upload-image`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+    },
 };
 
 // Notifications
