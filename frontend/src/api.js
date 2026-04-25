@@ -123,6 +123,14 @@ export const reviewAPI = {
 
 export const complaintAPI = {
     submit: (data) => API.post('/complaints', data),
+    submitWithImages: (data, imageFiles) => {
+        const formData = new FormData();
+        formData.append('complaint', JSON.stringify(data));
+        imageFiles.forEach((file) => formData.append('images', file));
+        return API.post('/complaints', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+    },
     getAll: () => API.get('/complaints'),
     getMine: () => API.get('/complaints/my'),
     updateStatus: (id, status) => API.patch(`/complaints/${id}/status`, { status }),

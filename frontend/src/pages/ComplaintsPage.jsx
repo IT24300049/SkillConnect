@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { complaintAPI, workerAPI } from '../api';
 import { useAuth } from '../AuthContext';
 import StatusBadge from '../components/StatusBadge';
@@ -13,6 +13,11 @@ const CARD_MODAL = {
     background: '#fff', borderRadius: 20, boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
     padding: 32, width: '100%', maxWidth: 460, maxHeight: '90vh', overflowY: 'auto'
 };
+const FILE_BASE_URL = 'http://localhost:8083';
+
+const MAX_IMAGE_COUNT = 3;
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 export default function ComplaintsPage() {
     const { user } = useAuth();
@@ -23,8 +28,11 @@ export default function ComplaintsPage() {
     const [error, setError] = useState('');
     const [showForm, setShowForm] = useState(false);
     const [form, setForm] = useState({ complaintCategory: 'other', complaintTitle: '', complaintDescription: '', bookingId: '', complainedAgainstUserId: '' });
+    const [selectedImages, setSelectedImages] = useState([]);
+    const [imageError, setImageError] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
     const [search, setSearch] = useState('');
+    const fileInputRef = useRef(null);
 
     const load = async () => {
         setLoading(true); setError('');
@@ -50,17 +58,86 @@ export default function ComplaintsPage() {
         loadWorkers();
     }, [isAdmin]);
 
+    useEffect(() => {
+        return () => {
+            selectedImages.forEach((item) => URL.revokeObjectURL(item.previewUrl));
+        };
+    }, [selectedImages]);
+
+    const closeForm = () => {
+        selectedImages.forEach((item) => URL.revokeObjectURL(item.previewUrl));
+        setSelectedImages([]);
+        setImageError('');
+        setShowForm(false);
+        setForm({ complaintCategory: 'other', complaintTitle: '', complaintDescription: '', bookingId: '', complainedAgainstUserId: '' });
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
+
+    const handleImageSelection = (e) => {
+        const files = Array.from(e.target.files || []);
+        if (files.length === 0) {
+            return;
+        }
+
+        setImageError('');
+
+        const nextImages = [...selectedImages];
+        for (const file of files) {
+            if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+                setImageError('Only JPEG, PNG, and WebP images are allowed.');
+                continue;
+            }
+            if (file.size > MAX_IMAGE_BYTES) {
+                setImageError('Each image must be 5MB or less.');
+                continue;
+            }
+            if (nextImages.length >= MAX_IMAGE_COUNT) {
+                setImageError('You can upload up to 3 images only.');
+                break;
+            }
+            nextImages.push({
+                file,
+                previewUrl: URL.createObjectURL(file),
+            });
+        }
+
+        setSelectedImages(nextImages);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
+
+    const removeSelectedImage = (index) => {
+        const target = selectedImages[index];
+        if (target) {
+            URL.revokeObjectURL(target.previewUrl);
+        }
+        setSelectedImages(selectedImages.filter((_, i) => i !== index));
+        setImageError('');
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (selectedImages.length < 1) {
+            setImageError('Please upload at least 1 image.');
+            return;
+        }
+        if (selectedImages.length > MAX_IMAGE_COUNT) {
+            setImageError('You can upload up to 3 images only.');
+            return;
+        }
+
         try {
-            await complaintAPI.submit({
+            await complaintAPI.submitWithImages({
                 ...form,
-                bookingId: form.bookingId ? parseInt(form.bookingId) : null,
-                complainedAgainstUserId: form.complainedAgainstUserId ? parseInt(form.complainedAgainstUserId) : null,
-            });
-            setShowForm(false);
-            setForm({ complaintCategory: 'other', complaintTitle: '', complaintDescription: '', bookingId: '', complainedAgainstUserId: '' });
-            load();
+                bookingId: form.bookingId ? parseInt(form.bookingId, 10) : null,
+                complainedAgainstUserId: form.complainedAgainstUserId ? parseInt(form.complainedAgainstUserId, 10) : null,
+            }, selectedImages.map((item) => item.file));
+            closeForm();
+            await load();
         } catch (err) { alert('Error: ' + (err.response?.data?.message || 'Failed')); }
     };
 
@@ -82,6 +159,20 @@ export default function ComplaintsPage() {
     });
 
     const formatDate = (dt) => dt ? new Date(dt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '';
+
+    const resolveImageUrl = (url) => {
+        if (!url) {
+            return '';
+        }
+        const clean = String(url).trim();
+        if (/^https?:\/\//i.test(clean)) {
+            return clean;
+        }
+        if (clean.startsWith('/')) {
+            return `${FILE_BASE_URL}${clean}`;
+        }
+        return `${FILE_BASE_URL}/${clean}`;
+    };
 
     return (
         <div className="fade-in">
@@ -137,6 +228,21 @@ export default function ComplaintsPage() {
                                         {c.booking && <> · Booking #{c.booking.bookingId}</>}
                                         {c.complainedAgainst && <> · Against {c.complainedAgainst.email}</>}
                                     </div>
+                                    {Array.isArray(c.complaintImages) && c.complaintImages.length > 0 && (
+                                        <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
+                                            {c.complaintImages.map((img) => (
+                                                <a key={img.complaintImageId || img.imageUrl} href={resolveImageUrl(img.imageUrl)} target="_blank" rel="noreferrer"
+                                                    style={{ display: 'inline-flex', border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden' }}>
+                                                    <img
+                                                        src={resolveImageUrl(img.imageUrl)}
+                                                        alt="Complaint evidence"
+                                                        style={{ width: 64, height: 64, objectFit: 'cover', display: 'block' }}
+                                                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                                    />
+                                                </a>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                                 {isAdmin && (
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
@@ -164,7 +270,7 @@ export default function ComplaintsPage() {
 
             {/* Submit Modal */}
             {showForm && (
-                <div style={MODAL} onClick={() => setShowForm(false)}>
+                <div style={MODAL} onClick={closeForm}>
                     <div style={CARD_MODAL} onClick={e => e.stopPropagation()}>
                         <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0c4a6e', marginBottom: 18 }}>📢 Submit Complaint</h2>
                         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -198,9 +304,51 @@ export default function ComplaintsPage() {
                                 <label className="hm-label">Related Booking ID (optional)</label>
                                 <input className="hm-input" type="number" value={form.bookingId} onChange={e => setForm({ ...form, bookingId: e.target.value })} />
                             </div>
+                            <div>
+                                <label className="hm-label">Issue Images (1-3)</label>
+                                <input
+                                    ref={fileInputRef}
+                                    className="hm-input"
+                                    type="file"
+                                    accept="image/jpeg,image/png,image/webp"
+                                    multiple
+                                    onChange={handleImageSelection}
+                                />
+                                <div style={{ marginTop: 6, fontSize: 11, color: '#64748b' }}>
+                                    JPEG, PNG, or WebP. Max 5MB each.
+                                </div>
+                                {imageError && (
+                                    <div style={{ marginTop: 6, color: '#dc2626', fontSize: 12 }}>{imageError}</div>
+                                )}
+                                {selectedImages.length > 0 && (
+                                    <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                                        {selectedImages.map((item, index) => (
+                                            <div key={`${item.file.name}-${index}`} style={{ position: 'relative' }}>
+                                                <img
+                                                    src={item.previewUrl}
+                                                    alt={`Preview ${index + 1}`}
+                                                    style={{ width: 76, height: 76, borderRadius: 10, objectFit: 'cover', border: '1px solid #e2e8f0' }}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeSelectedImage(index)}
+                                                    style={{
+                                                        position: 'absolute', top: -6, right: -6, width: 20, height: 20,
+                                                        borderRadius: '50%', border: 'none', background: '#ef4444', color: '#fff',
+                                                        fontSize: 12, cursor: 'pointer', lineHeight: 1
+                                                    }}
+                                                    aria-label="Remove image"
+                                                >
+                                                    ×
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                             <div style={{ display: 'flex', gap: 10 }}>
                                 <button type="submit" className="btn-primary" style={{ flex: 1, justifyContent: 'center', background: 'linear-gradient(135deg,#f97316,#9a3412)' }}>Submit</button>
-                                <button type="button" className="btn-secondary" style={{ flex: 1, textAlign: 'center' }} onClick={() => setShowForm(false)}>Cancel</button>
+                                <button type="button" className="btn-secondary" style={{ flex: 1, textAlign: 'center' }} onClick={closeForm}>Cancel</button>
                             </div>
                         </form>
                     </div>

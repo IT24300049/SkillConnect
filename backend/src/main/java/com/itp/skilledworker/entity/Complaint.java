@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "complaints")
@@ -65,6 +67,11 @@ public class Complaint {
 
     @Column(name = "resolved_at")
     private LocalDateTime resolvedAt;
+
+    @OneToMany(mappedBy = "complaint", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OrderBy("sortOrder ASC")
+    @JsonIgnoreProperties("complaint")
+    private List<ComplaintImage> complaintImages = new ArrayList<>();
 
     @PrePersist
     public void prePersist() {

@@ -8,6 +8,7 @@ D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\dto\R
 D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\repository\UserRepository.java
 D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\entity\Complaint.java
 D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\entity\WorkerVerification.java
+D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\repository\ComplaintImageRepository.java
 D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\service\JobService.java
 D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\config\DataInitializer.java
 D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\repository\EquipmentBookingRepository.java
@@ -25,6 +26,7 @@ D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\entit
 D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\service\ReviewService.java
 D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\controller\VerificationController.java
 D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\repository\ReviewRepository.java
+D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\entity\ComplaintImage.java
 D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\repository\EquipmentCategoryRepository.java
 D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\entity\EquipmentBooking.java
 D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\config\SecurityConfig.java

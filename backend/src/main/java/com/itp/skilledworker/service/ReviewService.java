@@ -4,25 +4,44 @@ import com.itp.skilledworker.dto.ReviewComplaintDtos.PendingReviewResponse;
 import com.itp.skilledworker.entity.*;
 import com.itp.skilledworker.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class ReviewService {
 
     private static final int REVIEW_WINDOW_DAYS = 14;
+        private static final int MIN_COMPLAINT_IMAGES = 1;
+        private static final int MAX_COMPLAINT_IMAGES = 3;
+        private static final long MAX_IMAGE_FILE_BYTES = 5L * 1024 * 1024;
+        private static final Set<String> ALLOWED_IMAGE_TYPES = new HashSet<>(
+            List.of("image/jpeg", "image/png", "image/webp"));
 
     private final ReviewRepository reviewRepository;
     private final ComplaintRepository complaintRepository;
+    private final ComplaintImageRepository complaintImageRepository;
     private final MessageRepository messageRepository;
     private final MessageThreadRepository messageThreadRepository;
     private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
     private final JobRepository jobRepository;
+
+    @Value("${upload.complaints-dir:uploads/complaints}")
+    private String complaintsUploadDir;
 
     @Transactional
     public Review submitReview(Integer bookingId, Integer reviewerUserId, Integer revieweeUserId,
@@ -136,6 +155,14 @@ public class ReviewService {
     public Complaint submitComplaint(Integer complainantUserId, String category,
             String title, String description, Integer bookingId, Integer complainedAgainstUserId,
             Integer reviewId) {
+        return submitComplaint(complainantUserId, category, title, description, bookingId, complainedAgainstUserId, reviewId,
+            null);
+        }
+
+        @Transactional
+        public Complaint submitComplaint(Integer complainantUserId, String category,
+            String title, String description, Integer bookingId, Integer complainedAgainstUserId,
+            Integer reviewId, List<MultipartFile> images) {
         User complainant = userRepository.findById(complainantUserId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         Complaint complaint = new Complaint();
@@ -195,7 +222,16 @@ public class ReviewService {
                 }
             }
         }
-        return complaintRepository.save(complaint);
+
+        Complaint savedComplaint = complaintRepository.save(complaint);
+
+        if (images != null) {
+            validateComplaintImages(images);
+            saveComplaintImages(savedComplaint, images);
+        }
+
+        return complaintRepository.findById(savedComplaint.getComplaintId())
+                .orElseThrow(() -> new RuntimeException("Complaint not found after save"));
     }
 
     public List<Complaint> getAllComplaints(Integer requestingUserId) {
@@ -349,5 +385,75 @@ public class ReviewService {
         }
         String name = sb.toString().trim();
         return name.isEmpty() ? fallback : name;
+    }
+
+    private void validateComplaintImages(List<MultipartFile> images) {
+        if (images.isEmpty()) {
+            throw new RuntimeException("At least 1 image is required");
+        }
+        if (images.size() > MAX_COMPLAINT_IMAGES) {
+            throw new RuntimeException("You can upload up to 3 images only");
+        }
+        if (images.size() < MIN_COMPLAINT_IMAGES) {
+            throw new RuntimeException("At least 1 image is required");
+        }
+
+        for (MultipartFile image : images) {
+            if (image == null || image.isEmpty()) {
+                throw new RuntimeException("Image files must not be empty");
+            }
+            if (image.getSize() > MAX_IMAGE_FILE_BYTES) {
+                throw new RuntimeException("Each image must be 5MB or less");
+            }
+            String contentType = image.getContentType();
+            if (contentType == null || !ALLOWED_IMAGE_TYPES.contains(contentType.toLowerCase(Locale.ROOT))) {
+                throw new RuntimeException("Only JPEG, PNG, and WebP images are allowed");
+            }
+        }
+    }
+
+    private void saveComplaintImages(Complaint complaint, List<MultipartFile> images) {
+        try {
+            Path baseDir = Paths.get(complaintsUploadDir).toAbsolutePath().normalize();
+            Files.createDirectories(baseDir);
+
+            for (int i = 0; i < images.size(); i++) {
+                MultipartFile image = images.get(i);
+                String imagePath = saveComplaintImageFile(baseDir, complaint.getComplaintId(), image);
+
+                ComplaintImage complaintImage = new ComplaintImage();
+                complaintImage.setComplaint(complaint);
+                complaintImage.setImageUrl(imagePath);
+                complaintImage.setSortOrder(i + 1);
+                complaintImageRepository.save(complaintImage);
+                complaint.getComplaintImages().add(complaintImage);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to save complaint images", e);
+        }
+    }
+
+    private String saveComplaintImageFile(Path baseDir, Integer complaintId, MultipartFile file) throws IOException {
+        String extension = getExtension(file.getOriginalFilename());
+        String filename = "complaint_" + complaintId + "_" + UUID.randomUUID() + extension;
+        Path targetPath = baseDir.resolve(filename).normalize();
+
+        if (!targetPath.getParent().equals(baseDir)) {
+            throw new RuntimeException("Invalid file path");
+        }
+
+        file.transferTo(targetPath.toFile());
+        return "/uploads/complaints/" + filename;
+    }
+
+    private String getExtension(String originalFilename) {
+        if (originalFilename == null) {
+            return "";
+        }
+        int dotIndex = originalFilename.lastIndexOf('.');
+        if (dotIndex < 0) {
+            return "";
+        }
+        return originalFilename.substring(dotIndex);
     }
 }

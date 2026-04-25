@@ -8,17 +8,23 @@ import com.itp.skilledworker.dto.ReviewComplaintDtos.MessageThreadCreateRequest;
 import com.itp.skilledworker.dto.ReviewComplaintDtos.PendingReviewResponse;
 import com.itp.skilledworker.dto.ReviewComplaintDtos.ReviewCreateRequest;
 import com.itp.skilledworker.dto.ReviewComplaintDtos.ReviewUpdateRequest;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itp.skilledworker.entity.*;
 import com.itp.skilledworker.repository.UserRepository;
 import com.itp.skilledworker.service.ReviewService;
 import jakarta.validation.Valid;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api")
@@ -27,6 +33,8 @@ public class ReviewController {
 
     private final ReviewService reviewService;
     private final UserRepository userRepository;
+    private final ObjectMapper objectMapper;
+    private final Validator validator;
 
     // --------- REVIEWS ---------
     @PostMapping("/reviews")
@@ -96,7 +104,7 @@ public class ReviewController {
     }
 
     // --------- COMPLAINTS ---------
-    @PostMapping("/complaints")
+    @PostMapping(value = "/complaints", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApiResponse<Complaint>> submitComplaint(@Valid @RequestBody ComplaintCreateRequest body,
             Authentication auth) {
         try {
@@ -109,6 +117,34 @@ public class ReviewController {
                     body.getBookingId(),
                     body.getComplainedAgainstUserId(),
                     body.getReviewId());
+            return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok("Complaint submitted", complaint));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        }
+    }
+
+    @PostMapping(value = "/complaints", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<Complaint>> submitComplaintWithImages(
+            @RequestPart("complaint") String complaintJson,
+            @RequestPart("images") List<MultipartFile> images,
+            Authentication auth) {
+        try {
+            Integer userId = getUserId(auth);
+            ComplaintCreateRequest body = objectMapper.readValue(complaintJson, ComplaintCreateRequest.class);
+            Set<ConstraintViolation<ComplaintCreateRequest>> violations = validator.validate(body);
+            if (!violations.isEmpty()) {
+                return ResponseEntity.badRequest().body(ApiResponse.error(violations.iterator().next().getMessage()));
+            }
+
+            Complaint complaint = reviewService.submitComplaint(
+                    userId,
+                    body.getComplaintCategory(),
+                    body.getComplaintTitle(),
+                    body.getComplaintDescription(),
+                    body.getBookingId(),
+                    body.getComplainedAgainstUserId(),
+                    body.getReviewId(),
+                    images);
             return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok("Complaint submitted", complaint));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));

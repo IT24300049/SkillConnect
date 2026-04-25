@@ -4,6 +4,8 @@ import StatusBadge from '../components/StatusBadge';
 import EmptyState from '../components/EmptyState';
 import toast from 'react-hot-toast';
 
+const FILE_BASE_URL = 'http://localhost:8083';
+
 export default function AdminComplaintsPage() {
   const [complaints, setComplaints] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -24,6 +26,20 @@ export default function AdminComplaintsPage() {
       .catch((err) => toast.error(err.response?.data?.message || 'Failed'));
   };
 
+  const resolveImageUrl = (url) => {
+    if (!url) {
+      return '';
+    }
+    const clean = String(url).trim();
+    if (/^https?:\/\//i.test(clean)) {
+      return clean;
+    }
+    if (clean.startsWith('/')) {
+      return `${FILE_BASE_URL}${clean}`;
+    }
+    return `${FILE_BASE_URL}/${clean}`;
+  };
+
   if (loading) return <div className="spinner mx-auto mt-12" />;
 
   return (
@@ -38,6 +54,7 @@ export default function AdminComplaintsPage() {
               <tr>
                 <th className="text-left p-3 font-semibold">Title</th>
                 <th className="text-left p-3 font-semibold">Category</th>
+                <th className="text-left p-3 font-semibold">Evidence</th>
                 <th className="text-left p-3 font-semibold">Status</th>
                 <th className="text-left p-3 font-semibold">Actions</th>
               </tr>
@@ -47,6 +64,32 @@ export default function AdminComplaintsPage() {
                 <tr key={c.complaintId} className="border-b last:border-0">
                   <td className="p-3">{c.complaintTitle}</td>
                   <td className="p-3">{c.complaintCategory}</td>
+                  <td className="p-3">
+                    {Array.isArray(c.complaintImages) && c.complaintImages.length > 0 ? (
+                      <div className="flex gap-2 flex-wrap">
+                        {c.complaintImages.map((img) => (
+                          <a
+                            key={img.complaintImageId || img.imageUrl}
+                            href={resolveImageUrl(img.imageUrl)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex rounded border border-slate-200 overflow-hidden"
+                          >
+                            <img
+                              src={resolveImageUrl(img.imageUrl)}
+                              alt="Complaint evidence"
+                              className="w-12 h-12 object-cover block"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                              }}
+                            />
+                          </a>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-slate-400">No images</span>
+                    )}
+                  </td>
                   <td className="p-3"><StatusBadge status={c.complaintStatus} /></td>
                   <td className="p-3">
                     <select
