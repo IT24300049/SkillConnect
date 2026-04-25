@@ -19,7 +19,6 @@ public class JobService {
     private final CustomerProfileRepository customerProfileRepository;
     private final JobApplicationRepository jobApplicationRepository;
     private final UserRepository userRepository;
-    private final NotificationService notificationService;
     private final WorkerProfileRepository workerProfileRepository;
     private final BookingRepository bookingRepository;
 
@@ -134,12 +133,6 @@ public class JobService {
         application.setStatus(JobApplication.ApplicationStatus.pending);
         JobApplication savedApplication = jobApplicationRepository.save(application);
 
-        notificationService.createNotification(
-            job.getCustomer().getUser(),
-            "New worker acceptance",
-            worker.getEmail() + " accepted work for \"" + job.getJobTitle() + "\".",
-            "/jobs/" + job.getJobId());
-
         return savedApplication;
     }
 
@@ -178,11 +171,6 @@ public class JobService {
             job.setJobStatus(Job.JobStatus.assigned);
             jobRepository.save(job);
 
-            notificationService.createNotification(
-                    application.getWorkerUser(),
-                    "Application accepted",
-                    "You were selected for \"" + application.getJob().getJobTitle() + "\".",
-                    "/jobs/" + application.getJob().getJobId());
         }
         return jobApplicationRepository.save(application);
     }

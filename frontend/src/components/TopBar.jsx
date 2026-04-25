@@ -20,9 +20,6 @@ export default function TopBar({ title, subtitle, onMenuToggle }) {
         </div>
 
         <div className="flex items-center gap-3">
-          <button className="relative p-2 rounded-lg hover:bg-slate-100 transition-colors">
-            <span className="material-symbols-outlined text-slate-600">notifications</span>
-          </button>
           <div className="flex items-center gap-2 pl-3 border-l border-slate-200">
             <span className="text-xs font-semibold text-slate-500 capitalize hidden sm:block">
               {user?.role}

@@ -22,7 +22,6 @@ public class BookingService {
     private final WorkerAvailabilityRepository workerAvailabilityRepository;
     private final CustomerProfileRepository customerProfileRepository;
     private final UserRepository userRepository;
-    private final NotificationService notificationService;
 
     @Transactional
     public Booking createBooking(Integer jobId, Integer workerId, Integer customerUserId,
@@ -122,9 +121,6 @@ public class BookingService {
 
         booking = bookingRepository.save(booking);
         logStatusChange(booking, oldStatus.name(), targetStatus.name(), actor, reason);
-        if (targetStatus == Booking.BookingStatus.completed) {
-            sendReviewReminders(booking);
-        }
         return booking;
     }
 
@@ -209,40 +205,4 @@ public class BookingService {
                 .toList();
     }
 
-    private void sendReviewReminders(Booking booking) {
-        User workerUser = booking.getWorker().getUser();
-        User customerUser = booking.getCustomer().getUser();
-
-        String workerName = buildDisplayName(booking.getWorker().getFirstName(), booking.getWorker().getLastName(),
-                workerUser.getEmail());
-        String customerName = buildDisplayName(booking.getCustomer().getFirstName(), booking.getCustomer().getLastName(),
-                customerUser.getEmail());
-
-        notificationService.createNotification(
-                customerUser,
-                "Review your worker",
-                "Please rate " + workerName + " for booking #" + booking.getBookingId() + ".",
-                "/reviews");
-
-        notificationService.createNotification(
-                workerUser,
-                "Review your customer",
-                "Share feedback about " + customerName + " for booking #" + booking.getBookingId() + ".",
-                "/reviews");
-    }
-
-    private String buildDisplayName(String firstName, String lastName, String fallback) {
-        StringBuilder sb = new StringBuilder();
-        if (firstName != null && !firstName.isBlank()) {
-            sb.append(firstName.trim());
-        }
-        if (lastName != null && !lastName.isBlank()) {
-            if (sb.length() > 0) {
-                sb.append(" ");
-            }
-            sb.append(lastName.trim());
-        }
-        String result = sb.toString().trim();
-        return result.isEmpty() ? fallback : result;
-    }
 }

@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
-import { notificationAPI } from '../api';
 
 const NAV_ITEMS = [
     { path: '/dashboard', label: 'Home', icon: '⌂' },
@@ -44,68 +43,10 @@ export default function Navbar() {
     const location = useLocation();
     const { user, logout } = useAuth();
     const [hovered, setHovered] = useState(null);
-    const [notifications, setNotifications] = useState([]);
-    const [unreadCount, setUnreadCount] = useState(0);
-    const [notifOpen, setNotifOpen] = useState(false);
     const items = getNavItems(user?.role);
     const roleStyle = ROLE_STYLES[user?.role] || { bg: '#f1f5f9', color: '#475569', label: user?.role };
 
     const handleLogout = () => { logout(); navigate('/login'); };
-
-    const loadNotifications = async () => {
-        if (!user) return;
-        try {
-            const [allRes, unreadRes] = await Promise.all([
-                notificationAPI.getAll(),
-                notificationAPI.getUnreadCount(),
-            ]);
-            const all = allRes.data?.data || [];
-            setNotifications(all.slice(0, 8));
-            setUnreadCount(unreadRes.data?.data || 0);
-        } catch {
-            // Silent fail to keep navbar stable even if notification endpoint has issues.
-        }
-    };
-
-    const handleNotificationClick = async (notification) => {
-        try {
-            if (!notification.isRead) {
-                await notificationAPI.markRead(notification.notificationId);
-            }
-        } catch {
-            // Ignore mark-read failures and still navigate.
-        }
-
-        setNotifOpen(false);
-        loadNotifications();
-
-        if (notification.linkUrl) {
-            navigate(notification.linkUrl);
-        }
-    };
-
-    const markAllNotificationsRead = async () => {
-        try {
-            await notificationAPI.markAllRead();
-            await loadNotifications();
-        } catch {
-            // Ignore failures to avoid blocking user navigation.
-        }
-    };
-
-    useEffect(() => {
-        loadNotifications();
-    }, [user?.userId]);
-
-    useEffect(() => {
-        if (!user) return;
-        const id = setInterval(loadNotifications, 20000);
-        return () => clearInterval(id);
-    }, [user?.userId]);
-
-    useEffect(() => {
-        setNotifOpen(false);
-    }, [location.pathname]);
 
     return (
         <header style={{
@@ -210,7 +151,7 @@ export default function Navbar() {
                 </nav>
 
                 {/* ── Right side ── */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0, marginLeft: 8, position: 'relative' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0, marginLeft: 8 }}>
 
                     {/* Role badge */}
                     <span style={{
@@ -225,103 +166,6 @@ export default function Navbar() {
                     }}>
                         {roleStyle.label}
                     </span>
-
-                    {/* Notifications */}
-                    <button
-                        onClick={() => {
-                            setNotifOpen(v => !v);
-                            if (!notifOpen) loadNotifications();
-                        }}
-                        title="Notifications"
-                        style={{
-                            width: 36, height: 36,
-                            borderRadius: '50%',
-                            border: '1px solid rgba(249,115,22,0.45)',
-                            background: 'rgba(15,23,42,0.7)',
-                            color: '#f97316',
-                            fontSize: 16,
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            position: 'relative',
-                        }}>
-                        🔔
-                        {unreadCount > 0 && (
-                            <span style={{
-                                position: 'absolute',
-                                top: -4,
-                                right: -4,
-                                minWidth: 18,
-                                height: 18,
-                                borderRadius: 999,
-                                background: '#ef4444',
-                                color: '#fff',
-                                fontSize: 10,
-                                fontWeight: 800,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                padding: '0 4px',
-                                border: '2px solid #fff',
-                            }}>
-                                {unreadCount > 99 ? '99+' : unreadCount}
-                            </span>
-                        )}
-                    </button>
-
-                    {notifOpen && (
-                        <div style={{
-                            position: 'absolute',
-                            top: 48,
-                            right: 90,
-                            width: 360,
-                            maxHeight: 420,
-                            overflowY: 'auto',
-                            background: '#020617',
-                            border: '1px solid #e2e8f0',
-                            borderRadius: 12,
-                            boxShadow: '0 20px 45px rgba(0,0,0,0.75)',
-                            padding: 10,
-                            zIndex: 300,
-                        }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, padding: '4px 6px' }}>
-                                <span style={{ fontSize: 13, fontWeight: 800, color: '#e5e7eb' }}>Notifications</span>
-                                <button
-                                    onClick={markAllNotificationsRead}
-                                    style={{
-                                        border: 'none',
-                                        background: 'transparent',
-                                        color: '#f97316',
-                                        fontSize: 12,
-                                        fontWeight: 700,
-                                        cursor: 'pointer',
-                                    }}>
-                                    Mark all read
-                                </button>
-                            </div>
-
-                            {notifications.length === 0 ? (
-                                <div style={{ fontSize: 12, color: '#9ca3af', padding: 10 }}>No notifications yet.</div>
-                            ) : notifications.map(n => (
-                                <button
-                                    key={n.notificationId}
-                                    onClick={() => handleNotificationClick(n)}
-                                    style={{
-                                        width: '100%',
-                                        textAlign: 'left',
-                                        border: '1px solid #e2e8f0',
-                                        background: n.isRead ? '#020617' : 'rgba(31,41,55,0.9)',
-                                        borderRadius: 10,
-                                        padding: 10,
-                                        marginBottom: 8,
-                                        cursor: 'pointer',
-                                    }}>
-                                    <div style={{ fontSize: 12, fontWeight: 800, color: '#fef3c7', marginBottom: 4 }}>{n.title}</div>
-                                    <div style={{ fontSize: 12, color: '#e5e7eb', marginBottom: 4, lineHeight: 1.4 }}>{n.message}</div>
-                                    <div style={{ fontSize: 11, color: '#9ca3af' }}>{n.createdAt ? new Date(n.createdAt).toLocaleString() : ''}</div>
-                                </button>
-                            ))}
-                        </div>
-                    )}
 
                     {/* Avatar */}
                     <button

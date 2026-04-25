@@ -163,12 +163,4 @@ export const equipmentAPI = {
     },
 };
 
-// Notifications
-export const notificationAPI = {
-    getAll: () => API.get('/notifications'),
-    markRead: (id) => API.patch(`/notifications/${id}/read`),
-    markAllRead: () => API.patch('/notifications/read-all'),
-    getUnreadCount: () => API.get('/notifications/unread-count'),
-};
-
 export default API;

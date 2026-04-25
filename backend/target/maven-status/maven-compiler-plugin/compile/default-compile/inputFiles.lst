@@ -19,7 +19,6 @@ D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\servi
 D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\entity\EquipmentInventory.java
 D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\repository\JobCategoryRepository.java
 D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\config\WebConfig.java
-D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\repository\NotificationRepository.java
 D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\entity\EquipmentCategory.java
 D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\repository\WorkerProfileRepository.java
 D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\entity\MessageThread.java
@@ -29,13 +28,11 @@ D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\repos
 D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\repository\EquipmentCategoryRepository.java
 D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\entity\EquipmentBooking.java
 D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\config\SecurityConfig.java
-D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\controller\NotificationController.java
 D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\config\GlobalExceptionHandler.java
 D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\service\VerificationService.java
 D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\entity\User.java
 D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\entity\JobCategory.java
 D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\SkilledWorkerApplication.java
-D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\entity\Notification.java
 D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\controller\JobController.java
 D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\entity\BookingStatusHistory.java
 D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\repository\EquipmentInventoryRepository.java
@@ -73,6 +70,5 @@ D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\dto\U
 D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\dto\VerificationDtos.java
 D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\service\MessageService.java
 D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\config\UserDetailsServiceImpl.java
-D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\service\NotificationService.java
 D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\repository\JobRepository.java
 D:\FH5\Project ITP\Project ITP\backend\src\main\java\com\itp\skilledworker\repository\CustomerProfileRepository.java
