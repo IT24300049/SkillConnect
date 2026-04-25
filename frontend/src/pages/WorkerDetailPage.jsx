@@ -1,8 +1,28 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { workerAPI, reviewAPI, bookingAPI, jobAPI } from '../api';
 import { useAuth } from '../AuthContext';
 import toast from 'react-hot-toast';
+import {
+    DEFAULT_BOOKING_FORM,
+    buildScheduledTime,
+    parseTimeToMinutes,
+    slotLabelFromMinutes,
+    to12HourTimeParts,
+    to24Hour,
+    toDateKey,
+} from '../utils/bookingUtils';
+import {
+    BOOKING_MODAL_CLASS,
+    bookingAvailabilityPillClass,
+    bookingButtonClass,
+    bookingInputClass,
+    bookingLegendPillClass,
+    bookingSlotButtonClass,
+    bookingStateClass,
+    bookingSubmitButtonClass,
+    cx,
+} from '../utils/bookingStyleUtils';
 
 function Stars({ rating = 0 }) {
     return (
@@ -14,15 +34,6 @@ function Stars({ rating = 0 }) {
     );
 }
 
-const MODAL = {
-    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
-    display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 16
-};
-const CARD_MODAL = {
-    background: '#fff', borderRadius: 20, boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
-    padding: 32, width: '100%', maxWidth: 460, maxHeight: '90vh', overflowY: 'auto'
-};
-
 export default function WorkerDetailPage() {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -32,134 +43,119 @@ export default function WorkerDetailPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [showBooking, setShowBooking] = useState(false);
-    const [bookForm, setBookForm] = useState({ jobId: '', scheduledDate: '', scheduledHour: '09', scheduledMinute: '00', scheduledPeriod: 'AM', notes: '' });
-    const [booking, setBooking] = useState(false);
-    const [busyDates, setBusyDates] = useState([]);
+    const [bookForm, setBookForm] = useState(DEFAULT_BOOKING_FORM);
+    const [submitting, setSubmitting] = useState(false);
+    const [bookingError, setBookingError] = useState('');
     const [availability, setAvailability] = useState([]);
     const [busySlots, setBusySlots] = useState([]);
     const [myJobs, setMyJobs] = useState([]);
 
-    const availableJobOptions = myJobs.filter(job => ['active', 'assigned'].includes(String(job.jobStatus || '').toLowerCase()));
+    const availableJobOptions = useMemo(
+        () => myJobs.filter((job) => ['active', 'assigned'].includes(String(job.jobStatus || '').toLowerCase())),
+        [myJobs]
+    );
 
-    useEffect(() => {
-        const load = async () => {
-            setLoading(true);
-            try {
-                const [wRes, rRes, bRes] = await Promise.allSettled([
-                    workerAPI.getById(id),
-                    reviewAPI.getForWorker(id),
-                    bookingAPI.getBusyDates(id)
-                ]);
-                const aRes = await workerAPI.getAvailability(id).catch(() => null);
-                const bsRes = await bookingAPI.getBusySlots(id).catch(() => null);
-                const jobsRes = user?.role === 'customer' ? await jobAPI.getMine().catch(() => null) : null;
-                if (wRes.status === 'fulfilled') setWorker(wRes.value.data.data);
-                else setError('Worker not found.');
+    const loadWorkerData = useCallback(async () => {
+        setLoading(true);
+        setError('');
+        try {
+            const [wRes, rRes, aRes, bsRes, jobsRes] = await Promise.allSettled([
+                workerAPI.getById(id),
+                reviewAPI.getForWorker(id),
+                workerAPI.getAvailability(id),
+                bookingAPI.getBusySlotsData(id),
+                user?.role === 'customer' ? jobAPI.getMine() : Promise.resolve(null),
+            ]);
 
-                if (rRes.status === 'fulfilled') setReviews(rRes.value.data.data || []);
-                if (bRes.status === 'fulfilled') setBusyDates(bRes.value.data.data || []);
-                if (aRes?.data?.data) setAvailability(aRes.data.data || []);
-                if (bsRes?.data?.data) setBusySlots(bsRes.data.data || []);
-                if (jobsRes?.data?.data) setMyJobs(jobsRes.data.data || []);
-            } catch { setError('Failed to load worker.'); }
-            finally { setLoading(false); }
-        };
-        load();
+            if (wRes.status === 'fulfilled') setWorker(wRes.value.data.data);
+            else setError('Worker not found.');
+
+            setReviews(rRes.status === 'fulfilled' ? (rRes.value.data.data || []) : []);
+            setAvailability(aRes.status === 'fulfilled' ? (aRes.value?.data?.data || []) : []);
+            setBusySlots(bsRes.status === 'fulfilled' ? bsRes.value : []);
+            setMyJobs(jobsRes.status === 'fulfilled' ? (jobsRes.value?.data?.data || []) : []);
+        } catch {
+            setError('Failed to load worker.');
+        } finally {
+            setLoading(false);
+        }
     }, [id, user?.role]);
 
-    const toDateKey = (dateObj) => {
-        const year = dateObj.getFullYear();
-        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-        const day = String(dateObj.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    };
+    useEffect(() => {
+        loadWorkerData();
+    }, [loadWorkerData]);
 
-    const parseTimeToMinutes = (timeStr) => {
-        if (!timeStr) return null;
-        const [h, m] = String(timeStr).split(':').map(Number);
-        if (Number.isNaN(h) || Number.isNaN(m)) return null;
-        return h * 60 + m;
-    };
+    const updateBookForm = useCallback((patch) => {
+        setBookForm((prev) => ({ ...prev, ...patch }));
+    }, []);
 
-    const slotLabelFromMinutes = (minutes) => {
-        const hour24 = Math.floor(minutes / 60);
-        const minute = minutes % 60;
-        const period = hour24 >= 12 ? 'PM' : 'AM';
-        const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
-        return `${String(hour12).padStart(2, '0')}:${String(minute).padStart(2, '0')} ${period}`;
-    };
-
-    const applySlotToForm = (dateKey, minutes) => {
-        const hour24 = Math.floor(minutes / 60);
-        const minute = minutes % 60;
-        const period = hour24 >= 12 ? 'PM' : 'AM';
-        const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
-
-        setBookForm((prev) => ({
-            ...prev,
+    const applySlotToForm = useCallback((dateKey, minutes) => {
+        updateBookForm({
             scheduledDate: dateKey,
-            scheduledHour: String(hour12).padStart(2, '0'),
-            scheduledMinute: String(minute).padStart(2, '0'),
-            scheduledPeriod: period,
-        }));
-    };
+            ...to12HourTimeParts(minutes),
+        });
+    }, [updateBookForm]);
 
-    const nextSevenDays = Array.from({ length: 7 }, (_, index) => {
-        const date = new Date();
-        date.setDate(date.getDate() + index);
-        return {
-            date,
-            key: toDateKey(date),
-            label: date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
-        };
-    });
+    const nextSevenDays = useMemo(() => (
+        Array.from({ length: 7 }, (_, index) => {
+            const date = new Date();
+            date.setDate(date.getDate() + index);
+            return {
+                date,
+                key: toDateKey(date),
+                label: date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+            };
+        })
+    ), []);
 
-    const isSlotAvailable = (dateKey, slotMinutes) => {
+    const busySlotKeySet = useMemo(() => new Set(
+        busySlots.map((slot) => `${slot.scheduledDate}|${String(slot.scheduledTime || '').slice(0, 5)}`)
+    ), [busySlots]);
+
+    const busyDateSet = useMemo(() => new Set(
+        busySlots.map((slot) => slot.scheduledDate).filter(Boolean)
+    ), [busySlots]);
+
+    const availabilityByDate = useMemo(() => {
+        const grouped = new Map();
+        availability.forEach((entry) => {
+            const dateKey = entry.availableDate;
+            if (!dateKey) return;
+
+            const bucket = grouped.get(dateKey) || { hasEntries: false, windows: [] };
+            bucket.hasEntries = true;
+            if (entry.isAvailable !== false) {
+                const start = parseTimeToMinutes(entry.startTime);
+                const end = parseTimeToMinutes(entry.endTime);
+                if (start !== null && end !== null && end > start) {
+                    bucket.windows.push({ start, end });
+                }
+            }
+            grouped.set(dateKey, bucket);
+        });
+        return grouped;
+    }, [availability]);
+
+    const isSlotAvailable = useCallback((dateKey, slotMinutes) => {
         const hhmm = `${String(Math.floor(slotMinutes / 60)).padStart(2, '0')}:${String(slotMinutes % 60).padStart(2, '0')}`;
-        const isBooked = busySlots.some(s => s.scheduledDate === dateKey && String(s.scheduledTime || '').slice(0, 5) === hhmm);
-        if (isBooked) return false;
+        if (busySlotKeySet.has(`${dateKey}|${hhmm}`)) return false;
 
-        // Get all availability entries for this day
-        const dayEntries = availability.filter((a) => a.availableDate === dateKey);
+        const dayAvailability = availabilityByDate.get(dateKey);
+        if (!dayAvailability?.hasEntries) return true;
+        if (dayAvailability.windows.length === 0) return false;
+        return dayAvailability.windows.some((window) => slotMinutes >= window.start && slotMinutes < window.end);
+    }, [availabilityByDate, busySlotKeySet]);
 
-        // If the worker has no availability configured for this date at all,
-        // treat all slots as free by default (unless already booked).
-        if (dayEntries.length === 0) return true;
-
-        // Otherwise, only slots that fall within an explicitly available window
-        // (isAvailable !== false) are treated as free.
-        const windows = dayEntries
-            .filter((a) => a.isAvailable !== false)
-            .map((a) => ({
-                start: parseTimeToMinutes(a.startTime),
-                end: parseTimeToMinutes(a.endTime),
-            }))
-            .filter((w) => w.start !== null && w.end !== null && w.end > w.start);
-
-        // If there are entries for the day but none marked available,
-        // consider the day unavailable.
-        if (windows.length === 0) return false;
-
-        return windows.some((w) => slotMinutes >= w.start && slotMinutes < w.end);
-    };
-
-    const to24Hour = (hour12, period) => {
-        let hour = parseInt(hour12, 10);
-        if (period === 'PM' && hour !== 12) hour += 12;
-        if (period === 'AM' && hour === 12) hour = 0;
-        return hour;
-    };
-
-    const getSelectedSlotMinutes = () => {
+    const getSelectedSlotMinutes = useCallback(() => {
         const hour24 = to24Hour(bookForm.scheduledHour, bookForm.scheduledPeriod);
         return hour24 * 60 + parseInt(bookForm.scheduledMinute || '0', 10);
-    };
+    }, [bookForm.scheduledHour, bookForm.scheduledMinute, bookForm.scheduledPeriod]);
 
     const selectedSlotAvailable = bookForm.scheduledDate
         ? isSlotAvailable(bookForm.scheduledDate, getSelectedSlotMinutes())
         : true;
 
-    const getDaySlots = (dateKey) => {
+    const getDaySlots = useCallback((dateKey) => {
         const slots = [];
         for (let hour = 8; hour <= 19; hour += 1) {
             const slotMinutes = hour * 60;
@@ -170,18 +166,18 @@ export default function WorkerDetailPage() {
             });
         }
         return slots;
-    };
+    }, [isSlotAvailable]);
 
     const handleBook = async (e) => {
         e.preventDefault();
         if (!bookForm.scheduledDate) {
+            setBookingError('Please select a date before creating the booking.');
             toast.error('Please select a date first.');
             return;
         }
-        setBooking(true);
-        // Build HH:mm time string from friendly selects
-        const hour24 = to24Hour(bookForm.scheduledHour, bookForm.scheduledPeriod);
-        const scheduledTime = `${String(hour24).padStart(2, '0')}:${bookForm.scheduledMinute}`;
+        setSubmitting(true);
+        setBookingError('');
+        const scheduledTime = buildScheduledTime(bookForm.scheduledHour, bookForm.scheduledMinute, bookForm.scheduledPeriod);
         try {
             await bookingAPI.create({
                 jobId: bookForm.jobId ? parseInt(bookForm.jobId, 10) : null,
@@ -192,10 +188,13 @@ export default function WorkerDetailPage() {
             });
             toast.success('Booking created successfully!');
             setShowBooking(false);
-            setBookForm({ jobId: '', scheduledDate: '', scheduledHour: '09', scheduledMinute: '00', scheduledPeriod: 'AM', notes: '' });
+            setBookForm(DEFAULT_BOOKING_FORM);
+            loadWorkerData();
         } catch (err) {
-            toast.error(err.response?.data?.message || 'Booking failed');
-        } finally { setBooking(false); }
+            const message = err.response?.data?.message || 'Failed to create booking.';
+            setBookingError(message);
+            toast.error(message);
+        } finally { setSubmitting(false); }
     };
 
     const formatDate = (dt) => {
@@ -214,7 +213,10 @@ export default function WorkerDetailPage() {
             <div className="empty-state">
                 <span className="empty-icon">👷</span>
                 <p>{error || 'Worker not found.'}</p>
-                <Link to="/workers" className="btn-primary" style={{ textDecoration: 'none' }}>Back to Workers</Link>
+                <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+                    <button type="button" className="btn-secondary" onClick={loadWorkerData}>Retry</button>
+                    <Link to="/workers" className="btn-primary" style={{ textDecoration: 'none' }}>Back to Workers</Link>
+                </div>
             </div>
         </div>
     );
@@ -301,8 +303,11 @@ export default function WorkerDetailPage() {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                             {user?.role === 'customer' && (
                                 <button className="btn-primary" style={{ width: '100%', justifyContent: 'center' }}
-                                    onClick={() => setShowBooking(true)}>
-                                    📅 Book This Worker
+                                    onClick={() => {
+                                        setBookingError('');
+                                        setShowBooking(true);
+                                    }}>
+                                    📅 Create Booking
                                 </button>
                             )}
                             <button className="btn-secondary" style={{ width: '100%', justifyContent: 'center' }}
@@ -318,21 +323,21 @@ export default function WorkerDetailPage() {
                 </div>
             </div>
 
-            {/* Booking Modal (Tailwind) */}
+            {/* Booking Modal */}
             {showBooking && (
-                <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowBooking(false)}>
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 lg:p-8" onClick={e => e.stopPropagation()}>
-                        <h2 className="text-2xl font-extrabold text-slate-800 mb-6 flex items-center gap-2">
-                            <span className="text-3xl">📅</span> Book {worker.firstName}
+                <div className={BOOKING_MODAL_CLASS.overlay} onClick={() => setShowBooking(false)}>
+                    <div className={BOOKING_MODAL_CLASS.panel} onClick={e => e.stopPropagation()}>
+                        <h2 className={BOOKING_MODAL_CLASS.title}>
+                            <span style={{ fontSize: '1.875rem' }}>📅</span> Book {worker.firstName}
                         </h2>
                         
                         <form onSubmit={handleBook} className="space-y-6">
-                            <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">Link to My Job (Optional)</label>
+                            <div className={BOOKING_MODAL_CLASS.section}>
+                                <label className="booking-label">Link to My Job (Optional)</label>
                                 <select
-                                    className="w-full border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-cyan-500 outline-none transition"
+                                    className={bookingInputClass('text-sm text-slate-700')}
                                     value={bookForm.jobId}
-                                    onChange={e => setBookForm({ ...bookForm, jobId: e.target.value })}
+                                    onChange={e => updateBookForm({ jobId: e.target.value })}
                                 >
                                     <option value="">No linked job</option>
                                     {availableJobOptions.map(job => (
@@ -343,27 +348,30 @@ export default function WorkerDetailPage() {
                                 </select>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">Select Date</label>
+                            <div className={BOOKING_MODAL_CLASS.section}>
+                                <label className="booking-label">Select Date</label>
                                 <input type="date" required
-                                    className="w-full border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-cyan-500 outline-none transition"
+                                    className={bookingInputClass('text-sm text-slate-700')}
                                     min={new Date().toISOString().split('T')[0]}
                                     value={bookForm.scheduledDate} 
-                                    onChange={e => setBookForm({ ...bookForm, scheduledDate: e.target.value })} 
+                                    onChange={e => {
+                                        setBookingError('');
+                                        updateBookForm({ scheduledDate: e.target.value });
+                                    }} 
                                 />
-                                {busyDates.includes(bookForm.scheduledDate) && (
-                                    <div className="text-red-500 text-xs mt-2 font-bold bg-red-50 p-2 rounded-lg border border-red-100">
+                                {busyDateSet.has(bookForm.scheduledDate) && (
+                                    <div className={bookingStateClass('error', 'text-xs font-bold py-2 px-2.5')}>
                                         ⚠️ Worker has existing bookings on this date. Please ensure you select an available time.
                                     </div>
                                 )}
                             </div>
 
-                            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
-                                <div className="flex items-center justify-between mb-3">
-                                    <label className="text-sm font-bold text-slate-700">7-Day Availability</label>
-                                    <div className="flex gap-2 text-[10px] uppercase font-bold tracking-wider">
-                                        <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full">Free</span>
-                                        <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full">Busy</span>
+                            <div className={BOOKING_MODAL_CLASS.availability}>
+                                <div className={BOOKING_MODAL_CLASS.availabilityHeader}>
+                                    <label className="booking-label" style={{ marginBottom: 0 }}>7-Day Availability</label>
+                                    <div className={BOOKING_MODAL_CLASS.legend}>
+                                        <span className={bookingLegendPillClass('free')}>Free</span>
+                                        <span className={bookingLegendPillClass('busy')}>Busy</span>
                                     </div>
                                 </div>
 
@@ -372,25 +380,21 @@ export default function WorkerDetailPage() {
                                         const slots = getDaySlots(day.key);
                                         const freeCount = slots.filter(s => s.available).length;
                                         return (
-                                            <details key={day.key} className="bg-white border text-sm border-slate-200 rounded-lg overflow-hidden group">
-                                                <summary className="list-none cursor-pointer p-3 flex items-center justify-between font-semibold text-slate-700 hover:bg-slate-50">
+                                            <details key={day.key} className={BOOKING_MODAL_CLASS.dayDetails}>
+                                                <summary className={BOOKING_MODAL_CLASS.daySummary}>
                                                     <span>{day.label}</span>
-                                                    <span className={`text-xs px-2 py-1 rounded-full ${freeCount > 0 ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}>
+                                                    <span className={bookingAvailabilityPillClass(freeCount > 0)}>
                                                         {freeCount > 0 ? `${freeCount} free slot(s)` : 'Not available'}
                                                     </span>
                                                 </summary>
-                                                <div className="p-3 bg-slate-50 border-t border-slate-100 grid grid-cols-3 sm:grid-cols-4 gap-2">
+                                                <div className={BOOKING_MODAL_CLASS.daySlots}>
                                                     {slots.map(slot => (
                                                         <button
                                                             type="button"
                                                             key={slot.label}
                                                             onClick={() => slot.available && applySlotToForm(day.key, slot.minutes)}
                                                             disabled={!slot.available}
-                                                            className={`text-xs font-bold py-2 rounded-lg transition border ${
-                                                                slot.available 
-                                                                    ? 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100 hover:border-green-300' 
-                                                                    : 'bg-red-50 border-red-100 text-red-400 cursor-not-allowed opacity-60'
-                                                            }`}
+                                                            className={bookingSlotButtonClass(slot.available)}
                                                         >
                                                             {slot.label}
                                                         </button>
@@ -402,55 +406,72 @@ export default function WorkerDetailPage() {
                                 </div>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">Exact Time</label>
-                                <div className="flex gap-2">
-                                    <select className="flex-1 border border-slate-200 bg-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-cyan-500 outline-none"
+                            <div className={BOOKING_MODAL_CLASS.section}>
+                                <label className="booking-label">Exact Time</label>
+                                <div className={BOOKING_MODAL_CLASS.timeGroup}>
+                                    <select className={bookingInputClass('flex-1 text-sm text-slate-700')}
                                         value={bookForm.scheduledHour}
-                                        onChange={e => setBookForm({ ...bookForm, scheduledHour: e.target.value })}>
+                                        onChange={e => {
+                                            setBookingError('');
+                                            updateBookForm({ scheduledHour: e.target.value });
+                                    }}>
                                         {['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'].map(h => <option key={h} value={h}>{h}</option>)}
                                     </select>
-                                    <span className="text-xl font-bold text-slate-400 self-center">:</span>
-                                    <select className="flex-1 border border-slate-200 bg-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-cyan-500 outline-none"
+                                    <span className={BOOKING_MODAL_CLASS.timeSeparator}>:</span>
+                                    <select className={bookingInputClass('flex-1 text-sm text-slate-700')}
                                         value={bookForm.scheduledMinute}
-                                        onChange={e => setBookForm({ ...bookForm, scheduledMinute: e.target.value })}>
+                                        onChange={e => {
+                                            setBookingError('');
+                                            updateBookForm({ scheduledMinute: e.target.value });
+                                    }}>
                                         {['00', '15', '30', '45'].map(m => <option key={m} value={m}>{m}</option>)}
                                     </select>
-                                    <select className="flex-1 border border-slate-200 bg-slate-50 font-bold text-slate-700 rounded-xl px-4 py-3 focus:ring-2 focus:ring-cyan-500 outline-none"
+                                    <select className={bookingInputClass(cx('flex-1 text-sm', BOOKING_MODAL_CLASS.periodInput))}
                                         value={bookForm.scheduledPeriod}
-                                        onChange={e => setBookForm({ ...bookForm, scheduledPeriod: e.target.value })}>
+                                        onChange={e => {
+                                            setBookingError('');
+                                            updateBookForm({ scheduledPeriod: e.target.value });
+                                        }}>
                                         <option value="AM">AM</option>
                                         <option value="PM">PM</option>
                                     </select>
                                 </div>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">Notes for Worker</label>
+                            <div className={BOOKING_MODAL_CLASS.section}>
+                                <label className="booking-label">Notes for Worker</label>
                                 <textarea 
-                                    className="w-full border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-cyan-500 outline-none transition resize-y" 
+                                    className={bookingInputClass('resize-y text-sm text-slate-700')} 
                                     rows={3} 
                                     placeholder="Describe what you need help with..."
                                     value={bookForm.notes} 
-                                    onChange={e => setBookForm({ ...bookForm, notes: e.target.value })} 
+                                    onChange={e => {
+                                        setBookingError('');
+                                        updateBookForm({ notes: e.target.value });
+                                    }} 
                                 />
                             </div>
 
-                            <div className="flex gap-3 pt-2">
+                            {(bookingError || !selectedSlotAvailable) && (
+                                <div className={bookingStateClass('error', 'text-sm font-medium')}>
+                                    {bookingError || 'The selected time is no longer available. Please choose another slot.'}
+                                </div>
+                            )}
+
+                            <div className={BOOKING_MODAL_CLASS.actions}>
                                 <button type="submit" 
-                                    disabled={booking || !selectedSlotAvailable}
-                                    className={`flex-1 font-bold py-3 px-4 rounded-xl transition shadow-sm
-                                        ${(!selectedSlotAvailable || booking)
-                                            ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                                            : 'bg-cyan-600 text-white hover:bg-cyan-700 hover:shadow-cyan-200 hover:shadow-lg'
-                                        }`}
+                                    disabled={submitting || !selectedSlotAvailable}
+                                    className={bookingSubmitButtonClass(submitting || !selectedSlotAvailable)}
                                 >
-                                    {booking ? 'Confirming...' : (!selectedSlotAvailable ? 'Time Slot Unavailable' : 'Confirm Booking')}
+                                    {submitting ? 'Creating booking…' : (!selectedSlotAvailable ? 'Selected time unavailable' : 'Create Booking')}
                                 </button>
                                 <button type="button" 
-                                    className="flex-none bg-slate-100 text-slate-600 hover:bg-slate-200 font-bold py-3 px-6 rounded-xl transition" 
-                                    onClick={() => setShowBooking(false)}>
-                                    Cancel
+                                    className={cx(bookingButtonClass('neutral'), BOOKING_MODAL_CLASS.closeButton)}
+                                    onClick={() => {
+                                        setBookingError('');
+                                        setShowBooking(false);
+                                    }}>
+                                    Close
                                 </button>
                             </div>
                         </form>

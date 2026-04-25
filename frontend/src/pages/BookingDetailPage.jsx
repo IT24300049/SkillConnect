@@ -1,154 +1,343 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { bookingAPI } from '../api';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { bookingAPI, userAPI } from '../api';
 import { useAuth } from '../AuthContext';
 import StatusBadge from '../components/StatusBadge';
 import toast from 'react-hot-toast';
-
-const STATUS_COLOR = {
-    pending: '#f59e0b', requested: '#f59e0b', accepted: '#3b82f6', in_progress: '#8b5cf6',
-    completed: '#10b981', cancelled: '#ef4444', rejected: '#ef4444',
-};
-const WORKER_PENDING_STATES = ['pending', 'requested'];
-const CUSTOMER_CANCEL_STATES = ['pending', 'requested', 'accepted'];
+import {
+    BOOKING_TIMELINE_COLORS,
+    CUSTOMER_CANCEL_STATES,
+    WORKER_PENDING_STATES,
+    formatBookingStatusLabel,
+} from '../utils/bookingUtils';
+import {
+    BOOKING_DETAIL_CLASS,
+    BOOKING_SURFACE_CLASS,
+    bookingInputClass,
+    bookingButtonClass,
+    bookingDetailFieldCardClass,
+    bookingDetailPanelClass,
+    bookingStateClass,
+    bookingTimelineBlockClass,
+} from '../utils/bookingStyleUtils';
 
 export default function BookingDetailPage() {
     const { id } = useParams();
+    const navigate = useNavigate();
     const { user } = useAuth();
     const [booking, setBooking] = useState(null);
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [reason, setReason] = useState('');
+    const [updatingStatus, setUpdatingStatus] = useState('');
+    const [customerProfile, setCustomerProfile] = useState(null);
+    const [pastBookingsCount, setPastBookingsCount] = useState(0);
 
     const load = useCallback(async () => {
         setLoading(true);
         try {
             const [bRes, hRes] = await Promise.allSettled([
-                bookingAPI.getById(id),
-                bookingAPI.getHistory(id),
+                bookingAPI.getByIdData(id),
+                bookingAPI.getHistoryData(id),
             ]);
-            if (bRes.status === 'fulfilled') setBooking(bRes.value.data.data);
+            if (bRes.status === 'fulfilled') setBooking(bRes.value);
             else setError('Booking not found.');
-            if (hRes.status === 'fulfilled') setHistory(hRes.value.data.data || []);
-        } catch { setError('Failed to load booking.'); }
+            if (hRes.status === 'fulfilled') setHistory(hRes.value);
+        } catch (err) { setError('Failed to load booking.'); }
         finally { setLoading(false); }
     }, [id]);
 
     useEffect(() => { load(); }, [load]);
 
     const changeStatus = useCallback(async (status) => {
+        setUpdatingStatus(status);
         try {
-            await bookingAPI.updateStatus(id, status, reason);
+            const updatedBooking = await bookingAPI.updateStatusData(id, status, reason);
             setReason('');
-            toast.success('Status updated to ' + status);
-            load();
+            if (updatedBooking) {
+                setBooking(updatedBooking);
+            }
+            setHistory(await bookingAPI.getHistoryData(id));
+            toast.success(`Status updated to ${formatBookingStatusLabel(status)}`);
         } catch (err) { 
             toast.error(err.response?.data?.message || 'Failed to change status'); 
+        } finally {
+            setUpdatingStatus('');
         }
-    }, [id, load, reason]);
+    }, [id, reason]);
 
     const formatDate = (dt) => dt ? new Date(dt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
 
     const isCustomer = booking?.customer?.user?.userId === user?.userId;
     const isWorker = booking?.worker?.user?.userId === user?.userId;
+    const isRequestedBooking = String(booking?.bookingStatus || '').toLowerCase() === 'requested';
+    const isAcceptedBooking = String(booking?.bookingStatus || '').toLowerCase() === 'accepted';
+
+
+
+    useEffect(() => {
+        if (!booking || !isWorker || !isRequestedBooking) {
+            setCustomerProfile(null);
+            setPastBookingsCount(0);
+            return;
+        }
+
+        const customerUserId = booking.customer?.user?.userId;
+        const customerProfileId = booking.customer?.customerId;
+
+        if (!customerUserId && !customerProfileId) return;
+
+        const unwrapData = (response) => response?.data?.data || response?.data || null;
+
+        Promise.allSettled([
+            customerUserId ? userAPI.getProfile(customerUserId) : Promise.resolve(null),
+            bookingAPI.getMineData('worker'),
+        ]).then(([profileRes, workerBookingsRes]) => {
+            if (profileRes.status === 'fulfilled') {
+                setCustomerProfile(unwrapData(profileRes.value));
+            }
+
+            if (workerBookingsRes.status === 'fulfilled') {
+                const workerBookings = Array.isArray(workerBookingsRes.value) ? workerBookingsRes.value : [];
+                const currentBookingId = booking.bookingId;
+                const currentCreatedAt = booking.createdAt ? new Date(booking.createdAt).getTime() : null;
+
+                const previousForCustomer = workerBookings.filter((item) => {
+                    const sameCustomerUser = customerUserId && String(item?.customer?.user?.userId) === String(customerUserId);
+                    const sameCustomerProfile = customerProfileId && String(item?.customer?.customerId) === String(customerProfileId);
+                    if (!sameCustomerUser && !sameCustomerProfile) return false;
+                    if (String(item?.bookingId) === String(currentBookingId)) return false;
+                    if (!currentCreatedAt || !item?.createdAt) return true;
+                    return new Date(item.createdAt).getTime() < currentCreatedAt;
+                });
+                setPastBookingsCount(previousForCustomer.length);
+            }
+        });
+    }, [booking, isWorker, isRequestedBooking]);
 
     if (loading) return (
-        <div className="animate-fade-in flex items-center justify-center h-64 gap-3 text-cyan-600">
+        <div className="animate-fade-in flex items-center justify-center h-64 gap-5" style={{ color: 'var(--b-primary)' }}>
             <span className="spinner" /> Loading booking...
         </div>
     );
     if (error || !booking) return (
-        <div className="animate-fade-in bg-white p-12 text-center rounded-2xl shadow-sm border border-slate-100 max-w-lg mx-auto mt-12">
+        <div className={`animate-fade-in ${BOOKING_SURFACE_CLASS.emptyState} p-12 max-w-lg mx-auto mt-12`}>
             <span className="text-5xl block mb-4">📅</span>
-            <p className="text-slate-600 mb-6">{error || 'Booking not found.'}</p>
-            <Link to="/bookings" className="inline-block bg-cyan-600 text-white font-medium py-2 px-6 rounded-xl hover:bg-cyan-700 transition">Back to Bookings</Link>
+            <p className="mb-6" style={{ color: 'var(--b-on-surface-variant)' }}>{error || 'Booking not found.'}</p>
+            <Link to="/bookings" className={bookingButtonClass('primary')}>Back to Bookings</Link>
         </div>
     );
 
     return (
-        <div className="animate-fade-in max-w-6xl mx-auto px-4 py-8">
-            <Link to="/bookings" className="text-cyan-600 font-semibold text-sm hover:underline inline-block mb-6">
+        <div className="booking-detail-page animate-fade-in max-w-6xl mx-auto px-4 py-8">
+            <Link to="/bookings" className={BOOKING_DETAIL_CLASS.backLink}>
                 &larr; Back to Bookings
             </Link>
 
-            <div className="flex flex-wrap lg:flex-nowrap gap-6">
+            <div className="flex flex-wrap lg:flex-nowrap gap-10">
                 {/* Left: Details */}
                 <div className="flex-1 w-full lg:w-2/3 min-w-[300px]">
-                    <div className="bg-white rounded-2xl p-8 mb-6 shadow-sm border border-slate-100">
-                        <div className="flex justify-between items-start flex-wrap gap-4 mb-6 pb-6 border-b border-slate-100">
-                            <h1 className="text-2xl font-extrabold text-slate-900">Booking #{booking.bookingId}</h1>
-                            <StatusBadge status={booking.bookingStatus} />
+                    <div className={bookingDetailPanelClass('summary', 'p-10 md:p-12 mb-8')}>
+                        <div className={BOOKING_DETAIL_CLASS.heroHeader}>
+                            <h1 className={`${BOOKING_DETAIL_CLASS.title} text-2xl font-extrabold`}>Booking #{booking.bookingId}</h1>
+                            <div className={BOOKING_DETAIL_CLASS.statusWrap}>
+                                <StatusBadge status={booking.bookingStatus} />
+                            </div>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
-                            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                                <div className="text-xs text-slate-400 font-extrabold uppercase tracking-widest mb-1">Customer</div>
-                                <div className="text-base font-bold text-slate-800">{booking.customer?.firstName} {booking.customer?.lastName}</div>
-                                <div className="text-sm text-slate-500 mt-1">{booking.customer?.user?.email}</div>
+                        <div className={BOOKING_DETAIL_CLASS.fieldGrid}>
+                            <div className={bookingDetailFieldCardClass('party')}>
+                                <div className={BOOKING_DETAIL_CLASS.fieldLabel}>Customer</div>
+                                <div className={BOOKING_DETAIL_CLASS.fieldValue}>{booking.customer?.firstName} {booking.customer?.lastName}</div>
+                                <div className={BOOKING_DETAIL_CLASS.fieldSubvalue}>{booking.customer?.user?.email}</div>
                             </div>
-                            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                                <div className="text-xs text-slate-400 font-extrabold uppercase tracking-widest mb-1">Worker</div>
-                                <div className="text-base font-bold text-slate-800">
+                            <div className={bookingDetailFieldCardClass('party')}>
+                                <div className={BOOKING_DETAIL_CLASS.fieldLabel}>Worker</div>
+                                <div className={BOOKING_DETAIL_CLASS.fieldValue}>
                                     {booking.worker?.firstName} {booking.worker?.lastName}
                                 </div>
-                                <div className="text-sm text-slate-500 mt-1">{booking.worker?.user?.email}</div>
+                                <div className={BOOKING_DETAIL_CLASS.fieldSubvalue}>{booking.worker?.user?.email}</div>
                             </div>
-                            <div>
-                                <div className="text-xs text-slate-400 font-extrabold uppercase tracking-widest mb-1">Scheduled Date</div>
-                                <div className="text-base font-semibold text-slate-800">{booking.scheduledDate || 'N/A'}</div>
+                            <div className={bookingDetailFieldCardClass('schedule')}>
+                                <div className={BOOKING_DETAIL_CLASS.fieldLabel}>Scheduled Date</div>
+                                <div className={BOOKING_DETAIL_CLASS.fieldValue}>{booking.scheduledDate || 'N/A'}</div>
                             </div>
-                            <div>
-                                <div className="text-xs text-slate-400 font-extrabold uppercase tracking-widest mb-1">Scheduled Time</div>
-                                <div className="text-base font-semibold text-slate-800">{booking.scheduledTime || 'N/A'}</div>
+                            <div className={bookingDetailFieldCardClass('schedule')}>
+                                <div className={BOOKING_DETAIL_CLASS.fieldLabel}>Scheduled Time</div>
+                                <div className={BOOKING_DETAIL_CLASS.fieldValue}>{booking.scheduledTime || 'N/A'}</div>
                             </div>
                         </div>
 
                         {booking.notes && (
                             <div className="mb-6">
-                                <div className="text-xs text-slate-400 font-extrabold uppercase tracking-widest mb-2">Notes</div>
-                                <div className="bg-amber-50 border border-amber-100 p-4 rounded-xl text-amber-900 text-sm italic">
+                                <div className={BOOKING_DETAIL_CLASS.fieldLabel}>Notes</div>
+                                <div className={bookingStateClass('neutral', 'text-sm italic')}>
                                     {booking.notes}
                                 </div>
                             </div>
                         )}
 
                         {booking.finalCost && (
-                            <div className="inline-block bg-slate-50 border border-slate-100 px-6 py-3 rounded-xl mt-2">
-                                <span className="text-xs text-slate-400 font-extrabold uppercase tracking-widest block mb-1">Total Price</span>
-                                <div className="text-2xl font-black text-cyan-600">LKR {booking.finalCost}</div>
+                            <div className={BOOKING_DETAIL_CLASS.highlightField}>
+                                <span className={BOOKING_DETAIL_CLASS.fieldLabel}>Total Price</span>
+                                <div className="text-2xl font-black" style={{ color: 'var(--b-primary)' }}>LKR {booking.finalCost}</div>
                             </div>
                         )}
+
+                        {/* — Extra metadata — */}
+                        <div className={`${BOOKING_DETAIL_CLASS.fieldGrid} mt-6`}>
+                            {booking.createdAt && (
+                                <div className={bookingDetailFieldCardClass()}>
+                                    <div className={BOOKING_DETAIL_CLASS.fieldLabel}>Created At</div>
+                                    <div className={BOOKING_DETAIL_CLASS.fieldValue}>{formatDate(booking.createdAt)}</div>
+                                </div>
+                            )}
+                            {booking.estimatedDurationHours && (
+                                <div className={bookingDetailFieldCardClass()}>
+                                    <div className={BOOKING_DETAIL_CLASS.fieldLabel}>Estimated Duration</div>
+                                    <div className={BOOKING_DETAIL_CLASS.fieldValue}>{booking.estimatedDurationHours} hour{booking.estimatedDurationHours !== 1 ? 's' : ''}</div>
+                                </div>
+                            )}
+                        </div>
+
+                        {booking.cancellationReason && (
+                            <div className="mt-4">
+                                <div className={BOOKING_DETAIL_CLASS.fieldLabel}>Cancellation Reason</div>
+                                <div className={bookingStateClass('error', 'text-sm')}>
+                                    {booking.cancellationReason}
+                                </div>
+                            </div>
+                        )}
+
+
                     </div>
 
+                    {isWorker && isRequestedBooking && (
+                        <div className={bookingDetailPanelClass('summary', 'p-8 md:p-10 mb-8')}>
+                            <h3 className={`${BOOKING_DETAIL_CLASS.actionsHeading} text-lg font-bold mb-4`}>Customer Info</h3>
+                            <div className={BOOKING_DETAIL_CLASS.infoBlock}>
+                                <div className="flex flex-wrap items-start justify-between gap-6">
+                                    <div className="flex items-center gap-5 min-w-0">
+                                        {booking.customer?.profilePicture ? (
+                                            <img
+                                                src={booking.customer.profilePicture}
+                                                alt={`${booking.customer?.firstName || ''} ${booking.customer?.lastName || ''}`.trim() || 'Customer'}
+                                                className="h-14 w-14 rounded-full object-cover ring-2 ring-white"
+                                            />
+                                        ) : (
+                                            <div className="h-14 w-14 rounded-full font-bold flex items-center justify-center ring-2 ring-white" style={{ background: 'var(--b-primary-fixed)', color: 'var(--b-primary)' }}>
+                                                {`${booking.customer?.firstName?.[0] || ''}${booking.customer?.lastName?.[0] || ''}`.toUpperCase() || 'CU'}
+                                            </div>
+                                        )}
+                                        <div className="min-w-0">
+                                            <p className="text-sm" style={{ color: 'var(--b-secondary)' }}>Customer</p>
+                                            <p className="text-base font-bold truncate" style={{ color: 'var(--b-on-surface)' }}>
+                                                {booking.customer?.firstName} {booking.customer?.lastName}
+                                            </p>
+                                            <p className="text-xs truncate" style={{ color: 'var(--b-secondary)' }}>{booking.customer?.user?.email}</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        className={bookingButtonClass('primary', 'text-sm')}
+                                        onClick={() =>
+                                            navigate(
+                                                `/customers/${booking.customer?.user?.userId || booking.customer?.customerId}`,
+                                                {
+                                                    state: {
+                                                        customer: {
+                                                            ...(booking.customer || {}),
+                                                            ...(customerProfile || {}),
+                                                        },
+                                                    },
+                                                }
+                                            )
+                                        }
+                                    >
+                                        View Profile
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-5">
+                                <div className={BOOKING_DETAIL_CLASS.infoBlock}>
+                                    <p className={BOOKING_DETAIL_CLASS.infoLabel}>Location</p>
+                                    <p className={BOOKING_DETAIL_CLASS.infoValue}>
+                                        {customerProfile?.location
+                                            || customerProfile?.district
+                                            || booking.customer?.district
+                                            || 'Not specified'}
+                                    </p>
+                                </div>
+                                <div className={BOOKING_DETAIL_CLASS.infoBlock}>
+                                    <p className={BOOKING_DETAIL_CLASS.infoLabel}>Past Bookings</p>
+                                    <p className={BOOKING_DETAIL_CLASS.infoValue}>{pastBookingsCount}</p>
+                                </div>
+                                <div className={BOOKING_DETAIL_CLASS.infoBlock}>
+                                    <p className={BOOKING_DETAIL_CLASS.infoLabel}>Estimated Pay</p>
+                                    <p className={BOOKING_DETAIL_CLASS.infoValue} style={{ color: 'var(--b-primary)' }}>
+                                        {booking.finalCost ? `LKR ${booking.finalCost}` : (booking.notes ? 'See booking notes' : 'Not specified')}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {isWorker && isRequestedBooking && (booking.job || booking.jobId) && (
+                        <div className={bookingDetailPanelClass('summary', 'p-8 md:p-10 mb-8')}>
+                            <h3 className={`${BOOKING_DETAIL_CLASS.actionsHeading} text-lg font-bold mb-4`}>Job Details</h3>
+                            <div className="space-y-3">
+                                <div className={BOOKING_DETAIL_CLASS.infoBlock}>
+                                    <p className={BOOKING_DETAIL_CLASS.infoLabel}>Title</p>
+                                    <p className={BOOKING_DETAIL_CLASS.infoValue}>
+                                        {booking.job?.jobTitle || booking.job?.title || 'Untitled job'}
+                                    </p>
+                                </div>
+                                <div className={BOOKING_DETAIL_CLASS.infoBlock}>
+                                    <p className={BOOKING_DETAIL_CLASS.infoLabel}>Description</p>
+                                    <p className="text-sm whitespace-pre-wrap" style={{ color: 'var(--b-on-surface-variant)' }}>
+                                        {booking.job?.jobDescription || booking.job?.description || 'No job description provided.'}
+                                    </p>
+                                </div>
+                                <div className={BOOKING_DETAIL_CLASS.infoBlock}>
+                                    <p className={BOOKING_DETAIL_CLASS.infoLabel}>Booking Notes</p>
+                                    <p className="text-sm whitespace-pre-wrap" style={{ color: 'var(--b-on-surface-variant)' }}>
+                                        {booking.notes || 'No booking notes provided.'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Actions */}
-                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-                        <h3 className="text-base font-bold text-slate-800 mb-4">Manage Booking Actions</h3>
+                    <div className={bookingDetailPanelClass('actions', 'p-8')}>
+                        <h3 className={`${BOOKING_DETAIL_CLASS.actionsHeading} text-base font-bold mb-4`}>Manage Booking Actions</h3>
                         
-                        <div className="flex flex-wrap gap-3 mb-5">
+                        <div className={BOOKING_DETAIL_CLASS.actionsGrid}>
                             {isCustomer && CUSTOMER_CANCEL_STATES.includes(booking.bookingStatus) && (
-                                <button className="bg-red-100 text-red-700 hover:bg-red-200 font-semibold py-2 px-4 rounded-xl transition" onClick={() => changeStatus('cancelled')}>Cancel Booking</button>
-                            )}
-                            {isCustomer && booking.bookingStatus === 'completed' && (
-                                <Link to="/reviews" className="bg-amber-400 hover:bg-amber-500 text-white font-bold py-2 px-4 rounded-xl transition">⭐ Leave Review</Link>
+                                <button disabled={!!updatingStatus} className={bookingButtonClass('danger')} onClick={() => changeStatus('cancelled')}>{updatingStatus === 'cancelled' ? 'Cancelling…' : 'Cancel Booking'}</button>
                             )}
                             {isWorker && WORKER_PENDING_STATES.includes(booking.bookingStatus) && (
                                 <>
-                                    <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-xl transition" onClick={() => changeStatus('accepted')}>✓ Accept</button>
-                                    <button className="bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold py-2 px-4 rounded-xl transition" onClick={() => changeStatus('rejected')}>✗ Reject</button>
+                                    <button disabled={!!updatingStatus} className={bookingButtonClass('info')} onClick={() => changeStatus('accepted')}>{updatingStatus === 'accepted' ? 'Updating…' : 'Accept Booking'}</button>
+                                    <button disabled={!!updatingStatus} className={bookingButtonClass('neutral')} onClick={() => changeStatus('rejected')}>{updatingStatus === 'rejected' ? 'Updating…' : 'Reject Booking'}</button>
                                 </>
                             )}
                             {isWorker && booking.bookingStatus === 'accepted' && (
-                                <button className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-xl transition" onClick={() => changeStatus('in_progress')}>Start Work</button>
+                                <button disabled={!!updatingStatus} className={bookingButtonClass('progress')} onClick={() => changeStatus('in_progress')}>{updatingStatus === 'in_progress' ? 'Updating…' : 'Confirm Arrival (Start Job)'}</button>
                             )}
                             {isWorker && booking.bookingStatus === 'in_progress' && (
-                                <button className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-xl transition" onClick={() => changeStatus('completed')}>✓ Mark Complete</button>
+                                <button disabled={!!updatingStatus} className={bookingButtonClass('success')} onClick={() => changeStatus('completed')}>{updatingStatus === 'completed' ? 'Updating…' : 'Mark as Completed'}</button>
                             )}
-                            <Link to="/messages" className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 px-4 rounded-xl transition">💬 Message Partner</Link>
+                            {isWorker && ['accepted', 'in_progress'].includes(booking.bookingStatus) && (
+                                <button disabled={!!updatingStatus} className={bookingButtonClass('danger')} onClick={() => changeStatus('cancelled')}>{updatingStatus === 'cancelled' ? 'Cancelling…' : 'Cancel Booking'}</button>
+                            )}
+                            <Link to="/messages" className={bookingButtonClass('neutral')}>💬 Message Participant</Link>
                         </div>
-                        <div className="mt-4 pt-4 border-t border-slate-100">
-                            <label className="block text-sm font-semibold text-slate-700 mb-2">Reason / Note (optional when changing status)</label>
-                            <input className="w-full border border-slate-200 rounded-xl px-4 py-2 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none transition" 
+                        <div className={BOOKING_DETAIL_CLASS.reasonNote}>
+                            <label className={BOOKING_DETAIL_CLASS.reasonLabel}>Reason / Note (optional when changing status)</label>
+                            <input className={bookingInputClass(`${BOOKING_DETAIL_CLASS.reasonInput} text-sm text-[#564334]`)}
                                 placeholder="Add an optional reason..." value={reason} onChange={e => setReason(e.target.value)} />
                         </div>
                     </div>
@@ -156,29 +345,29 @@ export default function BookingDetailPage() {
 
                 {/* Right: Timeline */}
                 <div className="flex-none w-full lg:w-1/3 min-w-[260px]">
-                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 sticky top-24">
-                        <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
-                            <span className="text-xl">📜</span> Status Timeline
+                    <div className={bookingDetailPanelClass('timeline', `${BOOKING_DETAIL_CLASS.sidebarCard} p-8`)}>
+                        <h3 className={BOOKING_DETAIL_CLASS.timelineHeading}>
+                            <span className={BOOKING_DETAIL_CLASS.timelineHeadingIcon}>📜</span> Status Timeline
                         </h3>
                         {history.length === 0 ? (
-                            <p className="text-slate-500 text-sm">No history available.</p>
+                            <p className={bookingStateClass('neutral', 'text-sm')}>No status updates yet.</p>
                         ) : (
-                            <div className="relative pl-6">
-                                <div className="absolute left-2 top-2 bottom-2 w-0.5 bg-slate-200"></div>
+                            <div className={BOOKING_DETAIL_CLASS.timelineTrack}>
                                 {history.map((h, i) => {
-                                    // newStatus is the target status in history records
                                     const statusVal = h.newStatus || h.status; 
-                                    const color = STATUS_COLOR[statusVal] || '#94a3b8';
+                                    const color = BOOKING_TIMELINE_COLORS[statusVal] || '#94a3b8';
                                     return (
-                                        <div key={i} className="mb-6 relative group">
-                                            <div className="absolute -left-6 top-1 w-3.5 h-3.5 rounded-full border-2 border-white ring-4 transition" 
-                                                 style={{ backgroundColor: color, '--tw-ring-color': `${color}40` }}></div>
-                                            <div className="font-bold text-sm text-slate-800 capitalize">
-                                                {statusVal?.replace(/_/g, ' ')}
+                                        <div key={i} className={bookingTimelineBlockClass(`mb-6 relative group ${BOOKING_DETAIL_CLASS.timelineEntry}`)}>
+                                            <div
+                                                className={BOOKING_DETAIL_CLASS.timelineDot}
+                                                style={{ '--booking-dot-color': color, '--booking-dot-ring': `${color}40` }}
+                                            />
+                                            <div className="font-bold text-sm text-[#213145]">
+                                                {formatBookingStatusLabel(statusVal)}
                                             </div>
-                                            <div className="text-xs text-slate-500 mt-1 font-medium">{formatDate(h.changedAt)}</div>
+                                            <div className={BOOKING_DETAIL_CLASS.timelineDate}>{formatDate(h.changedAt)}</div>
                                             {h.changeReason && (
-                                                <div className="text-xs text-slate-600 bg-slate-50 p-2 rounded-lg mt-2 border border-slate-100">
+                                                <div className={bookingStateClass('neutral', 'text-xs mt-2 py-2 px-3')}>
                                                     {h.changeReason}
                                                 </div>
                                             )}
@@ -190,6 +379,62 @@ export default function BookingDetailPage() {
                     </div>
                 </div>
             </div>
+
+            {booking.bookingStatus === 'completed' && (isCustomer || isWorker) && (
+                <div className={BOOKING_DETAIL_CLASS.nextActionCard}>
+                    <h3 className={`${BOOKING_DETAIL_CLASS.actionsHeading} text-lg font-bold mb-2`}>What's Next?</h3>
+                    {isCustomer && (
+                        <>
+                            <p className="text-sm mb-4" style={{ color: 'var(--b-on-surface-variant)' }}>
+                                How did it go? Your feedback helps the community.
+                            </p>
+                            <div className="flex flex-wrap gap-5">
+                                <button
+                                    type="button"
+                                    className={bookingButtonClass('success')}
+                                    onClick={() =>
+                                        navigate(
+                                            `/reviews/create?bookingId=${booking.bookingId || id}&workerId=${booking.worker?.user?.userId}`
+                                        )
+                                    }
+                                >
+                                    Leave a Review
+                                </button>
+                                <button
+                                    type="button"
+                                    className={bookingButtonClass('danger')}
+                                    onClick={() =>
+                                        navigate(
+                                            `/complaints/create?bookingId=${booking.bookingId || id}&workerId=${booking.worker?.user?.userId}`
+                                        )
+                                    }
+                                >
+                                    File a Complaint
+                                </button>
+                            </div>
+                        </>
+                    )}
+
+                    {isWorker && (
+                        <>
+                            <p className="text-sm mb-4" style={{ color: 'var(--b-on-surface-variant)' }}>
+                                Rate your experience with this customer.
+                            </p>
+                            <button
+                                type="button"
+                                className={bookingButtonClass('success')}
+                                onClick={() =>
+                                    navigate(
+                                        `/reviews/create?bookingId=${booking.bookingId || id}&customerId=${booking.customer?.user?.userId}`
+                                    )
+                                }
+                            >
+                                Review this Customer
+                            </button>
+                        </>
+                    )}
+                </div>
+            )}
         </div>
     );
 }

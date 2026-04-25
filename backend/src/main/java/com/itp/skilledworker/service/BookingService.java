@@ -13,11 +13,23 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 public class BookingService {
     private static final int DEFAULT_DURATION_HOURS = 2;
+    private static final List<Booking.BookingStatus> BLOCKING_BOOKING_STATUSES = List.of(
+            Booking.BookingStatus.requested,
+            Booking.BookingStatus.accepted,
+            Booking.BookingStatus.in_progress);
+    private static final List<Booking.BookingStatus> BUSY_DATE_STATUSES = List.of(
+            Booking.BookingStatus.accepted,
+            Booking.BookingStatus.in_progress);
+    private static final Set<Booking.BookingStatus> CUSTOMER_NOTIFICATION_STATUSES = Set.of(
+            Booking.BookingStatus.accepted,
+            Booking.BookingStatus.rejected,
+            Booking.BookingStatus.cancelled);
 
     private final BookingRepository bookingRepository;
     private final BookingStatusHistoryRepository historyRepository;
@@ -45,31 +57,13 @@ public class BookingService {
         if (!Boolean.TRUE.equals(worker.getIsVerified())) {
             throw new BookingException(HttpStatus.BAD_REQUEST, "Worker is not verified and cannot be booked yet.");
         }
-        CustomerProfile customer = customerProfileRepository.findByUser_UserId(customerUserId)
-                .orElseThrow(
-                        () -> new BookingException(HttpStatus.BAD_REQUEST, "Customer profile not found. Please complete your profile first."));
+        CustomerProfile customer = findCustomerProfileOrThrow(customerUserId);
 
-        LocalDate date = LocalDate.parse(scheduledDate);
-        LocalTime time = LocalTime.parse(scheduledTime);
         int requestedDurationHours = DEFAULT_DURATION_HOURS;
-        LocalTime requestedEnd = time.plusHours(requestedDurationHours);
+        BookingTimeWindow requestedWindow = parseRequestedWindow(scheduledDate, scheduledTime, requestedDurationHours);
+        validateWorkerSchedule(worker.getWorkerId(), requestedWindow, null);
 
-        // If the worker has configured availability entries for this date,
-        // enforce that the requested window falls inside at least one
-        // explicitly available window. If they have not configured anything
-        // for this date, treat the worker as available by default.
-        validateWorkerAvailabilityWindow(worker.getWorkerId(), date, time, requestedEnd);
-        ensureNoOverlappingBooking(worker.getWorkerId(), date, time, requestedEnd, null);
-
-        Booking booking = new Booking();
-        booking.setJob(job);
-        booking.setWorker(worker);
-        booking.setCustomer(customer);
-        booking.setScheduledDate(date);
-        booking.setScheduledTime(time);
-        booking.setEstimatedDurationHours(requestedDurationHours);
-        booking.setNotes(notes);
-        booking.setBookingStatus(Booking.BookingStatus.requested);
+        Booking booking = buildRequestedBooking(job, worker, customer, notes, requestedDurationHours, requestedWindow);
         booking = bookingRepository.save(booking);
 
         logStatusChange(booking, null, Booking.BookingStatus.requested.name(), customer.getUser(), "Booking created");
@@ -77,7 +71,7 @@ public class BookingService {
         notificationService.createNotification(
             worker.getUser(),
             "New Booking Request",
-            customer.getFirstName() + " requested a booking for " + date + " at " + time + ".",
+            customer.getFirstName() + " requested a booking for " + requestedWindow.date() + " at " + requestedWindow.start() + ".",
             "/worker/bookings"
         );
         
@@ -85,58 +79,40 @@ public class BookingService {
     }
 
     public List<Booking> getBookingsForWorker(Integer workerUserId) {
-        WorkerProfile worker = workerProfileRepository.findByUser_UserId(workerUserId)
-                .orElseThrow(() -> new BookingException(HttpStatus.NOT_FOUND, "Worker profile not found"));
+        WorkerProfile worker = findWorkerProfileByUserOrThrow(workerUserId);
         return bookingRepository.findByWorker_WorkerId(worker.getWorkerId());
     }
 
     public List<Booking> getBookingsForCustomer(Integer customerUserId) {
-        CustomerProfile customer = customerProfileRepository.findByUser_UserId(customerUserId)
-                .orElseThrow(() -> new BookingException(HttpStatus.NOT_FOUND, "Customer profile not found"));
+        CustomerProfile customer = findCustomerProfileByUserOrThrow(customerUserId);
         return bookingRepository.findByCustomer_CustomerId(customer.getCustomerId());
     }
 
     public Booking getBookingById(Integer bookingId, Integer actorUserId) {
-        Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new BookingException(HttpStatus.NOT_FOUND, "Booking not found"));
-        User actor = userRepository.findById(actorUserId)
-                .orElseThrow(() -> new BookingException(HttpStatus.NOT_FOUND, "User not found"));
+        Booking booking = findBookingOrThrow(bookingId);
+        User actor = findUserOrThrow(actorUserId);
         assertCanAccessBooking(booking, actor);
         return booking;
     }
 
     @Transactional
     public Booking updateBookingStatus(Integer bookingId, String newStatus, Integer actorUserId, String reason) {
-        Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new BookingException(HttpStatus.NOT_FOUND, "Booking not found"));
-        User actor = userRepository.findById(actorUserId)
-                .orElseThrow(() -> new BookingException(HttpStatus.NOT_FOUND, "User not found"));
+        Booking booking = findBookingOrThrow(bookingId);
+        User actor = findUserOrThrow(actorUserId);
         assertCanAccessBooking(booking, actor);
 
         Booking.BookingStatus oldStatus = booking.getBookingStatus();
-        Booking.BookingStatus targetStatus = Booking.BookingStatus.valueOf(newStatus);
+        Booking.BookingStatus targetStatus = parseBookingStatus(newStatus);
 
         validateTransition(oldStatus, targetStatus);
         validateTransitionActorPermissions(booking, actor, targetStatus);
 
         booking.setBookingStatus(targetStatus);
-
-        if (targetStatus == Booking.BookingStatus.cancelled) {
-            booking.setCancellationReason(reason);
-            booking.setCancelledAt(LocalDateTime.now());
-        }
-        if (targetStatus == Booking.BookingStatus.completed) {
-            booking.setCompletedAt(LocalDateTime.now());
-        }
+        applyStatusSideEffects(booking, targetStatus, reason);
 
         booking = bookingRepository.save(booking);
         logStatusChange(booking, oldStatus.name(), targetStatus.name(), actor, reason);
-
-        notifyCustomerOnStatusChange(booking, targetStatus);
-
-        if (targetStatus == Booking.BookingStatus.completed) {
-            sendReviewReminders(booking);
-        }
+        triggerStatusNotifications(booking, targetStatus);
         return booking;
     }
 
@@ -171,10 +147,8 @@ public class BookingService {
     @Transactional
     public Booking updateBookingNotes(Integer bookingId, Integer actorUserId, String notes, String scheduledDate,
             String scheduledTime) {
-        Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new BookingException(HttpStatus.NOT_FOUND, "Booking not found"));
-        User actor = userRepository.findById(actorUserId)
-                .orElseThrow(() -> new BookingException(HttpStatus.NOT_FOUND, "User not found"));
+        Booking booking = findBookingOrThrow(bookingId);
+        User actor = findUserOrThrow(actorUserId);
         assertCanAccessBooking(booking, actor);
         if (!actor.getRole().equals(User.Role.admin)
                 && !booking.getCustomer().getUser().getUserId().equals(actor.getUserId())) {
@@ -189,31 +163,19 @@ public class BookingService {
             booking.setNotes(notes);
         }
 
-        LocalDate newDate = booking.getScheduledDate();
-        LocalTime newTime = booking.getScheduledTime();
-        if (scheduledDate != null && !scheduledDate.isBlank()) {
-            newDate = LocalDate.parse(scheduledDate);
-        }
-        if (scheduledTime != null && !scheduledTime.isBlank()) {
-            newTime = LocalTime.parse(scheduledTime);
-        }
-
         int durationHours = resolveDurationHours(booking.getEstimatedDurationHours());
-        LocalTime requestedEnd = newTime.plusHours(durationHours);
-        validateWorkerAvailabilityWindow(booking.getWorker().getWorkerId(), newDate, newTime, requestedEnd);
-        ensureNoOverlappingBooking(booking.getWorker().getWorkerId(), newDate, newTime, requestedEnd, booking.getBookingId());
+        BookingTimeWindow requestedWindow = resolveRequestedWindowForUpdate(booking, scheduledDate, scheduledTime, durationHours);
+        validateWorkerSchedule(booking.getWorker().getWorkerId(), requestedWindow, booking.getBookingId());
 
-        booking.setScheduledDate(newDate);
-        booking.setScheduledTime(newTime);
+        booking.setScheduledDate(requestedWindow.date());
+        booking.setScheduledTime(requestedWindow.start());
         return bookingRepository.save(booking);
     }
 
     @Transactional
     public void deleteBooking(Integer bookingId, Integer actorUserId) {
-        Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new BookingException(HttpStatus.NOT_FOUND, "Booking not found"));
-        User actor = userRepository.findById(actorUserId)
-                .orElseThrow(() -> new BookingException(HttpStatus.NOT_FOUND, "User not found"));
+        Booking booking = findBookingOrThrow(bookingId);
+        User actor = findUserOrThrow(actorUserId);
         assertCanAccessBooking(booking, actor);
 
         boolean isAdmin = actor.getRole() == User.Role.admin;
@@ -227,7 +189,7 @@ public class BookingService {
         if (status == Booking.BookingStatus.in_progress || status == Booking.BookingStatus.accepted) {
             throw new BookingException(HttpStatus.BAD_REQUEST, "Cannot delete an active booking. Cancel it first.");
         }
-        historyRepository.deleteAll(historyRepository.findByBooking_BookingIdOrderByChangedAtAsc(bookingId));
+        historyRepository.deleteByBooking_BookingId(bookingId);
         bookingRepository.delete(booking);
     }
 
@@ -236,26 +198,19 @@ public class BookingService {
     }
 
     public Map<String, Long> getBookingStats() {
-        List<Booking> bookings = bookingRepository.findAll();
-        long completed = bookings.stream().filter(b -> b.getBookingStatus() == Booking.BookingStatus.completed).count();
-        long pending = bookings.stream().filter(b -> b.getBookingStatus() == Booking.BookingStatus.requested).count();
+        long completed = bookingRepository.countByBookingStatus(Booking.BookingStatus.completed);
+        long pending = bookingRepository.countByBookingStatus(Booking.BookingStatus.requested);
         return Map.of("completed", completed, "pending", pending);
     }
 
     public List<LocalDate> getWorkerBusyDates(Integer workerId) {
-        return bookingRepository.findConflictingBookings(
-                workerId,
-                List.of(Booking.BookingStatus.accepted, Booking.BookingStatus.in_progress))
-                .stream()
-                .map(Booking::getScheduledDate)
-                .distinct()
-                .toList();
+        return bookingRepository.findBusyDates(workerId, BUSY_DATE_STATUSES);
     }
 
     public List<Map<String, String>> getWorkerBusySlots(Integer workerId) {
-        return bookingRepository.findConflictingBookings(
+        return bookingRepository.findBusySlots(
                 workerId,
-                List.of(Booking.BookingStatus.requested, Booking.BookingStatus.accepted, Booking.BookingStatus.in_progress))
+                BLOCKING_BOOKING_STATUSES)
                 .stream()
                 .map(b -> Map.of(
                         "scheduledDate", b.getScheduledDate().toString(),
@@ -286,30 +241,87 @@ public class BookingService {
     }
 
     private void notifyCustomerOnStatusChange(Booking booking, Booking.BookingStatus status) {
-        if (status != Booking.BookingStatus.accepted
-                && status != Booking.BookingStatus.rejected
-                && status != Booking.BookingStatus.cancelled) {
+        if (!CUSTOMER_NOTIFICATION_STATUSES.contains(status)) {
             return;
         }
 
-        String title;
-        String message;
-        if (status == Booking.BookingStatus.accepted) {
-            title = "Booking Accepted";
-            message = "Your booking for " + booking.getScheduledDate() + " has been accepted.";
-        } else if (status == Booking.BookingStatus.rejected) {
-            title = "Booking Rejected";
-            message = "Your booking for " + booking.getScheduledDate() + " was rejected.";
-        } else {
-            title = "Booking Cancelled";
-            message = "Your booking for " + booking.getScheduledDate() + " has been cancelled.";
-        }
+        String title = switch (status) {
+            case accepted -> "Booking Accepted";
+            case rejected -> "Booking Rejected";
+            case cancelled -> "Booking Cancelled";
+            default -> throw new IllegalStateException("Unexpected booking status: " + status);
+        };
+        String message = switch (status) {
+            case accepted -> "Your booking for " + booking.getScheduledDate() + " has been accepted.";
+            case rejected -> "Your booking for " + booking.getScheduledDate() + " was rejected.";
+            case cancelled -> "Your booking for " + booking.getScheduledDate() + " has been cancelled.";
+            default -> throw new IllegalStateException("Unexpected booking status: " + status);
+        };
 
         notificationService.createNotification(
                 booking.getCustomer().getUser(),
                 title,
                 message,
                 "/bookings");
+    }
+
+    private Booking buildRequestedBooking(
+            Job job,
+            WorkerProfile worker,
+            CustomerProfile customer,
+            String notes,
+            int durationHours,
+            BookingTimeWindow requestedWindow) {
+        Booking booking = new Booking();
+        booking.setJob(job);
+        booking.setWorker(worker);
+        booking.setCustomer(customer);
+        booking.setScheduledDate(requestedWindow.date());
+        booking.setScheduledTime(requestedWindow.start());
+        booking.setEstimatedDurationHours(durationHours);
+        booking.setNotes(notes);
+        booking.setBookingStatus(Booking.BookingStatus.requested);
+        return booking;
+    }
+
+    private BookingTimeWindow parseRequestedWindow(String scheduledDate, String scheduledTime, int durationHours) {
+        LocalDate date = LocalDate.parse(scheduledDate);
+        LocalTime start = LocalTime.parse(scheduledTime);
+        LocalTime end = start.plusHours(durationHours);
+        return new BookingTimeWindow(date, start, end);
+    }
+
+    private BookingTimeWindow resolveRequestedWindowForUpdate(
+            Booking booking,
+            String scheduledDate,
+            String scheduledTime,
+            int durationHours) {
+        LocalDate date = booking.getScheduledDate();
+        LocalTime start = booking.getScheduledTime();
+
+        if (scheduledDate != null && !scheduledDate.isBlank()) {
+            date = LocalDate.parse(scheduledDate);
+        }
+        if (scheduledTime != null && !scheduledTime.isBlank()) {
+            start = LocalTime.parse(scheduledTime);
+        }
+        return new BookingTimeWindow(date, start, start.plusHours(durationHours));
+    }
+
+    private void validateWorkerSchedule(Integer workerId, BookingTimeWindow requestedWindow, Integer excludeBookingId) {
+        // If the worker has configured availability entries for this date,
+        // enforce that the requested window falls inside at least one
+        // explicitly available window. If they have not configured anything
+        // for this date, treat the worker as available by default.
+        validateWorkerAvailabilityWindow(workerId, requestedWindow.date(), requestedWindow.start(), requestedWindow.end());
+        ensureNoOverlappingBooking(workerId, requestedWindow.date(), requestedWindow.start(), requestedWindow.end(), excludeBookingId);
+    }
+
+    private void triggerStatusNotifications(Booking booking, Booking.BookingStatus targetStatus) {
+        notifyCustomerOnStatusChange(booking, targetStatus);
+        if (targetStatus == Booking.BookingStatus.completed) {
+            sendReviewReminders(booking);
+        }
     }
 
     private String buildDisplayName(String firstName, String lastName, String fallback) {
@@ -359,12 +371,12 @@ public class BookingService {
             LocalTime requestedStart,
             LocalTime requestedEnd,
             Integer excludeBookingId) {
-        List<Booking> dayBookings = bookingRepository.findConflictingBookings(
+        List<BookingRepository.BookingOverlapProjection> dayBookings = bookingRepository.findConflictWindowData(
                 workerId,
                 date,
-                List.of(Booking.BookingStatus.requested, Booking.BookingStatus.accepted, Booking.BookingStatus.in_progress));
+                BLOCKING_BOOKING_STATUSES);
 
-        for (Booking existing : dayBookings) {
+        for (BookingRepository.BookingOverlapProjection existing : dayBookings) {
             if (excludeBookingId != null && excludeBookingId.equals(existing.getBookingId())) {
                 continue;
             }
@@ -408,5 +420,53 @@ public class BookingService {
             throw new BookingException(HttpStatus.BAD_REQUEST, "Customers can only cancel requested or accepted bookings.");
         }
         throw new BookingException(HttpStatus.FORBIDDEN, "You are not allowed to change this booking status.");
+    }
+
+    private Booking findBookingOrThrow(Integer bookingId) {
+        return bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new BookingException(HttpStatus.NOT_FOUND, "Booking not found"));
+    }
+
+    private User findUserOrThrow(Integer userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new BookingException(HttpStatus.NOT_FOUND, "User not found"));
+    }
+
+    private CustomerProfile findCustomerProfileByUserOrThrow(Integer userId) {
+        return customerProfileRepository.findByUser_UserId(userId)
+                .orElseThrow(() -> new BookingException(HttpStatus.NOT_FOUND, "Customer profile not found"));
+    }
+
+    private CustomerProfile findCustomerProfileOrThrow(Integer customerUserId) {
+        return customerProfileRepository.findByUser_UserId(customerUserId)
+                .orElseThrow(() -> new BookingException(
+                        HttpStatus.BAD_REQUEST,
+                        "Customer profile not found. Please complete your profile first."));
+    }
+
+    private WorkerProfile findWorkerProfileByUserOrThrow(Integer userId) {
+        return workerProfileRepository.findByUser_UserId(userId)
+                .orElseThrow(() -> new BookingException(HttpStatus.NOT_FOUND, "Worker profile not found"));
+    }
+
+    private Booking.BookingStatus parseBookingStatus(String newStatus) {
+        try {
+            return Booking.BookingStatus.valueOf(newStatus);
+        } catch (IllegalArgumentException | NullPointerException ex) {
+            throw new BookingException(HttpStatus.BAD_REQUEST, "Invalid booking status: " + newStatus);
+        }
+    }
+
+    private void applyStatusSideEffects(Booking booking, Booking.BookingStatus targetStatus, String reason) {
+        if (targetStatus == Booking.BookingStatus.cancelled) {
+            booking.setCancellationReason(reason);
+            booking.setCancelledAt(LocalDateTime.now());
+        }
+        if (targetStatus == Booking.BookingStatus.completed) {
+            booking.setCompletedAt(LocalDateTime.now());
+        }
+    }
+
+    private record BookingTimeWindow(LocalDate date, LocalTime start, LocalTime end) {
     }
 }
