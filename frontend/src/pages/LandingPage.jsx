@@ -1,1210 +1,302 @@
 import { Link } from 'react-router-dom';
+import './LandingPage.css';
 
-const CATEGORIES = [
-    {
-        name: 'Electrician',
-        subtitle: 'Residential & industrial experts',
-        accent: 'High-voltage precision for every project.',
-        icon: '⚡',
-    },
-    {
-        name: 'Plumbing',
-        subtitle: 'From leaks to full installs',
-        accent: 'Emergency response and long-term fixes.',
-        icon: '🔧',
-    },
-    {
-        name: 'Equipment Hire',
-        subtitle: 'Power tools to heavy machinery',
-        accent: 'Trusted suppliers with delivery support.',
-        icon: '🚜',
-    },
-    {
-        name: 'Carpentry',
-        subtitle: 'Custom builds & restoration',
-        accent: 'Detail-focused Sri Lankan craftsmanship.',
-        icon: '🪚',
-    },
-    {
-        name: 'Technicians',
-        subtitle: 'Appliance & systems experts',
-        accent: 'On-call professionals for repairs and maintenance.',
-        icon: '🧰',
-    },
+const NAV_ITEMS = [
+	{ label: 'Platform', href: '#platform' },
+	{ label: 'Categories', href: '#categories' },
+	{ label: 'Solutions', href: '#process' },
+	{ label: 'Success Stories', href: '#trust' },
 ];
 
+const PROCESS_STEPS = [
+	{
+		icon: 'person_add',
+		title: 'Create account',
+		description:
+			'Choose a role - Professional, Hirer, or Client - and unlock a dashboard tailored to your workflow.',
+	},
+	{
+		icon: 'post_add',
+		title: 'Post jobs',
+		description:
+			'Describe the work in detail and match with vetted talent or the right equipment in minutes.',
+	},
+	{
+		icon: 'calendar_today',
+		title: 'Book & track',
+		description:
+			'Manage milestones, payments, and logistics from a single secure operating hub.',
+	},
+];
+
+const CATEGORIES = [
+	{
+		name: 'Electrician',
+		icon: 'bolt',
+		description: 'Certified masters of high-voltage systems and residential smart grids.',
+		image:
+			'https://lh3.googleusercontent.com/aida-public/AB6AXuA6IR41GHoHhNTSwchldsQ0pDL3aNQ5OEVd0T463E-k5NS2aOIPeTkITHa1xW12MaeszK6DJ8MOp7EA-7cXAKpNI7DIedCWSRqC8VeTcQzEYy-XX7faERvZe2tJHDzy0y98AXQndUHE81QaPhC2NoiLeQkxpzXBfnSbnxfazZ1LUYy0t9ZWiVaM33DVSUVFV9MuG2J9DHQUqxhODcJdI9pyapxP0Bq5_Gnr8Dkb_Kxh_NkOhCqzYY5lezmu1DvTP-wY7EEGiCMkbHY',
+		featured: true,
+	},
+	{
+		name: 'Plumbing',
+		icon: 'faucet',
+		description: 'Emergency response and long-term fixes for homes and businesses.',
+		image:
+			'https://lh3.googleusercontent.com/aida-public/AB6AXuDIYuN86VZOBgeK-_Pof-JNdS378ByLOrroGO7hSo--Lyxu9OrI_LTQ5_x0hazxkGQsZtCkSQF0E65VjGkBod0upk6FNZoo0-T4EPl0O4uficOwx25j4Cgz5GneWQB3v_rogocT2qlaZg-53qrL8LqXggYNVQbVhNVMpNQCLLFUFSZ9bmvkfH2U3edvI9qfxQp5T64aPawx6vesDQ1KzxAnRBHtoX7biD0n1d3xX3ki1rsLUONvmrjIteJt8mJaOGKD-40Kevbt3kw',
+	},
+	{
+		name: 'Equipment Hire',
+		icon: 'precision_manufacturing',
+		description: 'Power tools to heavy machinery with trusted suppliers and delivery support.',
+		image:
+			'https://lh3.googleusercontent.com/aida-public/AB6AXuCktXfiv2_DBwHQ3p7a8LB1g9B20JeEJoPQaWDg_xuMqKvNunluqBnjSh6fgvPKXy8qWFRxYRRMSI68L_bHiGro6DEfP2C3QZXB0FtoJAJ2l8nIoFz1F2YJ5l-MEORCMSmTvHaN3JTA9dPZOF8nj__bEglSUbyIFHahkM_C5yHSuxUs4m4Wg3QxrPoU1tQMRiWyr37ICdZs24XZzcSA-RnEZgDfFHipM8hmOFXdoz0FmDBjOJ2lPgGXf9BI1rRfswgy_96YhyRizZ0',
+	},
+	{
+		name: 'HVAC',
+		icon: 'ac_unit',
+		description: 'Industrial climate control and ventilation systems built for scale.',
+		compact: true,
+	},
+];
+
+const METRICS = [
+	{ value: '18+', label: 'Industry Categories' },
+	{ value: '3', label: 'Core User Roles' },
+	{ value: '2', label: 'Booking Protocols' },
+	{ value: '99%', label: 'Trust Rating', highlight: true },
+];
+
+const FOOTER_LINK_GROUPS = [
+	{
+		title: 'Platform',
+		links: [
+			{ label: 'Services', to: '/about' },
+			{ label: 'Hire Hub', to: '/register' },
+			{ label: 'Pro Network', to: '/workers' },
+		],
+	},
+	{
+		title: 'Company',
+		links: [
+			{ label: 'Our Story', to: '/about' },
+			{ label: 'Careers', to: '/contact' },
+			{ label: 'Contact', to: '/contact' },
+		],
+	},
+];
+
+function MaterialIcon({ name, filled = false }) {
+	return (
+		<span
+			className="material-symbols-outlined"
+			style={{ fontVariationSettings: `'FILL' ${filled ? 1 : 0}, 'wght' 500, 'GRAD' 0, 'opsz' 24` }}
+			aria-hidden="true"
+		>
+			{name}
+		</span>
+	);
+}
+
+function CategoryCard({ category }) {
+	return (
+		<article className={`category-card ${category.featured ? 'category-card--featured' : ''} ${category.compact ? 'category-card--compact' : ''}`}>
+			{category.image ? (
+				<img className="category-card__media" src={category.image} alt="" loading="lazy" />
+			) : (
+				<div className="category-card__abstract" />
+			)}
+			<div className="category-card__overlay" />
+			<div className="category-card__content">
+				<div className="category-card__icon">
+					<MaterialIcon name={category.icon} filled />
+				</div>
+				<h3>{category.name}</h3>
+				{category.description ? <p>{category.description}</p> : null}
+			</div>
+		</article>
+	);
+}
+
 export default function LandingPage() {
-    return (
-        <div
-            style={{
-                fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
-                minHeight: '100vh',
-                background: '#f8f9ff',
-                color: '#0b1c30',
-            }}
-        >
-            {/* Sticky editorial nav */}
-            <header
-                style={{
-                    position: 'sticky',
-                    top: 0,
-                    zIndex: 50,
-                    background: 'rgba(248,249,255,0.92)',
-                    backdropFilter: 'blur(18px)',
-                    borderBottom: '1px solid rgba(195,198,215,0.35)',
-                }}
-            >
-                <div
-                    style={{
-                        maxWidth: 1280,
-                        margin: '0 auto',
-                        padding: '14px 24px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: 24,
-                    }}
-                >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <div
-                            style={{
-                                width: 36,
-                                height: 36,
-                                borderRadius: 10,
-                                background: 'linear-gradient(135deg,#004BC6,#2463EB)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                color: '#ffffff',
-                                fontWeight: 900,
-                                fontSize: 18,
-                            }}
-                        >
-                            S
-                        </div>
-                        <div>
-                            <div
-                                style={{
-                                    fontWeight: 900,
-                                    fontSize: 18,
-                                    letterSpacing: '-0.04em',
-                                }}
-                            >
-                                SkillConnect
-                            </div>
-                            <div
-                                style={{
-                                    fontSize: 11,
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.12em',
-                                    color: '#6b7280',
-                                }}
-                            >
-                                Skilled workers & equipment in Sri Lanka
-                            </div>
-                        </div>
-                    </div>
+	return (
+		<div className="landing-page" id="platform">
+			<header className="landing-page__header">
+				<div className="landing-page__shell landing-page__nav-shell">
+					<Link to="/" className="landing-page__brand" aria-label="SkillConnect home">
+						<strong>SKILLCONNECT</strong>
+					</Link>
 
-                    <nav
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 20,
-                            fontSize: 14,
-                            color: '#4b5563',
-                        }}
-                    >
-                        <a
-                            href="#how-it-works"
-                            style={{ textDecoration: 'none', color: 'inherit' }}
-                        >
-                            How it works
-                        </a>
-                        <a
-                            href="#categories"
-                            style={{ textDecoration: 'none', color: 'inherit' }}
-                        >
-                            Categories
-                        </a>
-                        <a
-                            href="#why"
-                            style={{ textDecoration: 'none', color: 'inherit' }}
-                        >
-                            Why SkillConnect
-                        </a>
-                    </nav>
+					<nav className="landing-page__nav" aria-label="Primary">
+						{NAV_ITEMS.map((item) => (
+							<a key={item.label} href={item.href}>
+								{item.label}
+							</a>
+						))}
+					</nav>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <Link
-                            to="/login"
-                            style={{
-                                fontSize: 14,
-                                fontWeight: 600,
-                                color: '#4b5563',
-                                textDecoration: 'none',
-                            }}
-                        >
-                            Login
-                        </Link>
-                        <Link
-                            to="/register"
-                            style={{
-                                padding: '9px 20px',
-                                borderRadius: 999,
-                                fontSize: 14,
-                                fontWeight: 700,
-                                textDecoration: 'none',
-                                color: '#ffffff',
-                                background: 'linear-gradient(135deg,#004BC6,#2463EB)',
-                                boxShadow: '0 12px 28px rgba(37,99,235,0.35)',
-                            }}
-                        >
-                            Get Started
-                        </Link>
-                    </div>
-                </div>
-            </header>
+					<div className="landing-page__actions">
+						<Link to="/login" className="landing-page__link-button">
+							Log In
+						</Link>
+						<Link to="/register" className="landing-page__button landing-page__button--primary">
+							Join Now
+						</Link>
+					</div>
+				</div>
+			</header>
 
-            <main>
-                {/* Hero band */}
-                <section
-                    style={{
-                        padding: '72px 24px 80px',
-                        background:
-                            'linear-gradient(120deg,#0b1120 0%,#0f172a 35%,#1d4ed8 72%,#dbeafe 100%)',
-                    }}
-                >
-                    <div
-                        style={{
-                            maxWidth: 1280,
-                            margin: '0 auto',
-                            display: 'grid',
-                            gridTemplateColumns: 'minmax(0,1.2fr) minmax(0,1fr)',
-                            gap: 40,
-                            alignItems: 'center',
-                        }}
-                    >
-                        <div>
-                            <div
-                                style={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: 8,
-                                    padding: '4px 11px',
-                                    borderRadius: 999,
-                                    background: 'rgba(15,23,42,0.85)',
-                                    color: '#e5e7eb',
-                                    fontSize: 11,
-                                    fontWeight: 700,
-                                    letterSpacing: '0.08em',
-                                    textTransform: 'uppercase',
-                                    marginBottom: 16,
-                                    border: '1px solid rgba(148,163,184,0.25)',
-                                }}
-                            >
-                                Hire skilled workers and rent equipment across Sri Lanka
-                            </div>
-                            <h1
-                                style={{
-                                    fontSize: 'clamp(34px,4.4vw,50px)',
-                                    lineHeight: 1.02,
-                                    fontWeight: 900,
-                                    letterSpacing: '-0.05em',
-                                    color: '#f9fafb',
-                                    maxWidth: 580,
-                                    marginBottom: 12,
-                                }}
-                            >
-                                Where skilled work and trusted equipment meet.
-                            </h1>
-                            <p
-                                style={{
-                                    fontSize: 16,
-                                    color: 'rgba(226,232,240,0.9)',
-                                    maxWidth: 520,
-                                    marginBottom: 28,
-                                }}
-                            >
-                                Browse workers, post jobs, and manage equipment rentals from a single SkillConnect account.
-                            </p>
+			<main>
+				<section className="landing-page__hero">
+					<div className="landing-page__hero-bg" aria-hidden="true" />
+					<div className="landing-page__shell landing-page__hero-grid">
+						<div className="landing-page__hero-copy">
+							<span className="landing-page__eyebrow">Evolution of Service</span>
+							<h1>
+								Where skilled work and <span>trusted equipment</span> meet.
+							</h1>
+							<p>
+								The premium ecosystem for industry professionals and equipment hire. Precision-matched skills for every demanding project.
+							</p>
+							<div className="landing-page__cta-row">
+								<Link to="/register" className="landing-page__button landing-page__button--primary">
+									Get Started Today
+								</Link>
+								<a href="#process" className="landing-page__button landing-page__button--ghost">
+									<MaterialIcon name="play_circle" />
+									Watch Narrative
+								</a>
+							</div>
+						</div>
+					</div>
+				</section>
 
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    flexWrap: 'wrap',
-                                    gap: 16,
-                                    marginBottom: 18,
-                                }}
-                            >
-                                <Link
-                                    to="/register"
-                                    style={{
-                                        padding: '13px 26px',
-                                        borderRadius: 999,
-                                        fontSize: 14,
-                                        fontWeight: 700,
-                                        textDecoration: 'none',
-                                        color: '#ffffff',
-                                        background: 'linear-gradient(135deg,#004BC6,#2463EB)',
-                                        boxShadow: '0 18px 45px rgba(37,99,235,0.6)',
-                                    }}
-                                >
-                                    Sign up as Customer
-                                </Link>
-                                <Link
-                                    to="/register"
-                                    style={{
-                                        padding: '13px 24px',
-                                        borderRadius: 999,
-                                        fontSize: 14,
-                                        fontWeight: 700,
-                                        textDecoration: 'none',
-                                        color: '#0b1120',
-                                        background: 'linear-gradient(135deg,#FDBA74,#F97316)',
-                                        boxShadow: '0 18px 40px rgba(249,115,22,0.65)',
-                                    }}
-                                >
-                                    Sign up as Worker / Supplier
-                                </Link>
-                            </div>
+				<section className="landing-page__section landing-page__section--dark" id="process">
+					<div className="landing-page__shell">
+						<div className="landing-page__section-header">
+							<div>
+								<span className="landing-page__eyebrow">Precision in every step</span>
+								<h2>How SkillConnect works</h2>
+							</div>
+							<p>Three clear steps from posting your job to releasing secure payment.</p>
+							<div className="landing-page__section-counter">01-03</div>
+						</div>
 
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    flexWrap: 'wrap',
-                                    gap: 16,
-                                    fontSize: 12,
-                                    color: 'rgba(148,163,184,0.9)',
-                                }}
-                            >
-                                <span>Made for Sri Lankan customers, workers, and suppliers.</span>
-                                <span
-                                    style={{
-                                        width: 4,
-                                        height: 4,
-                                        borderRadius: '999px',
-                                        background: 'rgba(148,163,184,0.7)',
-                                        alignSelf: 'center',
-                                    }}
-                                />
-                                <span>18+ job categories • service and equipment bookings</span>
-                            </div>
-                        </div>
+						<div className="landing-page__process-grid">
+							{PROCESS_STEPS.map((step, index) => (
+								<article key={step.title} className="landing-page__process-card">
+									<div className="landing-page__process-index">0{index + 1}</div>
+									<div className="landing-page__process-icon">
+										<MaterialIcon name={step.icon} filled />
+									</div>
+									<h3>{step.title}</h3>
+									<p>{step.description}</p>
+								</article>
+							))}
+						</div>
+					</div>
+				</section>
 
-                        {/* Layered cluster */}
-                        <div
-                            style={{
-                                position: 'relative',
-                                minHeight: 320,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                            }}
-                        >
-                            {/* Job card */}
-                            <div
-                                style={{
-                                    position: 'absolute',
-                                    top: 16,
-                                    left: 0,
-                                    transform: 'translateX(-6%)',
-                                    width: 250,
-                                    borderRadius: 20,
-                                    background: 'linear-gradient(145deg,rgba(15,23,42,0.85),rgba(15,23,42,0.6))',
-                                    color: '#e5e7eb',
-                                    padding: 16,
-                                    boxShadow: '0 26px 60px rgba(15,23,42,0.75)',
-                                }}
-                            >
-                                <div
-                                    style={{
-                                        fontSize: 11,
-                                        textTransform: 'uppercase',
-                                        letterSpacing: '0.1em',
-                                        color: '#9ca3af',
-                                    }}
-                                >
-                                    Active job
-                                </div>
-                                <div
-                                    style={{
-                                        fontWeight: 700,
-                                        fontSize: 14,
-                                        marginTop: 6,
-                                        marginBottom: 4,
-                                    }}
-                                >
-                                    Modern staircase restoration
-                                </div>
-                                <div
-                                    style={{
-                                        fontSize: 11,
-                                        color: '#9ca3af',
-                                    }}
-                                >
-                                    Location: Colombo 07 • Needed this week
-                                </div>
-                            </div>
+				<section className="landing-page__section" id="categories">
+					<div className="landing-page__shell">
+						<div className="landing-page__centered-heading">
+							<span className="landing-page__eyebrow">The right hands for every job</span>
+							<h2>The premium network for skilled labor and equipment hire</h2>
+							<p>
+								From precision electrical engineering to heavy industry equipment hire, we bridge the gap between expertise and execution.
+							</p>
+						</div>
 
-                            {/* Worker card */}
-                            <div
-                                style={{
-                                    position: 'relative',
-                                    width: 270,
-                                    borderRadius: 24,
-                                    background: 'rgba(248,249,255,0.98)',
-                                    padding: 18,
-                                    boxShadow: '0 28px 70px rgba(15,23,42,0.55)',
-                                    transform: 'translateY(10px)',
-                                }}
-                            >
-                                <div
-                                    style={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
-                                        marginBottom: 12,
-                                    }}
-                                >
-                                    <div>
-                                        <div
-                                            style={{
-                                                fontWeight: 700,
-                                                fontSize: 14,
-                                            }}
-                                        >
-                                            Aruna Perera
-                                        </div>
-                                        <div
-                                            style={{
-                                                fontSize: 11,
-                                                color: '#6b7280',
-                                            }}
-                                        >
-                                            Master Artisan • Carpentry
-                                        </div>
-                                    </div>
-                                    <div
-                                        style={{
-                                            fontSize: 11,
-                                            padding: '5px 9px',
-                                            borderRadius: 999,
-                                            background: '#fee2e2',
-                                            color: '#b91c1c',
-                                            fontWeight: 600,
-                                        }}
-                                    >
-                                        4.9 ★
-                                    </div>
-                                </div>
-                                <div
-                                    style={{
-                                        fontSize: 12,
-                                        color: '#4b5563',
-                                    }}
-                                >
-                                    Specialised in structural restoration, bespoke staircases, and heritage timber work.
-                                </div>
-                            </div>
+						<div className="landing-page__category-grid">
+							{CATEGORIES.map((category) => (
+								<CategoryCard key={category.name} category={category} />
+							))}
+						</div>
+					</div>
+				</section>
 
-                            {/* Equipment card */}
-                            <div
-                                style={{
-                                    position: 'absolute',
-                                    bottom: 10,
-                                    right: -10,
-                                    width: 230,
-                                    borderRadius: 20,
-                                    background: 'rgba(15,23,42,0.96)',
-                                    color: '#e5e7eb',
-                                    padding: 14,
-                                    boxShadow: '0 26px 60px rgba(15,23,42,0.8)',
-                                }}
-                            >
-                                <div
-                                    style={{
-                                        fontSize: 11,
-                                        textTransform: 'uppercase',
-                                        letterSpacing: '0.1em',
-                                        color: '#9ca3af',
-                                    }}
-                                >
-                                    Equipment hire
-                                </div>
-                                <div
-                                    style={{
-                                        fontWeight: 700,
-                                        fontSize: 14,
-                                        marginTop: 6,
-                                    }}
-                                >
-                                    Heavy duty mixer
-                                </div>
-                                <div
-                                    style={{
-                                        fontSize: 12,
-                                        marginTop: 4,
-                                        color: '#e5e7eb',
-                                    }}
-                                >
-                                    LKR 4,500 / day • Delivery available
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
+				<section className="landing-page__section landing-page__section--panel" id="trust">
+					<div className="landing-page__shell landing-page__trust-grid">
+						<div className="landing-page__trust-copy">
+							<span className="landing-page__eyebrow">Why customers and pros trust SkillConnect</span>
+							<h2>Reliability, curation, and professional integrity.</h2>
+							<p>
+								Our network is built for high-performance outcomes, with a focus on verified expertise and dependable equipment access.
+							</p>
 
-                {/* How it works */}
-                <section
-                    id="how-it-works"
-                    style={{
-                        padding: '60px 24px 64px',
-                        background:
-                            'linear-gradient(135deg,#eff4ff 0%,#e5eeff 60%,#ffffff 100%)',
-                    }}
-                >
-                    <div
-                        style={{
-                            maxWidth: 1120,
-                            margin: '0 auto',
-                        }}
-                    >
-                        <div
-                            style={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'flex-end',
-                                marginBottom: 32,
-                                gap: 20,
-                            }}
-                        >
-                            <div>
-                                <div
-                                    style={{
-                                        fontSize: 12,
-                                        textTransform: 'uppercase',
-                                        letterSpacing: '0.16em',
-                                        color: '#6b7280',
-                                        marginBottom: 8,
-                                    }}
-                                >
-                                    Precision in every step
-                                </div>
-                                <h2
-                                    style={{
-                                        fontSize: 24,
-                                        fontWeight: 800,
-                                        letterSpacing: '-0.04em',
-                                        color: '#0b1c30',
-                                    }}
-                                >
-                                    How SkillConnect works
-                                </h2>
-                            </div>
-                            <p
-                                style={{
-                                    fontSize: 13,
-                                    color: '#6b7280',
-                                    maxWidth: 340,
-                                    textAlign: 'right',
-                                }}
-                            >
-                                Three clear steps from posting your job to releasing secure payment.
-                            </p>
-                        </div>
+							<div className="landing-page__avatars" aria-hidden="true">
+								<span />
+								<span />
+								<span />
+							</div>
+							<strong className="landing-page__trust-note">Join 15,000+ verified experts</strong>
+						</div>
 
-                        <div
-                            style={{
-                                display: 'grid',
-                                gridTemplateColumns: 'repeat(3,minmax(0,1fr))',
-                                gap: 24,
-                                position: 'relative',
-                            }}
-                        >
-                            <div
-                                style={{
-                                    position: 'absolute',
-                                    left: '10%',
-                                    right: '10%',
-                                    top: 38,
-                                    height: 2,
-                                    background:
-                                        'linear-gradient(90deg,rgba(148,163,184,0.1),rgba(37,99,235,0.45),rgba(148,163,184,0.1))',
-                                    zIndex: 0,
-                                }}
-                            />
+						<div className="landing-page__metrics-grid">
+							{METRICS.map((metric) => (
+								<article key={metric.label} className={`landing-page__metric ${metric.highlight ? 'landing-page__metric--highlight' : ''}`}>
+									<strong>{metric.value}</strong>
+									<span>{metric.label}</span>
+								</article>
+							))}
+						</div>
+					</div>
+				</section>
 
-                            {[1, 2, 3].map((step) => {
-                                const stepContent = [
-                                    {
-                                        title: 'Create your account',
-                                        desc: 'Register as a customer, worker, or equipment supplier in a few simple steps.',
-                                    },
-                                    {
-                                        title: 'Post jobs or browse listings',
-                                        desc: 'Use filters and categories to find workers, jobs, or equipment that match your need.',
-                                    },
-                                    {
-                                        title: 'Book and track everything',
-                                        desc: 'Confirm bookings and rentals, then follow their status from your SkillConnect dashboard.',
-                                    },
-                                ][step - 1];
+				<section className="landing-page__section landing-page__section--cta">
+					<div className="landing-page__shell landing-page__cta-panel">
+						<span className="landing-page__eyebrow">The industry shift is here</span>
+						<h2>Ignite your workflow</h2>
+						<p>Join the premier network of skilled professionals and equipment hirers today.</p>
+						<Link to="/register" className="landing-page__button landing-page__button--primary landing-page__button--large">
+							Create your SkillConnect account today
+						</Link>
+					</div>
+				</section>
+			</main>
 
-                                return (
-                                    <div
-                                        key={stepContent.title}
-                                        style={{
-                                            position: 'relative',
-                                            zIndex: 1,
-                                            padding: 20,
-                                            borderRadius: 20,
-                                            background: '#ffffff',
-                                            boxShadow: '0 18px 45px rgba(15,23,42,0.05)',
-                                        }}
-                                    >
-                                        <div
-                                            style={{
-                                                width: 26,
-                                                height: 26,
-                                                borderRadius: 999,
-                                                background:
-                                                    step === 2
-                                                        ? 'linear-gradient(135deg,#FDBA74,#F97316)'
-                                                        : 'linear-gradient(135deg,#004BC6,#2463EB)',
-                                                color: '#ffffff',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                fontSize: 13,
-                                                fontWeight: 700,
-                                                marginBottom: 14,
-                                            }}
-                                        >
-                                            {step}
-                                        </div>
-                                        <div
-                                            style={{
-                                                fontSize: 14,
-                                                fontWeight: 700,
-                                                marginBottom: 6,
-                                            }}
-                                        >
-                                            {stepContent.title}
-                                        </div>
-                                        <p
-                                            style={{
-                                                fontSize: 13,
-                                                color: '#4b5563',
-                                            }}
-                                        >
-                                            {stepContent.desc}
-                                        </p>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                </section>
+			<footer className="landing-page__footer">
+				<div className="landing-page__shell landing-page__footer-grid">
+					<div className="landing-page__footer-brand">
+						<strong className="landing-page__footer-title">SKILLCONNECT</strong>
+						<p>Advanced orchestration of skilled labor and high-precision equipment hire for the modern industrial age.</p>
+					</div>
 
-                {/* Curated experts / categories */}
-                <section
-                    id="categories"
-                    style={{
-                        padding: '64px 24px 72px',
-                        background: '#f8f9ff',
-                    }}
-                >
-                    <div
-                        style={{
-                            maxWidth: 1120,
-                            margin: '0 auto',
-                        }}
-                    >
-                        <div
-                            style={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'flex-end',
-                                gap: 20,
-                                marginBottom: 32,
-                            }}
-                        >
-                            <div>
-                                <div
-                                    style={{
-                                        fontSize: 12,
-                                        textTransform: 'uppercase',
-                                        letterSpacing: '0.16em',
-                                        color: '#6b7280',
-                                        marginBottom: 8,
-                                    }}
-                                >
-                                    Curated experts
-                                </div>
-                                <h2
-                                    style={{
-                                        fontSize: 24,
-                                        fontWeight: 800,
-                                        letterSpacing: '-0.04em',
-                                        color: '#0b1c30',
-                                    }}
-                                >
-                                    The right hands for every job
-                                </h2>
-                            </div>
-                            <Link
-                                to="/workers"
-                                style={{
-                                    fontSize: 13,
-                                    fontWeight: 600,
-                                    color: '#2463EB',
-                                    textDecoration: 'none',
-                                }}
-                            >
-                                View all categories →
-                            </Link>
-                        </div>
+					<div className="landing-page__footer-links">
+						{FOOTER_LINK_GROUPS.map((group) => (
+							<div key={group.title}>
+								<strong>{group.title}</strong>
+								{group.links.map((link) => (
+									<Link key={link.label} to={link.to}>
+										{link.label}
+									</Link>
+								))}
+							</div>
+						))}
 
-                        <div
-                            style={{
-                                display: 'grid',
-                                gridTemplateColumns: 'repeat(4,minmax(0,1fr))',
-                                gap: 18,
-                            }}
-                        >
-                            {CATEGORIES.map((cat, index) => (
-                                <div
-                                    key={cat.name}
-                                    style={{
-                                        gridColumn:
-                                            index === 0 || index === 3
-                                                ? 'span 2'
-                                                : 'span 1',
-                                        borderRadius: 20,
-                                        background: '#ffffff',
-                                        padding: 18,
-                                        boxShadow: '0 16px 40px rgba(15,23,42,0.04)',
-                                    }}
-                                >
-                                    <div
-                                        style={{
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            alignItems: 'flex-start',
-                                            marginBottom: 8,
-                                        }}
-                                    >
-                                        <div>
-                                            <div
-                                                style={{
-                                                    fontSize: 14,
-                                                    fontWeight: 700,
-                                                    marginBottom: 4,
-                                                }}
-                                            >
-                                                {cat.name}
-                                            </div>
-                                            <div
-                                                style={{
-                                                    fontSize: 12,
-                                                    color: '#6b7280',
-                                                }}
-                                            >
-                                                {cat.subtitle}
-                                            </div>
-                                        </div>
-                                        <div
-                                            style={{
-                                                width: 32,
-                                                height: 32,
-                                                borderRadius: 16,
-                                                background:
-                                                    index % 2 === 0
-                                                        ? 'linear-gradient(135deg,#EFF4FF,#DBEAFE)'
-                                                        : 'linear-gradient(135deg,#FEF3C7,#FFEDD5)',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                fontSize: 18,
-                                            }}
-                                        >
-                                            {cat.icon}
-                                        </div>
-                                    </div>
-                                    <div
-                                        style={{
-                                            fontSize: 12,
-                                            color: '#4b5563',
-                                        }}
-                                    >
-                                        {cat.accent}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </section>
+						<div>
+							<strong>Connect</strong>
+							<div className="landing-page__socials">
+								<a href="https://x.com" target="_blank" rel="noreferrer" aria-label="X">
+									<MaterialIcon name="share" />
+								</a>
+								<a href="https://linkedin.com" target="_blank" rel="noreferrer" aria-label="LinkedIn">
+									<MaterialIcon name="business_center" />
+								</a>
+							</div>
+						</div>
+					</div>
+				</div>
 
-                {/* Why SkillConnect */}
-                <section
-                    id="why"
-                    style={{
-                        padding: '68px 24px 72px',
-                        background:
-                            'radial-gradient(circle at 0% 0%,#0f172a 0,#020617 45%,#020617 100%)',
-                        color: '#e5e7eb',
-                    }}
-                >
-                    <div
-                        style={{
-                            maxWidth: 1120,
-                            margin: '0 auto',
-                            display: 'grid',
-                            gridTemplateColumns: 'minmax(0,1.3fr) minmax(0,1fr)',
-                            gap: 40,
-                            alignItems: 'flex-start',
-                        }}
-                    >
-                        <div>
-                            <div
-                                style={{
-                                    fontSize: 12,
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.16em',
-                                    color: '#9ca3af',
-                                    marginBottom: 10,
-                                }}
-                            >
-                                Crafting the standard for reliability
-                            </div>
-                            <h2
-                                style={{
-                                    fontSize: 26,
-                                    fontWeight: 800,
-                                    letterSpacing: '-0.04em',
-                                    color: '#f9fafb',
-                                    marginBottom: 16,
-                                }}
-                            >
-                                Why customers and pros trust SkillConnect
-                            </h2>
-                            <p
-                                style={{
-                                    fontSize: 13,
-                                    color: '#9ca3af',
-                                    marginBottom: 20,
-                                }}
-                            >
-                                A single, transparent workflow for posting jobs, booking work, and managing equipment rentals.
-                            </p>
-
-                            <ul
-                                style={{
-                                    listStyle: 'none',
-                                    padding: 0,
-                                    margin: 0,
-                                    display: 'grid',
-                                    gap: 12,
-                                }}
-                            >
-                                <li
-                                    style={{
-                                        display: 'flex',
-                                        gap: 10,
-                                        alignItems: 'flex-start',
-                                    }}
-                                >
-                                    <span
-                                        style={{
-                                            width: 18,
-                                            height: 18,
-                                            borderRadius: 999,
-                                            background:
-                                                'radial-gradient(circle,#22c55e,#16a34a)',
-                                            display: 'inline-block',
-                                            marginTop: 2,
-                                        }}
-                                    />
-                                    <div>
-                                        <div
-                                            style={{
-                                                fontSize: 14,
-                                                fontWeight: 600,
-                                            }}
-                                        >
-                                            Rich worker profiles
-                                        </div>
-                                        <p
-                                            style={{
-                                                fontSize: 12,
-                                                color: '#9ca3af',
-                                            }}
-                                        >
-                                            See skills, districts, rates, and reviews before you decide who to book.
-                                        </p>
-                                    </div>
-                                </li>
-                                <li
-                                    style={{
-                                        display: 'flex',
-                                        gap: 10,
-                                        alignItems: 'flex-start',
-                                    }}
-                                >
-                                    <span
-                                        style={{
-                                            width: 18,
-                                            height: 18,
-                                            borderRadius: 999,
-                                            background:
-                                                'radial-gradient(circle,#fb923c,#f97316)',
-                                            display: 'inline-block',
-                                            marginTop: 2,
-                                        }}
-                                    />
-                                    <div>
-                                        <div
-                                            style={{
-                                                fontSize: 14,
-                                                fontWeight: 600,
-                                            }}
-                                        >
-                                            Booking-aware reviews
-                                        </div>
-                                        <p
-                                            style={{
-                                                fontSize: 12,
-                                                color: '#9ca3af',
-                                            }}
-                                        >
-                                            Reviews are tied to real bookings so feedback reflects completed work.
-                                        </p>
-                                    </div>
-                                </li>
-                                <li
-                                    style={{
-                                        display: 'flex',
-                                        gap: 10,
-                                        alignItems: 'flex-start',
-                                    }}
-                                >
-                                    <span
-                                        style={{
-                                            width: 18,
-                                            height: 18,
-                                            borderRadius: 999,
-                                            background:
-                                                'radial-gradient(circle,#38bdf8,#0ea5e9)',
-                                            display: 'inline-block',
-                                            marginTop: 2,
-                                        }}
-                                    />
-                                    <div>
-                                        <div
-                                            style={{
-                                                fontSize: 14,
-                                                fontWeight: 600,
-                                            }}
-                                        >
-                                            Jobs, bookings and rentals together
-                                        </div>
-                                        <p
-                                            style={{
-                                                fontSize: 12,
-                                                color: '#9ca3af',
-                                            }}
-                                        >
-                                            Customers, workers, and suppliers share one place to manage every request.
-                                        </p>
-                                    </div>
-                                </li>
-                            </ul>
-                        </div>
-
-                        {/* Trust panel */}
-                        <div
-                            style={{
-                                borderRadius: 22,
-                                background:
-                                    'linear-gradient(145deg,rgba(15,23,42,0.95),rgba(37,99,235,0.75))',
-                                padding: 20,
-                                boxShadow: '0 28px 70px rgba(15,23,42,0.85)',
-                            }}
-                        >
-                            <div
-                                style={{
-                                    display: 'grid',
-                                    gridTemplateColumns: 'repeat(2,minmax(0,1fr))',
-                                    gap: 14,
-                                    marginBottom: 18,
-                                }}
-                            >
-                                <div>
-                                    <div
-                                        style={{ fontSize: 18, fontWeight: 800 }}
-                                    >
-                                        18+
-                                    </div>
-                                    <div
-                                        style={{
-                                            fontSize: 11,
-                                            textTransform: 'uppercase',
-                                            letterSpacing: '0.12em',
-                                            color: '#cbd5f5',
-                                        }}
-                                    >
-                                        Job categories ready
-                                    </div>
-                                </div>
-                                <div>
-                                    <div
-                                        style={{ fontSize: 18, fontWeight: 800 }}
-                                    >
-                                        3
-                                    </div>
-                                    <div
-                                        style={{
-                                            fontSize: 11,
-                                            textTransform: 'uppercase',
-                                            letterSpacing: '0.12em',
-                                            color: '#cbd5f5',
-                                        }}
-                                    >
-                                        Core user roles
-                                    </div>
-                                </div>
-                                <div>
-                                    <div
-                                        style={{ fontSize: 18, fontWeight: 800 }}
-                                    >
-                                        2
-                                    </div>
-                                    <div
-                                        style={{
-                                            fontSize: 11,
-                                            textTransform: 'uppercase',
-                                            letterSpacing: '0.12em',
-                                            color: '#cbd5f5',
-                                        }}
-                                    >
-                                        Booking types
-                                    </div>
-                                </div>
-                                <div>
-                                    <div
-                                        style={{ fontSize: 18, fontWeight: 800 }}
-                                    >
-                                        1
-                                    </div>
-                                    <div
-                                        style={{
-                                            fontSize: 11,
-                                            textTransform: 'uppercase',
-                                            letterSpacing: '0.12em',
-                                            color: '#cbd5f5',
-                                        }}
-                                    >
-                                        Unified dashboard
-                                    </div>
-                                </div>
-                            </div>
-
-                            <p
-                                style={{
-                                    fontSize: 12,
-                                    color: '#e5e7eb',
-                                    marginBottom: 14,
-                                }}
-                            >
-                                SkillConnect connects customers, workers, and suppliers around real jobs, bookings, and rentals in Sri Lanka.
-                            </p>
-
-                            <Link
-                                to="/register"
-                                style={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: 8,
-                                    padding: '10px 18px',
-                                    borderRadius: 999,
-                                    background: '#ffffff',
-                                    color: '#0b1120',
-                                    fontSize: 13,
-                                    fontWeight: 700,
-                                    textDecoration: 'none',
-                                }}
-                            >
-                                Apply as a Master Pro →
-                            </Link>
-                        </div>
-                    </div>
-                </section>
-
-                {/* Final CTA + footer */}
-                <section
-                    style={{
-                        padding: '40px 24px 0',
-                        background:
-                            'linear-gradient(135deg,#eff4ff 0%,#dbeafe 40%,#ffffff 100%)',
-                    }}
-                >
-                    {/* Compact CTA bar */}
-                    <div
-                        style={{
-                            maxWidth: 1120,
-                            margin: '0 auto 40px',
-                            borderRadius: 16,
-                            background: '#ffffff',
-                            padding: 20,
-                            boxShadow: '0 14px 40px rgba(15,23,42,0.05)',
-                            display: 'flex',
-                            flexWrap: 'wrap',
-                            justifyContent: 'space-between',
-                            gap: 16,
-                            alignItems: 'center',
-                        }}
-                    >
-                        <div>
-                            <div
-                                style={{
-                                    fontSize: 11,
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.16em',
-                                    color: '#6b7280',
-                                    marginBottom: 4,
-                                }}
-                            >
-                                Ready to get started?
-                            </div>
-                            <h3
-                                style={{
-                                    fontSize: 18,
-                                    fontWeight: 800,
-                                    letterSpacing: '-0.03em',
-                                    color: '#0b1c30',
-                                    marginBottom: 2,
-                                }}
-                            >
-                                Create your SkillConnect account today.
-                            </h3>
-                            <p
-                                style={{
-                                    fontSize: 13,
-                                    color: '#6b7280',
-                                }}
-                            >
-                                Start posting jobs, booking work, or listing equipment in a few minutes.
-                            </p>
-                        </div>
-                        <div
-                            style={{
-                                display: 'flex',
-                                flexWrap: 'wrap',
-                                gap: 10,
-                            }}
-                        >
-                            <Link
-                                to="/register"
-                                style={{
-                                    padding: '9px 18px',
-                                    borderRadius: 999,
-                                    fontSize: 13,
-                                    fontWeight: 700,
-                                    textDecoration: 'none',
-                                    color: '#ffffff',
-                                    background: 'linear-gradient(135deg,#004BC6,#2463EB)',
-                                }}
-                            >
-                                Create free account
-                            </Link>
-                            <Link
-                                to="/about"
-                                style={{
-                                    padding: '9px 16px',
-                                    borderRadius: 999,
-                                    fontSize: 13,
-                                    fontWeight: 600,
-                                    textDecoration: 'none',
-                                    color: '#1f2937',
-                                    background: '#f3f4f6',
-                                }}
-                            >
-                                Learn more
-                            </Link>
-                        </div>
-                    </div>
-
-                    {/* Minimal site footer */}
-                    <footer
-                        style={{
-                            borderTop: '1px solid rgba(203,213,225,0.7)',
-                            padding: '18px 0 24px',
-                        }}
-                    >
-                        <div
-                            style={{
-                                maxWidth: 1120,
-                                margin: '0 auto',
-                                display: 'flex',
-                                flexWrap: 'wrap',
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                                gap: 12,
-                                fontSize: 12,
-                                color: '#6b7280',
-                            }}
-                        >
-                            <div>
-                                © {new Date().getFullYear()} SkillConnect. All
-                                rights reserved.
-                            </div>
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    gap: 16,
-                                }}
-                            >
-                                <Link
-                                    to="/about"
-                                    style={{
-                                        textDecoration: 'none',
-                                        color: '#6b7280',
-                                    }}
-                                >
-                                    About
-                                </Link>
-                                <Link
-                                    to="/terms"
-                                    style={{
-                                        textDecoration: 'none',
-                                        color: '#6b7280',
-                                    }}
-                                >
-                                    Terms
-                                </Link>
-                                <Link
-                                    to="/privacy"
-                                    style={{
-                                        textDecoration: 'none',
-                                        color: '#6b7280',
-                                    }}
-                                >
-                                    Privacy
-                                </Link>
-                                <Link
-                                    to="/contact"
-                                    style={{
-                                        textDecoration: 'none',
-                                        color: '#6b7280',
-                                    }}
-                                >
-                                    Contact
-                                </Link>
-                            </div>
-                        </div>
-                    </footer>
-                </section>
-            </main>
-        </div>
-    );
+				<div className="landing-page__shell landing-page__footer-bottom">
+					<span>© 2026 SkillConnect. Engineered for the kinetic noir.</span>
+					<div>
+						<Link to="/privacy">Privacy Policy</Link>
+						<Link to="/terms">Terms of Service</Link>
+						<Link to="/contact">Contact Support</Link>
+					</div>
+				</div>
+			</footer>
+		</div>
+	);
 }
