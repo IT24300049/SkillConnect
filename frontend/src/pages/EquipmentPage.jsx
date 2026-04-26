@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../AuthContext';
 import { equipmentAPI } from '../api';
-import DistrictSelect from '../components/DistrictSelect';
+
 
 const CONDITION_COLORS = {
   new: 'badge-teal',
@@ -21,7 +21,7 @@ const BOOKING_STATUS_COLORS = {
 
 const MODAL_OVERLAY = {
   position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
-  display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 16, paddingTop: 105
+  display: 'flex', alignItems: 'flex-start', justifyContent: 'center', zIndex: 1000, padding: 16, paddingTop: 60, overflowY: 'auto'
 };
 
 const MODAL_CARD = {
@@ -58,7 +58,6 @@ export default function EquipmentPage() {
   const [tab, setTab] = useState('browse');
   const [search, setSearch] = useState('');
   const [filterCategoryId, setFilterCategoryId] = useState('');
-  const [filterDistrict, setFilterDistrict] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [editId, setEditId] = useState(null);
@@ -255,20 +254,13 @@ export default function EquipmentPage() {
       || categoryName.toLowerCase().includes(term);
     const catId = getCategoryId(eq);
     const inCategory = !filterCategoryId || String(catId) === String(filterCategoryId);
-    // For customers, allow filtering by supplier district.
-    // For suppliers ("My Inventory" view), ignore the district filter so
-    // they always see their own tools regardless of selection.
-    const district = eq.supplier?.district || '';
-    const inDistrict = isSupplier
-      ? true
-      : (!filterDistrict || (district && district.toLowerCase() === filterDistrict.toLowerCase()));
-    return inSearch && inCategory && inDistrict;
+    return inSearch && inCategory;
   });
 
   const activeBookingsCount = myBookings.filter(b => b.bookingStatus === 'reserved' || b.bookingStatus === 'rented_out').length;
   const returnedBookingsCount = myBookings.filter(b => b.bookingStatus === 'returned').length;
 
-  const hasActiveFilters = !!(search.trim() || filterCategoryId || (!isSupplier && filterDistrict));
+  const hasActiveFilters = !!(search.trim() || filterCategoryId);
 
   return (
     <div className="fade-in">
@@ -546,7 +538,6 @@ export default function EquipmentPage() {
                 onClick={() => {
                   setSearch('');
                   setFilterCategoryId('');
-                  setFilterDistrict('');
                 }}
               >
                 Reset filters
@@ -618,18 +609,7 @@ export default function EquipmentPage() {
                     </div>
                   )}
 
-                  {!isSupplier && (
-                    <div style={{ flex: '0 1 200px', minWidth: 200 }}>
-                      <label className="hm-label" style={{ marginBottom: 4 }}>
-                        District
-                      </label>
-                      <DistrictSelect
-                        value={filterDistrict}
-                        onChange={(value) => setFilterDistrict(value || '')}
-                        required={false}
-                      />
-                    </div>
-                  )}
+
                 </div>
               </div>
 
