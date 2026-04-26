@@ -74,6 +74,9 @@ export default function EquipmentPage() {
 
   const isSupplier = user?.role === 'supplier';
 
+  const getCategoryId = (eq) => eq.equipmentCategoryId || eq.categoryId || eq.equipmentCategory?.equipmentCategoryId || eq.equipmentCategory?.id || '';
+  const getCategoryName = (eq) => eq.categoryName || eq.equipmentCategory?.categoryName || '';
+
   useEffect(() => { loadData(); }, []);
 
   useEffect(() => {
@@ -199,7 +202,7 @@ export default function EquipmentPage() {
       rentalPricePerDay: eq.rentalPricePerDay || '',
       lateFeePerDay: eq.lateFeePerDay ?? 0,
       quantityAvailable: (eq.quantityAvailable ?? eq.quantityTotal ?? 1),
-      equipmentCategoryId: eq.equipmentCategoryId || eq.categoryId || '',
+      equipmentCategoryId: getCategoryId(eq),
     });
     setEditId(eq.equipmentId || eq.id);
     setShowForm(true);
@@ -245,11 +248,12 @@ export default function EquipmentPage() {
 
   const filteredEquipment = equipment.filter((eq) => {
     const term = search.trim().toLowerCase();
+    const categoryName = getCategoryName(eq);
     const inSearch = !term
       || (eq.equipmentName || '').toLowerCase().includes(term)
       || (eq.equipmentDescription || '').toLowerCase().includes(term)
-      || (eq.categoryName || '').toLowerCase().includes(term);
-    const catId = eq.equipmentCategoryId || eq.categoryId || '';
+      || categoryName.toLowerCase().includes(term);
+    const catId = getCategoryId(eq);
     const inCategory = !filterCategoryId || String(catId) === String(filterCategoryId);
     // For customers, allow filtering by supplier district.
     // For suppliers ("My Inventory" view), ignore the district filter so
@@ -680,7 +684,7 @@ export default function EquipmentPage() {
                         {eq.equipmentName}
                       </h3>
                       <p style={{ fontSize: 12, color: '#64748b', marginBottom: 6 }}>
-                        {eq.categoryName || 'General Equipment'}
+                        {getCategoryName(eq) || 'General Equipment'}
                       </p>
                       {eq.equipmentDescription && (
                         <p
