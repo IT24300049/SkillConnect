@@ -187,7 +187,7 @@ public class AuthService {
         }
     }
 
-    @Transactional
+    //forgot-password and reset-password flows using one-time tokens with expiry   @Transactional
     public String forgotPassword(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("No account found with this email"));
@@ -229,6 +229,7 @@ public class AuthService {
         passwordRecoveryRepository.save(recovery);
     }
 
+    //Password change for logged-in users (not using token)
     @Transactional
     public void changePassword(String email, String currentPassword, String newPassword) {
         User user = userRepository.findByEmail(email)

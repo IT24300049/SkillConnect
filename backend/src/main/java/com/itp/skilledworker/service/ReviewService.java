@@ -119,37 +119,12 @@ public class ReviewService {
                 .toList();
     }
 
-        public List<PendingReviewResponse> getPendingReviewsForJob(Integer reviewerUserId, Integer jobId) {
-        Job job = jobRepository.findById(jobId)
-                .orElseThrow(() -> new RuntimeException("Job not found"));
-        User reviewer = userRepository.findById(reviewerUserId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        Integer jobCustomerUserId = job.getCustomer().getUser().getUserId();
-
+    public List<PendingReviewResponse> getPendingReviewsForJob(Integer reviewerUserId, Integer jobId) {
         return getPendingReviews(reviewerUserId).stream()
-                .filter(p -> {
-                    // Prefer exact job match when booking is linked to this job
-                    if (p.getJobId() != null && p.getJobId().equals(jobId)) {
-                        return true;
-                    }
-
-                    // Fallback: when booking has no job link, map by counterpart
-                    // Worker viewing job: match on same customer
-                    if (reviewer.getRole() == User.Role.worker) {
-                        return p.getCustomerUserId() != null && p.getCustomerUserId().equals(jobCustomerUserId);
-                    }
-
-                    // Customer viewing job: keep only entries where the worker side exists
-                    // (typically there will be a single pending review at a time)
-                    if (reviewer.getRole() == User.Role.customer) {
-                        return p.getWorkerUserId() != null;
-                    }
-
-                    return false;
-                })
+                // Strictly scope this endpoint to the specific job id.
+                .filter(p -> p.getJobId() != null && p.getJobId().equals(jobId))
                 .toList();
-        }
+    }
 
     @Transactional
     public Complaint submitComplaint(Integer complainantUserId, String category,

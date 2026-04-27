@@ -28,6 +28,9 @@ public class UserService {
     private final ReviewRepository reviewRepository;
     private final BookingRepository bookingRepository;
 
+    /**
+     * Returns worker profiles filtered by optional district/category and excludes inactive user accounts.
+     */
     public List<WorkerProfile> getAllWorkers(String district, String category) {
         boolean hasDistrict = district != null && !district.isBlank();
         boolean hasCategory = category != null && !category.isBlank();
@@ -50,12 +53,18 @@ public class UserService {
                 .toList();
     }
 
+    /**
+     * Loads a single worker profile by worker id and enriches it with live rating/job stats.
+     */
     public WorkerProfile getWorkerById(Integer workerId) {
         WorkerProfile profile = workerProfileRepository.findById(workerId)
             .orElseThrow(() -> new RuntimeException("Worker not found"));
         return applyLiveWorkerStats(profile);
     }
 
+    /**
+     * Resolves the authenticated user by email, then returns the related worker profile with live stats.
+     */
     public WorkerProfile getWorkerByEmail(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -64,6 +73,9 @@ public class UserService {
         return applyLiveWorkerStats(profile);
     }
 
+        /**
+         * Computes current completed job count and average rating from bookings/reviews for display.
+         */
         private WorkerProfile applyLiveWorkerStats(WorkerProfile profile) {
         if (profile == null || profile.getWorkerId() == null) {
             return profile;
@@ -82,6 +94,9 @@ public class UserService {
         }
 
     @Transactional
+    /**
+     * Updates editable worker profile fields for the currently authenticated user.
+     */
     public WorkerProfile updateWorkerProfile(String email, WorkerProfileUpdateRequest updated) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -109,6 +124,9 @@ public class UserService {
     }
 
     @Transactional
+    /**
+     * Soft-deactivates a user account by setting isActive to false.
+     */
     public void deactivateUser(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -117,11 +135,17 @@ public class UserService {
         userRepository.save(user);
     }
 
+    /**
+     * Returns all user accounts for admin management screens.
+     */
     public List<User> getAllUsers() {
         // Admin management view needs all accounts regardless of role.
         return userRepository.findAll();
     }
 
+    /**
+     * Toggles the active/inactive state of a user account.
+     */
     public User toggleUserActive(Integer userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -130,6 +154,9 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    /**
+     * Builds a unified profile response by merging base user fields with role-specific profile data.
+     */
     public UserProfileResponse getProfileByEmail(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -179,6 +206,9 @@ public class UserService {
     }
 
     @Transactional
+    /**
+     * Updates profile details for the matching role table and returns the latest combined profile response.
+     */
     public UserProfileResponse updateProfileByEmail(String email, UpdateProfileRequest updated) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -241,12 +271,18 @@ public class UserService {
         return getProfileByEmail(email);
     }
 
+    /**
+     * Returns current and future availability entries for a worker.
+     */
     public List<WorkerAvailability> getWorkerAvailability(Integer workerId) {
         return workerAvailabilityRepository.findByWorker_WorkerIdAndAvailableDateGreaterThanEqual(workerId,
                 LocalDate.now());
     }
 
     @Transactional
+    /**
+     * Creates a single availability slot for the authenticated worker.
+     */
     public WorkerAvailability addAvailability(String email, LocalDate date, LocalTime start, LocalTime end,
             String note) {
         User user = userRepository.findByEmail(email)
@@ -264,6 +300,9 @@ public class UserService {
     }
 
     @Transactional
+    /**
+     * Upserts multiple availability slots for the same date using worker/date/start/end as identity.
+     */
     public List<WorkerAvailability> upsertAvailabilitySlots(String email, LocalDate date,
             List<WorkerAvailability> slotPayloads) {
         User user = userRepository.findByEmail(email)
@@ -301,6 +340,9 @@ public class UserService {
     }
 
     @Transactional
+    /**
+     * Deletes a worker availability slot after validating ownership.
+     */
     public void deleteAvailability(String email, Long availabilityId) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));

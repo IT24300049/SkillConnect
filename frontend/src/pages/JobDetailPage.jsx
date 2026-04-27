@@ -37,6 +37,7 @@ export default function JobDetailPage() {
     const isOwner = job?.customer?.user?.userId === user?.userId;
     const acceptedApplication = applications.find(a => String(a.status).toLowerCase() === 'accepted');
     const isAcceptedWorker = user?.role === 'worker' && isWorkerAccepted;
+    const canShowFeedbackSection = (isOwner || isAcceptedWorker) && String(job?.jobStatus).toLowerCase() === 'completed';
 
     const getWorkerDisplay = (application) => {
         const worker = application?.workerUser;
@@ -411,7 +412,7 @@ export default function JobDetailPage() {
             )}
 
             {/* Post-Job Feedback */}
-            {(isOwner || isAcceptedWorker) && (
+            {canShowFeedbackSection && (
                 <div className="hm-card" style={{ padding: 20, marginTop: 20, marginBottom: 20 }}>
                     <h3 style={{ fontSize: 14, fontWeight: 800, color: '#0c4a6e', marginBottom: 12 }}>Feedback for This Job</h3>
                     {pendingReview ? (

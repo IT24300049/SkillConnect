@@ -28,6 +28,7 @@ public class EquipmentService {
     private final EquipmentCategoryRepository categoryRepository;
     private final SupplierProfileRepository supplierRepository;
     private final CustomerProfileRepository customerProfileRepository;
+    private final UserRepository userRepository;
 
     @Value("${upload.equipment-dir:uploads/equipment}")
     private String uploadDir;
@@ -104,8 +105,7 @@ public class EquipmentService {
         if (availableQty < requestedQty) {
             throw new RuntimeException("Equipment not available");
         }
-        CustomerProfile customer = customerProfileRepository.findByUser_UserId(customerUserId)
-                .orElseThrow(() -> new RuntimeException("Customer profile not found"));
+        CustomerProfile customer = resolveBookerProfile(customerUserId);
 
         LocalDate start = LocalDate.parse(startDate);
         LocalDate end = LocalDate.parse(endDate);
@@ -231,9 +231,33 @@ public class EquipmentService {
     }
 
     public List<EquipmentBooking> getCustomerBookings(Integer customerUserId) {
-        CustomerProfile customer = customerProfileRepository.findByUser_UserId(customerUserId)
-                .orElseThrow(() -> new RuntimeException("Customer profile not found"));
+        CustomerProfile customer = resolveBookerProfile(customerUserId);
         return bookingRepository.findByCustomer_CustomerId(customer.getCustomerId());
+    }
+
+    private CustomerProfile resolveBookerProfile(Integer userId) {
+        return customerProfileRepository.findByUser_UserId(userId)
+                .orElseGet(() -> {
+                    User user = userRepository.findById(userId)
+                            .orElseThrow(() -> new RuntimeException("User not found"));
+
+                    // Equipment renting is enabled for both customer and worker accounts.
+                    if (user.getRole() != User.Role.customer && user.getRole() != User.Role.worker) {
+                        throw new RuntimeException("Only customers and workers can rent equipment");
+                    }
+
+                    String localPart = user.getEmail() != null && user.getEmail().contains("@")
+                            ? user.getEmail().substring(0, user.getEmail().indexOf('@'))
+                            : "User";
+
+                    CustomerProfile profile = new CustomerProfile();
+                    profile.setUser(user);
+                    profile.setFirstName(localPart);
+                    profile.setLastName("Renter");
+                    profile.setCity(null);
+                    profile.setDistrict(null);
+                    return customerProfileRepository.save(profile);
+                });
     }
 
     public List<EquipmentBooking> getSupplierBookings(Integer supplierUserId) {
