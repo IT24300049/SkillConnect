@@ -121,6 +121,12 @@ public class JobService {
             throw new RuntimeException("Only workers can accept work");
         }
 
+        WorkerProfile workerProfile = workerProfileRepository.findByUser_UserId(workerUserId)
+                .orElseThrow(() -> new RuntimeException("Worker profile not found"));
+        if (!Boolean.TRUE.equals(workerProfile.getIsVerified())) {
+            throw new RuntimeException("Only verified workers can accept jobs. Submit identity verification first.");
+        }
+
         if (job.getCustomer().getUser().getUserId().equals(workerUserId)) {
             throw new RuntimeException("You cannot accept your own job");
         }

@@ -409,6 +409,13 @@ body {
   border-color: #94a3b8;
 }
 
+/* Improve password reveal icon contrast on dark inputs (Edge/Chromium). */
+.hm-input[type='password']::-ms-reveal,
+.hm-input[type='password']::-ms-clear {
+  filter: invert(74%) sepia(73%) saturate(1731%) hue-rotate(335deg) brightness(103%) contrast(101%);
+  opacity: 1;
+}
+
 /* ════════════════════ CARDS ════════════════════ */
 .hm-card {
   background: var(--surface);

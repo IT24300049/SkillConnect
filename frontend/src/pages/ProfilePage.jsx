@@ -24,6 +24,9 @@ export default function ProfilePage() {
     const [supplierForm, setSupplierForm] = useState({ businessName: '', contactPersonName: '', city: '', district: '' });
     const [supplierMsg, setSupplierMsg] = useState({ type: '', text: '' });
     const [supplierSaving, setSupplierSaving] = useState(false);
+    const verificationStatus = verification?.status || 'NOT_SUBMITTED';
+    const canSubmitVerification = verificationStatus === 'NOT_SUBMITTED' || verificationStatus === 'REJECTED';
+    const isVerificationUnderReview = verificationStatus === 'SUBMITTED' || verificationStatus === 'PROCESSING';
 
     useEffect(() => {
         if (user?.role === 'worker') {
@@ -318,7 +321,13 @@ export default function ProfilePage() {
                             </div>
                         )}
 
-                        {verification?.status !== 'APPROVED' && (
+                        {isVerificationUnderReview && (
+                            <div className="alert-info" style={{ marginBottom: 12 }}>
+                                Your documents are currently under review. You can upload again only if this submission is rejected.
+                            </div>
+                        )}
+
+                        {canSubmitVerification && (
                             <form onSubmit={handleSubmitVerification} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                                 <div>
                                     <label className="hm-label">Document Type</label>

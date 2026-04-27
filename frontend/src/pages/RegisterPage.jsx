@@ -42,6 +42,19 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const passwordStrengthScore = [
+    form.password.length > 0,
+    form.password.length >= 8,
+    /[A-Z]/.test(form.password),
+  ].filter(Boolean).length;
+
+  const passwordStrengthMeta = [
+    { label: 'Start typing your password', color: '#7c7c7c' },
+    { label: 'Strength: Weak', color: '#ef4444' },
+    { label: 'Strength: Medium', color: '#f59e0b' },
+    { label: 'Strength: Strong', color: '#22c55e' },
+  ][passwordStrengthScore];
+
   const roleCardStyle = (active) => ({
     flex: 1,
     minWidth: 0,
@@ -383,10 +396,13 @@ export default function RegisterPage() {
                 placeholder="At least 8 characters, uppercase, lowercase & symbol"
                 value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} />
               <div style={{ display: 'flex', gap: 6, marginTop: 7 }}>
-                <span style={{ height: 4, borderRadius: 99, flex: 1, background: form.password.length > 0 ? '#ff9159' : '#2b2b2b' }} />
-                <span style={{ height: 4, borderRadius: 99, flex: 1, background: form.password.length >= 8 ? '#ff7a2f' : '#2b2b2b' }} />
-                <span style={{ height: 4, borderRadius: 99, flex: 1, background: /[A-Z]/.test(form.password) ? '#ffb375' : '#2b2b2b' }} />
+                <span style={{ height: 4, borderRadius: 99, flex: 1, background: form.password.length > 0 ? '#ef4444' : '#2b2b2b' }} />
+                <span style={{ height: 4, borderRadius: 99, flex: 1, background: form.password.length >= 8 ? '#f59e0b' : '#2b2b2b' }} />
+                <span style={{ height: 4, borderRadius: 99, flex: 1, background: /[A-Z]/.test(form.password) ? '#22c55e' : '#2b2b2b' }} />
               </div>
+              <p style={{ marginTop: 6, marginBottom: 0, fontSize: 11.5, color: passwordStrengthMeta.color, opacity: 0.9 }}>
+                {passwordStrengthMeta.label}
+              </p>
             </div>
 
             <div>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
-import { jobAPI } from '../api';
+import { jobAPI, workerAPI } from '../api';
 import { useAuth } from '../AuthContext';
 
 const URGENCY_STYLE = {
@@ -53,6 +53,7 @@ export default function JobsPage() {
     const [acceptedLoading, setAcceptedLoading] = useState(false);
     const [acceptedError, setAcceptedError] = useState('');
     const [workerApplications, setWorkerApplications] = useState([]);
+    const [isWorkerVerified, setIsWorkerVerified] = useState(true);
 
     const load = async () => {
         setLoading(true); setError('');
@@ -62,9 +63,9 @@ export default function JobsPage() {
             if (filter.categoryId) params.categoryId = filter.categoryId;
 
             const requests = [jobAPI.getAll(params), jobAPI.getCategories()];
-            if (user?.role === 'worker') requests.push(jobAPI.getApplied());
+            if (user?.role === 'worker') requests.push(jobAPI.getApplied(), workerAPI.getMe());
 
-            const [jobsRes, catRes, appliedRes] = await Promise.all(requests);
+            const [jobsRes, catRes, appliedRes, workerRes] = await Promise.all(requests);
             setJobs(jobsRes.data.data || []);
             setCategories(catRes.data.data || []);
 
@@ -73,8 +74,10 @@ export default function JobsPage() {
                 setWorkerApplications(apps);
                 const ids = new Set(apps.map(a => a.job?.jobId).filter(Boolean));
                 setAppliedJobIds(ids);
+                setIsWorkerVerified(Boolean(workerRes?.data?.data?.isVerified));
             } else {
                 setAppliedJobIds(new Set());
+                setIsWorkerVerified(true);
             }
         } catch {
             setError('Failed to load jobs. Check your connection or login status.');
@@ -257,6 +260,12 @@ export default function JobsPage() {
                 </div>
             )}
 
+            {user?.role === 'worker' && !isWorkerVerified && (
+                <div className="alert-info" style={{ marginBottom: 16 }}>
+                    Identity verification is required before accepting customer jobs.
+                </div>
+            )}
+
             {isListLoading ? (
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 200, gap: 12, color: '#0891b2' }}>
                     <span className="spinner" /> Loading jobs...
@@ -312,10 +321,10 @@ export default function JobsPage() {
                                     {user?.role === 'worker' && !canManageJob(job) && (
                                         <button
                                             className={isApplied ? 'btn-secondary' : 'btn-primary'}
-                                            disabled={isApplied || acceptingJobId === job.jobId}
+                                            disabled={isApplied || acceptingJobId === job.jobId || !isWorkerVerified}
                                             style={{ padding: '6px 16px', fontSize: 12, justifyContent: 'center' }}
                                             onClick={() => handleQuickAccept(job.jobId)}>
-                                            {acceptingJobId === job.jobId ? 'Accepting...' : isApplied ? 'Accepted' : 'Accept Work'}
+                                            {acceptingJobId === job.jobId ? 'Accepting...' : isApplied ? 'Accepted' : !isWorkerVerified ? 'Verification Required' : 'Accept Work'}
                                         </button>
                                     )}
                                     {canManageJob(job) && (
