@@ -38,7 +38,7 @@ public class AuthController {
     public ResponseEntity<ApiResponse<Map<String, Object>>> register(@Valid @RequestBody RegisterRequest req) {
         try {
             var result = authService.register(req.email, req.password, req.confirmPassword, req.role,
-                    req.firstName, req.lastName, req.phone, req.workerCategory);
+                    req.firstName, req.lastName, req.phone, req.workerCategory, req.googleAccount);
             return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok("Registration successful", result));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
@@ -139,6 +139,8 @@ public class AuthController {
 
         // Optional for non-workers; required for workers (validated in service)
         String workerCategory;
+
+        Boolean googleAccount;
     }
 
     @Data

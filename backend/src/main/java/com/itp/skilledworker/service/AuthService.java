@@ -58,7 +58,7 @@ public class AuthService {
 
         @Transactional
         public Map<String, Object> register(String email, String password, String confirmPassword, String role,
-            String firstName, String lastName, String phone, String workerCategory) {
+            String firstName, String lastName, String phone, String workerCategory, Boolean googleAccount) {
         if (userRepository.existsByEmail(email)) {
             throw new RuntimeException("Email already registered");
         }
@@ -81,6 +81,7 @@ public class AuthService {
         user.setRole(User.Role.valueOf(role.toLowerCase()));
         user.setPhone(normalizedPhone.isEmpty() ? null : normalizedPhone);
         user.setIsVerified(true); // Auto-verify for demo
+        user.setGoogleAccount(Boolean.TRUE.equals(googleAccount));
         user.setIsActive(true);
         user = userRepository.save(user);
 
@@ -110,7 +111,12 @@ public class AuthService {
         }
 
         String token = jwtUtil.generateToken(email, role.toLowerCase());
-        return Map.of("token", token, "role", role.toLowerCase(), "userId", user.getUserId(), "email", email);
+        return Map.of(
+            "token", token,
+            "role", role.toLowerCase(),
+            "userId", user.getUserId(),
+            "email", email,
+            "googleAccount", Boolean.TRUE.equals(user.getGoogleAccount()));
     }
 
     public Map<String, Object> login(String email, String password) {
@@ -131,7 +137,12 @@ public class AuthService {
         userRepository.save(user);
 
         String token = jwtUtil.generateToken(email, user.getRole().name());
-        return Map.of("token", token, "role", user.getRole().name(), "userId", user.getUserId(), "email", email);
+        return Map.of(
+            "token", token,
+            "role", user.getRole().name(),
+            "userId", user.getUserId(),
+            "email", email,
+            "googleAccount", Boolean.TRUE.equals(user.getGoogleAccount()));
     }
 
         //google-login 
@@ -164,6 +175,7 @@ public class AuthService {
                             throw new RuntimeException("Account is suspended");
                         }
 
+                        user.setGoogleAccount(true);
                         user.setLastLogin(LocalDateTime.now());
                         userRepository.save(user);
 
@@ -173,12 +185,14 @@ public class AuthService {
                                 "role", user.getRole().name(),
                                 "userId", user.getUserId(),
                                 "email", email,
+                                "googleAccount", true,
                                 "needRegistration", false);
                     })
                     .orElseGet(() -> Map.of(
                             // Frontend uses this to redirect to registration with prefilled email.
                             "email", email,
-                            "needRegistration", true));
+                            "needRegistration", true,
+                            "googleAccount", true));
         } catch (GeneralSecurityException e) {
             throw new RuntimeException("Failed to verify Google ID token");
         } catch (Exception e) {

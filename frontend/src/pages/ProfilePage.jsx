@@ -27,6 +27,7 @@ export default function ProfilePage() {
     const verificationStatus = verification?.status || 'NOT_SUBMITTED';
     const canSubmitVerification = verificationStatus === 'NOT_SUBMITTED' || verificationStatus === 'REJECTED';
     const isVerificationUnderReview = verificationStatus === 'SUBMITTED' || verificationStatus === 'PROCESSING';
+    const canChangePassword = !user?.googleAccount;
 
     useEffect(() => {
         if (user?.role === 'worker') {
@@ -447,40 +448,49 @@ export default function ProfilePage() {
             )}
 
             {/* Change Password */}
-            <div className="hm-card" style={{ padding: 24, marginBottom: 20 }}>
-                <h3 style={{ fontSize: 16, fontWeight: 800, color: '#0c4a6e', marginBottom: 16 }}>Change Password</h3>
-                <form onSubmit={handleChangePassword} style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 400 }}>
-                    <div>
-                        <label className="hm-label">Current Password</label>
-                        <input className="hm-input" type="password" value={pwForm.current} onChange={e => setPwForm({ ...pwForm, current: e.target.value })} />
-                    </div>
-                    <div>
-                        <label className="hm-label">New Password</label>
-                        <input
-                            className="hm-input"
-                            type="password"
-                            required
-                            minLength={8}
-                            placeholder="At least 8 characters, uppercase, lowercase & symbol"
-                            value={pwForm.newPw}
-                            onChange={e => setPwForm({ ...pwForm, newPw: e.target.value })}
-                        />
-                    </div>
-                    <div>
-                        <label className="hm-label">Confirm New Password</label>
-                        <input
-                            className="hm-input"
-                            type="password"
-                            required
-                            placeholder="Re-enter new password"
-                            value={pwForm.confirm}
-                            onChange={e => setPwForm({ ...pwForm, confirm: e.target.value })}
-                        />
-                    </div>
-                    {pwMsg.text && <div className={pwMsg.type === 'success' ? 'alert-success' : 'alert-error'}>{pwMsg.text}</div>}
-                    <button type="submit" className="btn-secondary" style={{ alignSelf: 'flex-start' }}>Update Password</button>
-                </form>
-            </div>
+            {canChangePassword ? (
+                <div className="hm-card" style={{ padding: 24, marginBottom: 20 }}>
+                    <h3 style={{ fontSize: 16, fontWeight: 800, color: '#0c4a6e', marginBottom: 16 }}>Change Password</h3>
+                    <form onSubmit={handleChangePassword} style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 400 }}>
+                        <div>
+                            <label className="hm-label">Current Password</label>
+                            <input className="hm-input" type="password" value={pwForm.current} onChange={e => setPwForm({ ...pwForm, current: e.target.value })} />
+                        </div>
+                        <div>
+                            <label className="hm-label">New Password</label>
+                            <input
+                                className="hm-input"
+                                type="password"
+                                required
+                                minLength={8}
+                                placeholder="At least 8 characters, uppercase, lowercase & symbol"
+                                value={pwForm.newPw}
+                                onChange={e => setPwForm({ ...pwForm, newPw: e.target.value })}
+                            />
+                        </div>
+                        <div>
+                            <label className="hm-label">Confirm New Password</label>
+                            <input
+                                className="hm-input"
+                                type="password"
+                                required
+                                placeholder="Re-enter new password"
+                                value={pwForm.confirm}
+                                onChange={e => setPwForm({ ...pwForm, confirm: e.target.value })}
+                            />
+                        </div>
+                        {pwMsg.text && <div className={pwMsg.type === 'success' ? 'alert-success' : 'alert-error'}>{pwMsg.text}</div>}
+                        <button type="submit" className="btn-secondary" style={{ alignSelf: 'flex-start' }}>Update Password</button>
+                    </form>
+                </div>
+            ) : (
+                <div className="hm-card" style={{ padding: 24, marginBottom: 20 }}>
+                    <h3 style={{ fontSize: 16, fontWeight: 800, color: '#0c4a6e', marginBottom: 8 }}>Google Account</h3>
+                    <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>
+                        Password changes are managed through your Google sign-in for this account.
+                    </p>
+                </div>
+            )}
 
             {/* Danger Zone (currently only wired for workers) */}
             {user?.role === 'worker' && (

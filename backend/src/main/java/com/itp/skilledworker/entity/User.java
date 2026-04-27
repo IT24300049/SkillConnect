@@ -34,6 +34,9 @@ public class User {
     @Column(name = "is_verified")
     private Boolean isVerified = false;
 
+    @Column(name = "is_google_account")
+    private Boolean googleAccount = false;
+
     @Column(name = "is_active")
     private Boolean isActive = true;
 

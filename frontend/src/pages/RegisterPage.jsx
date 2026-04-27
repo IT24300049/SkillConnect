@@ -101,7 +101,7 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      await register({ ...form, phone: normalizedPhone });
+      await register({ ...form, phone: normalizedPhone, googleAccount: googleSource });
       navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed.');
