@@ -25,6 +25,7 @@ export default function AdminUsersPage() {
   const loadData = async () => {
     setLoading(true);
     try {
+      // User management dashboard pulls users plus moderation signals in one load.
       const [usersRes, complaintsRes, reviewsRes] = await Promise.allSettled([
         workerAPI.getAllUsers(),
         complaintAPI.getAll(),
@@ -42,6 +43,7 @@ export default function AdminUsersPage() {
 
   const handleToggleUser = async (userId) => {
     try {
+      // Admin enable/disable action (soft toggle on backend).
       await workerAPI.toggleUser(userId);
       loadData();
     } catch {

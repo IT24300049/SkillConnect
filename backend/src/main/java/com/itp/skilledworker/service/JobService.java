@@ -26,6 +26,14 @@ public class JobService {
     public Job createJob(Integer customerUserId, Integer categoryId, String title, String description,
             String city, String district, String urgency,
             BigDecimal budgetMin, BigDecimal budgetMax, String preferredDate) {
+        User actor = userRepository.findById(customerUserId)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        if (actor.getRole() != User.Role.customer) {
+            throw new RuntimeException("Only customers can post jobs");
+        }
+
+        validateBudgetRange(budgetMin, budgetMax);
+
         CustomerProfile customer = customerProfileRepository.findByUser_UserId(customerUserId)
                 .orElseThrow(() -> new RuntimeException("Customer profile not found. Register as a customer first."));
         JobCategory category = categoryRepository.findById(categoryId)
@@ -69,6 +77,11 @@ public class JobService {
         if (!job.getCustomer().getUser().getUserId().equals(customerUserId)) {
             throw new RuntimeException("Unauthorized: You don't own this job");
         }
+
+        BigDecimal nextBudgetMin = budgetMin != null ? budgetMin : job.getBudgetMin();
+        BigDecimal nextBudgetMax = budgetMax != null ? budgetMax : job.getBudgetMax();
+        validateBudgetRange(nextBudgetMin, nextBudgetMax);
+
         if (title != null)
             job.setJobTitle(title);
         if (description != null)
@@ -80,6 +93,12 @@ public class JobService {
         if (urgency != null)
             job.setUrgencyLevel(Job.UrgencyLevel.valueOf(urgency.toLowerCase()));
         return jobRepository.save(job);
+    }
+
+    private void validateBudgetRange(BigDecimal budgetMin, BigDecimal budgetMax) {
+        if (budgetMin != null && budgetMax != null && budgetMax.compareTo(budgetMin) <= 0) {
+            throw new RuntimeException("Maximum budget must be greater than minimum budget");
+        }
     }
 
     @Transactional

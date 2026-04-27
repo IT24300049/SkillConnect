@@ -30,6 +30,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
+    // Handles account lifecycle operations: register/login/google auth/password recovery.
 
     @Value("${google.client-id}")
     private String googleClientId;
@@ -75,6 +76,7 @@ public class AuthService {
 
         User user = new User();
         user.setEmail(email);
+        // Persist password as hash; plaintext password is never stored.
         user.setPasswordHash(passwordEncoder.encode(password));
         user.setRole(User.Role.valueOf(role.toLowerCase()));
         user.setPhone(normalizedPhone.isEmpty() ? null : normalizedPhone);
@@ -120,6 +122,7 @@ public class AuthService {
         }
 
         if (!user.getIsActive()) {
+            // Admin-disabled users are blocked from login even with valid credentials.
             throw new RuntimeException("Account is suspended");
         }
 
@@ -131,6 +134,7 @@ public class AuthService {
         return Map.of("token", token, "role", user.getRole().name(), "userId", user.getUserId(), "email", email);
     }
 
+        //google-login 
     public Map<String, Object> loginWithGoogle(String idTokenString) {
         try {
             var transport = GoogleNetHttpTransport.newTrustedTransport();
@@ -138,6 +142,7 @@ public class AuthService {
 
             GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier
                     .Builder(transport, jsonFactory)
+                    // Accept only tokens issued for this app's Google client id.
                     .setAudience(Collections.singletonList(googleClientId))
                     .build();
 
@@ -171,6 +176,7 @@ public class AuthService {
                                 "needRegistration", false);
                     })
                     .orElseGet(() -> Map.of(
+                            // Frontend uses this to redirect to registration with prefilled email.
                             "email", email,
                             "needRegistration", true));
         } catch (GeneralSecurityException e) {
@@ -187,6 +193,7 @@ public class AuthService {
                 .orElseThrow(() -> new RuntimeException("No account found with this email"));
 
         String token = UUID.randomUUID().toString();
+        // One-time token persisted with expiry for reset validation.
         PasswordRecovery recovery = new PasswordRecovery();
         recovery.setUser(user);
         recovery.setRecoveryToken(token);
@@ -214,6 +221,7 @@ public class AuthService {
         validatePasswordStrength(newPassword);
 
         User user = recovery.getUser();
+        // Replace old hash with new hash after token + policy checks.
         user.setPasswordHash(passwordEncoder.encode(newPassword));
         userRepository.save(user);
 

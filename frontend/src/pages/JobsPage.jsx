@@ -34,6 +34,7 @@ export default function JobsPage() {
     const navigate = useNavigate();
     const { user } = useAuth();
     const today = new Date().toISOString().split('T')[0];
+    const canPostJobs = user?.role === 'customer';
 
     const [jobs, setJobs] = useState([]);
     const [categories, setCategories] = useState([]);
@@ -46,6 +47,7 @@ export default function JobsPage() {
     });
     const [filter, setFilter] = useState({ district: '', categoryId: '' });
     const [error, setError] = useState('');
+    const [formError, setFormError] = useState('');
     const [appliedJobIds, setAppliedJobIds] = useState(new Set());
     const [acceptingJobId, setAcceptingJobId] = useState(null);
     const [showAcceptedOnly, setShowAcceptedOnly] = useState(false);
@@ -110,17 +112,40 @@ export default function JobsPage() {
 
     const resetForm = () => {
         setForm({ categoryId: '', jobTitle: '', jobDescription: '', city: '', district: '', urgencyLevel: 'standard', budgetMin: '', budgetMax: '', preferredStartDate: '' });
+        setFormError('');
         setEditingJob(null); setShowForm(false);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError('');
+        setFormError('');
+        const parsedBudgetMin = form.budgetMin ? parseFloat(form.budgetMin) : null;
+        const parsedBudgetMax = form.budgetMax ? parseFloat(form.budgetMax) : null;
+
+        if (parsedBudgetMin !== null && parsedBudgetMax !== null && parsedBudgetMax <= parsedBudgetMin) {
+            setFormError('Budget max must be greater than budget min.');
+            return;
+        }
+
         try {
-            const payload = { ...form, categoryId: parseInt(form.categoryId), budgetMin: form.budgetMin ? parseFloat(form.budgetMin) : null, budgetMax: form.budgetMax ? parseFloat(form.budgetMax) : null, preferredStartDate: form.preferredStartDate || null, city: form.city || null, district: form.district || null };
+            const payload = {
+                ...form,
+                categoryId: parseInt(form.categoryId),
+                budgetMin: parsedBudgetMin,
+                budgetMax: parsedBudgetMax,
+                preferredStartDate: form.preferredStartDate || null,
+                city: form.city || null,
+                district: form.district || null
+            };
             if (editingJob) { await jobAPI.update(editingJob.jobId, payload); }
             else { await jobAPI.create(payload); }
             resetForm(); load();
-        } catch (err) { setError(err.response?.data?.message || 'Failed to save job'); }
+        } catch (err) {
+            const message = err.response?.data?.message || 'Failed to save job';
+            setError(message);
+            setFormError(message);
+        }
     };
 
     const handleDelete = async (jobId) => {
@@ -131,6 +156,7 @@ export default function JobsPage() {
 
     const startEdit = (job) => {
         setForm({ categoryId: job.category?.categoryId || '', jobTitle: job.jobTitle, jobDescription: job.jobDescription, city: job.city || '', district: job.district || '', urgencyLevel: job.urgencyLevel || 'standard', budgetMin: job.budgetMin || '', budgetMax: job.budgetMax || '', preferredStartDate: job.preferredStartDate || '' });
+        setFormError('');
         setEditingJob(job); setShowForm(true);
     };
 
@@ -226,7 +252,9 @@ export default function JobsPage() {
                     <h1 style={{ fontSize: 22, fontWeight: 900, color: '#0c4a6e', marginBottom: 2 }}>📋 Jobs</h1>
                     <p style={{ fontSize: 13, color: '#64748b' }}>Browse and post job opportunities</p>
                 </div>
-                <button className="btn-primary" onClick={() => { resetForm(); setShowForm(true); }}>+ Post Job</button>
+                {canPostJobs && (
+                    <button className="btn-primary" onClick={() => { resetForm(); setFormError(''); setShowForm(true); }}>+ Post Job</button>
+                )}
             </div>
 
             {categories.length === 0 && !loading && (
@@ -295,8 +323,8 @@ export default function JobsPage() {
                                 ? 'No jobs you have accepted/applied for yet.'
                                 : 'No active jobs found.'}
                     </p>
-                    {!isCustomerAcceptedView && (
-                        <button className="btn-primary" onClick={() => setShowForm(true)}>Post the First Job</button>
+                    {!isCustomerAcceptedView && canPostJobs && (
+                        <button className="btn-primary" onClick={() => { setFormError(''); setShowForm(true); }}>Post the First Job</button>
                     )}
                 </div>
             ) : (
@@ -356,13 +384,18 @@ export default function JobsPage() {
             )}
 
             {/* ── Create/Edit Modal ── */}
-            {showForm && typeof document !== 'undefined' && createPortal(
+            {canPostJobs && showForm && typeof document !== 'undefined' && createPortal(
                 <div style={MODAL_STYLE} onClick={resetForm}>
                     <div style={CARD_MODAL} onClick={e => e.stopPropagation()}>
                         <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0c4a6e', marginBottom: 18 }}>
                             {editingJob ? 'Edit Job' : '📋 Post a New Job'}
                         </h2>
                         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                            {formError && (
+                                <div className="alert-error" style={{ marginBottom: 4 }}>
+                                    ❌ {formError}
+                                </div>
+                            )}
                             <div>
                                 <label className="hm-label">Category</label>
                                 <select className="hm-input" required value={form.categoryId} onChange={e => setForm({ ...form, categoryId: e.target.value })}>
@@ -402,8 +435,30 @@ export default function JobsPage() {
                                 </select>
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                                <div><label className="hm-label">Budget Min (LKR)</label><input className="hm-input" type="number" value={form.budgetMin} onChange={e => setForm({ ...form, budgetMin: e.target.value })} /></div>
-                                <div><label className="hm-label">Budget Max (LKR)</label><input className="hm-input" type="number" value={form.budgetMax} onChange={e => setForm({ ...form, budgetMax: e.target.value })} /></div>
+                                <div>
+                                    <label className="hm-label">Budget Min (LKR)</label>
+                                    <input
+                                        className="hm-input"
+                                        type="number"
+                                        min="0"
+                                        step="1"
+                                        value={form.budgetMin}
+                                        onWheel={e => e.currentTarget.blur()}
+                                        onChange={e => setForm({ ...form, budgetMin: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="hm-label">Budget Max (LKR)</label>
+                                    <input
+                                        className="hm-input"
+                                        type="number"
+                                        min="0"
+                                        step="1"
+                                        value={form.budgetMax}
+                                        onWheel={e => e.currentTarget.blur()}
+                                        onChange={e => setForm({ ...form, budgetMax: e.target.value })}
+                                    />
+                                </div>
                             </div>
                             <div>
                                 <label className="hm-label">Preferred Start Date</label>

@@ -21,7 +21,7 @@ export default function ProfilePage() {
     const [frontFile, setFrontFile] = useState(null);
     const [backFile, setBackFile] = useState(null);
     const [submittingVerification, setSubmittingVerification] = useState(false);
-    const [supplierForm, setSupplierForm] = useState({ businessName: '', contactPersonName: '', city: '', district: '' });
+    const [supplierForm, setSupplierForm] = useState({ businessName: '', contactPersonName: '', phone: '', city: '', district: '' });
     const [supplierMsg, setSupplierMsg] = useState({ type: '', text: '' });
     const [supplierSaving, setSupplierSaving] = useState(false);
     const verificationStatus = verification?.status || 'NOT_SUBMITTED';
@@ -52,6 +52,7 @@ export default function ProfilePage() {
                     setSupplierForm({
                         businessName: p.businessName || '',
                         contactPersonName: p.contactPersonName || '',
+                        phone: p.phone || '',
                         city: p.city || '',
                         district: p.district || '',
                     });
@@ -161,6 +162,7 @@ export default function ProfilePage() {
             await profileAPI.updateMe({
                 businessName: supplierForm.businessName || null,
                 contactPersonName: supplierForm.contactPersonName || null,
+                phone: supplierForm.phone || null,
                 city: supplierForm.city || null,
                 district: supplierForm.district || null,
             });
@@ -402,6 +404,17 @@ export default function ProfilePage() {
                                     className="hm-input"
                                     value={supplierForm.contactPersonName}
                                     onChange={e => setSupplierForm({ ...supplierForm, contactPersonName: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <label className="hm-label">Mobile Number</label>
+                                <input
+                                    className="hm-input"
+                                    type="tel"
+                                    inputMode="numeric"
+                                    placeholder="e.g. 0771234567"
+                                    value={supplierForm.phone}
+                                    onChange={e => setSupplierForm({ ...supplierForm, phone: e.target.value })}
                                 />
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>

@@ -46,6 +46,7 @@ public class ReviewComplaintDtos {
 
         private Integer bookingId;
 
+        @NotNull(message = "Please select who the complaint is against")
         private Integer complainedAgainstUserId;
 
         private Integer reviewId;

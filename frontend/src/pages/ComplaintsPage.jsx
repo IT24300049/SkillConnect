@@ -121,6 +121,11 @@ export default function ComplaintsPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        if (!form.complainedAgainstUserId) {
+            alert('Please select a worker to submit this complaint.');
+            return;
+        }
+
         if (selectedImages.length < 1) {
             setImageError('Please upload at least 1 image.');
             return;
@@ -281,8 +286,8 @@ export default function ComplaintsPage() {
                                 </select>
                             </div>
                             <div>
-                                <label className="hm-label">Worker (optional)</label>
-                                <select className="hm-input" value={form.complainedAgainstUserId} onChange={e => setForm({ ...form, complainedAgainstUserId: e.target.value })}>
+                                <label className="hm-label">Worker</label>
+                                <select className="hm-input" required value={form.complainedAgainstUserId} onChange={e => setForm({ ...form, complainedAgainstUserId: e.target.value })}>
                                     <option value="">Select worker</option>
                                     {workers.map(w => (
                                         <option key={w.workerId} value={w.user?.userId || ''}>

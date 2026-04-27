@@ -18,6 +18,7 @@ import com.itp.skilledworker.dto.UpdateProfileRequest;
 @Service
 @RequiredArgsConstructor
 public class UserService {
+    // Consolidates user/profile operations used by worker, customer, supplier, and admin flows.
 
     private final UserRepository userRepository;
     private final WorkerProfileRepository workerProfileRepository;
@@ -42,7 +43,7 @@ public class UserService {
             base = workerProfileRepository.findAll();
         }
 
-        // Only return workers whose underlying user accounts are active
+        // Only return workers whose underlying user accounts are active.
         return base.stream()
                 .filter(w -> w.getUser() != null && Boolean.TRUE.equals(w.getUser().getIsActive()))
                 .map(this::applyLiveWorkerStats)
@@ -68,6 +69,7 @@ public class UserService {
             return profile;
         }
 
+        // Dashboard/listing values are derived live from bookings + reviews.
         long completedJobs = bookingRepository.countByWorker_WorkerIdAndBookingStatus(
             profile.getWorkerId(), Booking.BookingStatus.completed);
 
@@ -110,17 +112,20 @@ public class UserService {
     public void deactivateUser(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+        // User-initiated account deactivation (soft delete).
         user.setIsActive(false);
         userRepository.save(user);
     }
 
     public List<User> getAllUsers() {
+        // Admin management view needs all accounts regardless of role.
         return userRepository.findAll();
     }
 
     public User toggleUserActive(Integer userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+        // Flip account state instead of removing rows to preserve audit/history links.
         user.setIsActive(!user.getIsActive());
         return userRepository.save(user);
     }
@@ -138,6 +143,7 @@ public class UserService {
                 .build();
 
         if (user.getRole() == User.Role.worker) {
+            // Worker account -> read fields from worker_profiles.
             workerProfileRepository.findByUser_UserId(user.getUserId()).ifPresent(p -> {
                 response.setFirstName(p.getFirstName());
                 response.setLastName(p.getLastName());
@@ -150,6 +156,7 @@ public class UserService {
                 response.setAverageRating(p.getAverageRating() != null ? p.getAverageRating().doubleValue() : 0.0);
             });
         } else if (user.getRole() == User.Role.customer) {
+            // Customer account -> read fields from customer_profiles.
             customerProfileRepository.findByUser_UserId(user.getUserId()).ifPresent(p -> {
                 response.setFirstName(p.getFirstName());
                 response.setLastName(p.getLastName());
@@ -158,6 +165,7 @@ public class UserService {
                 response.setProfilePicture(p.getProfilePicture());
             });
         } else if (user.getRole() == User.Role.supplier) {
+            // Supplier account -> read fields from supplier_profiles.
             supplierProfileRepository.findByUser_UserId(user.getUserId()).ifPresent(p -> {
                 response.setBusinessName(p.getBusinessName());
                 response.setBusinessRegistrationNumber(p.getBusinessRegistrationNumber());

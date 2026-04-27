@@ -75,6 +75,25 @@ export default function EquipmentPage() {
 
   const getCategoryId = (eq) => eq.equipmentCategoryId || eq.categoryId || eq.equipmentCategory?.equipmentCategoryId || eq.equipmentCategory?.id || '';
   const getCategoryName = (eq) => eq.categoryName || eq.equipmentCategory?.categoryName || '';
+  const getSupplierName = (eq) => {
+    const contactPerson = eq?.supplier?.contactPersonName;
+    const businessName = eq?.supplier?.businessName;
+    const email = eq?.supplier?.user?.email;
+    return businessName || contactPerson || email || 'Supplier';
+  };
+  const getSupplierPhone = (eq) => {
+    const phone = eq?.supplier?.user?.phone || eq?.supplierPhone || '';
+    return String(phone).trim();
+  };
+  const toTelHref = (phone) => {
+    if (!phone) return '';
+    const sanitized = String(phone).trim().replace(/[^\d+]/g, '');
+    if (!sanitized) return '';
+    const normalized = sanitized.startsWith('+')
+      ? `+${sanitized.slice(1).replace(/\+/g, '')}`
+      : sanitized.replace(/\+/g, '');
+    return normalized.length >= 7 ? `tel:${normalized}` : '';
+  };
 
   useEffect(() => { loadData(); }, []);
 
@@ -259,6 +278,7 @@ export default function EquipmentPage() {
 
   const activeBookingsCount = myBookings.filter(b => b.bookingStatus === 'reserved' || b.bookingStatus === 'rented_out').length;
   const returnedBookingsCount = myBookings.filter(b => b.bookingStatus === 'returned').length;
+  const showBookingActions = !isSupplier;
 
   const hasActiveFilters = !!(search.trim() || filterCategoryId);
 
@@ -680,6 +700,10 @@ export default function EquipmentPage() {
                           {eq.equipmentDescription}
                         </p>
                       )}
+                      <div style={{ fontSize: 12, color: '#64748b', marginBottom: 8 }}>
+                        Supplier: {getSupplierName(eq)}
+                        {getSupplierPhone(eq) && ` · ${getSupplierPhone(eq)}`}
+                      </div>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                         <span className={`badge ${CONDITION_COLORS[eq.equipmentCondition] || 'badge-gray'}`}>
                           {eq.equipmentCondition}
@@ -744,13 +768,24 @@ export default function EquipmentPage() {
                           </button>
                         </div>
                       ) : (
-                        <button
-                          onClick={() => openBookModal(eq)}
-                          className="btn-primary"
-                          style={{ padding: '8px 16px', fontSize: 13 }}
-                        >
-                          Rent Now
-                        </button>
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          {toTelHref(getSupplierPhone(eq)) && (
+                            <a
+                              href={toTelHref(getSupplierPhone(eq))}
+                              className="btn-secondary"
+                              style={{ padding: '8px 12px', fontSize: 12, textDecoration: 'none' }}
+                            >
+                              Call
+                            </a>
+                          )}
+                          <button
+                            onClick={() => openBookModal(eq)}
+                            className="btn-primary"
+                            style={{ padding: '8px 16px', fontSize: 13 }}
+                          >
+                            Rent Now
+                          </button>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -880,7 +915,9 @@ export default function EquipmentPage() {
                     <th style={{ textAlign: 'left', padding: '16px 20px', fontWeight: 700, color: '#64748b' }}>Late Fee/Day</th>
                     <th style={{ textAlign: 'left', padding: '16px 20px', fontWeight: 700, color: '#64748b' }}>Late Fee</th>
                     <th style={{ textAlign: 'left', padding: '16px 20px', fontWeight: 700, color: '#64748b' }}>Total Cost</th>
-                    <th style={{ textAlign: 'right', padding: '16px 20px', fontWeight: 700, color: '#64748b' }}>Actions</th>
+                    {showBookingActions && (
+                      <th style={{ textAlign: 'right', padding: '16px 20px', fontWeight: 700, color: '#64748b' }}>Actions</th>
+                    )}
                   </tr>
                 </thead>
                 <tbody style={{ divideY: '1px solid #f1f5f9' }}>
@@ -907,13 +944,15 @@ export default function EquipmentPage() {
                         <div style={{ fontSize: 11, color: '#94a3b8' }}>Overdue: {b.overdueDays || 0} day(s)</div>
                       </td>
                       <td style={{ padding: '16px 20px', fontWeight: 800, color: '#0891b2' }}>Rs.{b.totalCost || 0}</td>
-                      <td style={{ padding: '16px 20px', textAlign: 'right' }}>
-                        {(b.bookingStatus === 'rented_out' || b.bookingStatus === 'reserved') && (
-                          <button onClick={() => handleReturn(b.equipmentBookingId || b.id)} className="btn-secondary" style={{ padding: '6px 14px', fontSize: 12 }}>
-                            Return
-                          </button>
-                        )}
-                      </td>
+                      {showBookingActions && (
+                        <td style={{ padding: '16px 20px', textAlign: 'right' }}>
+                          {(b.bookingStatus === 'rented_out' || b.bookingStatus === 'reserved') && (
+                            <button onClick={() => handleReturn(b.equipmentBookingId || b.id)} className="btn-secondary" style={{ padding: '6px 14px', fontSize: 12 }}>
+                              Return
+                            </button>
+                          )}
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>

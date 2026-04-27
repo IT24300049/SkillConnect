@@ -126,6 +126,7 @@ public class WorkerController {
     @GetMapping("/admin/users")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<User>>> getAllUsers() {
+        // Central list used by admin user-management UI.
         return ResponseEntity.ok(ApiResponse.ok("All users", userService.getAllUsers()));
     }
 
@@ -134,6 +135,7 @@ public class WorkerController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<User>> toggleUser(@PathVariable Integer userId) {
         try {
+            // Soft toggle: keeps user data/history, only flips active flag.
             User user = userService.toggleUserActive(userId);
             return ResponseEntity.ok(ApiResponse.ok("User status updated", user));
         } catch (Exception e) {
@@ -149,6 +151,7 @@ public class WorkerController {
         try {
             User user = userRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("User not found"));
+            // Role comes as text from UI and is mapped to enum for safe persistence.
             user.setRole(User.Role.valueOf(body.getRole().toLowerCase()));
             user = userRepository.save(user);
             return ResponseEntity.ok(ApiResponse.ok("User role updated", user));

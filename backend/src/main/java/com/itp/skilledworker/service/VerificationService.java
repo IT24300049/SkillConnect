@@ -24,6 +24,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class VerificationService {
+    // Manages worker document verification lifecycle (submit, review, approve/reject).
 
     private final WorkerVerificationRepository verificationRepository;
     private final WorkerProfileRepository workerProfileRepository;
@@ -74,6 +75,7 @@ public class VerificationService {
 
         verification = verificationRepository.save(verification);
 
+        // Re-submission resets worker verified state until an admin reviews again.
         worker.setIsVerified(false);
         worker.setVerificationDate(null);
         workerProfileRepository.save(worker);
@@ -136,6 +138,7 @@ public class VerificationService {
         }
 
         WorkerProfile worker = verification.getWorker();
+        // Verification decision directly controls worker verification flags.
         if (status == WorkerVerification.Status.APPROVED) {
             worker.setIsVerified(true);
             worker.setVerificationDate(LocalDateTime.now());
