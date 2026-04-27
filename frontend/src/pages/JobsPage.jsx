@@ -144,6 +144,12 @@ export default function JobsPage() {
                 next.add(jobId);
                 return next;
             });
+            setWorkerApplications(prev => {
+                if (prev.some(a => a?.job?.jobId === jobId)) return prev;
+                const appliedJob = jobs.find(j => j.jobId === jobId);
+                if (!appliedJob) return prev;
+                return [...prev, { status: 'pending', job: appliedJob }];
+            });
         } catch (err) {
             const message = err.response?.data?.message || 'Failed to accept this work.';
             if ((message || '').toLowerCase().includes('already applied')) {
@@ -151,6 +157,12 @@ export default function JobsPage() {
                     const next = new Set(prev);
                     next.add(jobId);
                     return next;
+                });
+                setWorkerApplications(prev => {
+                    if (prev.some(a => a?.job?.jobId === jobId)) return prev;
+                    const appliedJob = jobs.find(j => j.jobId === jobId);
+                    if (!appliedJob) return prev;
+                    return [...prev, { status: 'pending', job: appliedJob }];
                 });
             } else {
                 setError(message);
@@ -185,7 +197,10 @@ export default function JobsPage() {
 
     const workerAcceptedJobs = isWorkerAcceptedView
         ? workerApplications
-            .filter(a => String(a.status).toLowerCase() === 'accepted' && a.job)
+            .filter(a => {
+                const status = String(a.status).toLowerCase();
+                return (status === 'accepted' || status === 'pending') && a.job;
+            })
             .map(a => a.job)
         : [];
 
@@ -277,7 +292,7 @@ export default function JobsPage() {
                         {isCustomerAcceptedView
                             ? 'No jobs have been accepted by workers yet.'
                             : isWorkerAcceptedView
-                                ? 'No jobs you have been accepted for yet.'
+                                ? 'No jobs you have accepted/applied for yet.'
                                 : 'No active jobs found.'}
                     </p>
                     {!isCustomerAcceptedView && (
