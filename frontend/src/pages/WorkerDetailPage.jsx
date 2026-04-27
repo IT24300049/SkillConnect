@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { workerAPI, reviewAPI, bookingAPI } from '../api';
 import { useAuth } from '../AuthContext';
+import Modal from '../components/Modal';
 
 function Stars({ rating = 0 }) {
     return (
@@ -36,6 +37,7 @@ export default function WorkerDetailPage() {
     const [busyDates, setBusyDates] = useState([]);
     const [availability, setAvailability] = useState([]);
     const [busySlots, setBusySlots] = useState([]);
+    const [feedbackModal, setFeedbackModal] = useState({ isOpen: false, title: '', message: '', isError: false });
 
     useEffect(() => {
         const load = async () => {
@@ -199,11 +201,21 @@ export default function WorkerDetailPage() {
                 scheduledTime,
                 notes: bookForm.notes,
             });
-            alert('Booking created successfully!');
             setShowBooking(false);
             setBookForm({ scheduledDate: '', scheduledHour: '09', scheduledMinute: '00', scheduledPeriod: 'AM', notes: '' });
+            setFeedbackModal({
+                isOpen: true,
+                title: 'Booking Confirmed',
+                message: 'Your booking request was created successfully.',
+                isError: false,
+            });
         } catch (err) {
-            alert('Error: ' + (err.response?.data?.message || 'Booking failed'));
+            setFeedbackModal({
+                isOpen: true,
+                title: 'Booking Failed',
+                message: err.response?.data?.message || 'Booking failed',
+                isError: true,
+            });
         } finally { setBooking(false); }
     };
 
@@ -447,6 +459,29 @@ export default function WorkerDetailPage() {
                     </div>
                 </div>
             )}
+
+            <Modal
+                isOpen={feedbackModal.isOpen}
+                onClose={() => setFeedbackModal({ isOpen: false, title: '', message: '', isError: false })}
+                title={feedbackModal.title}
+                maxWidth={480}
+            >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    <p style={{ fontSize: 14, lineHeight: 1.6, color: feedbackModal.isError ? '#b91c1c' : '#0f766e', margin: 0 }}>
+                        {feedbackModal.message}
+                    </p>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                        <button
+                            type="button"
+                            className={feedbackModal.isError ? 'btn-danger' : 'btn-primary'}
+                            onClick={() => setFeedbackModal({ isOpen: false, title: '', message: '', isError: false })}
+                            style={{ minWidth: 120, justifyContent: 'center' }}
+                        >
+                            OK
+                        </button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 }
