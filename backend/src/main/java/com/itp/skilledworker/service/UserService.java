@@ -103,6 +103,11 @@ public class UserService {
         WorkerProfile profile = workerProfileRepository.findByUser_UserId(user.getUserId())
                 .orElseThrow(() -> new RuntimeException("Worker profile not found"));
 
+        if (updated.getHourlyRateMin() != null && updated.getHourlyRateMax() != null
+            && updated.getHourlyRateMax().compareTo(updated.getHourlyRateMin()) <= 0) {
+            throw new IllegalArgumentException("Hourly rate max must be greater than hourly rate min.");
+        }
+
         if (updated.getFirstName() != null)
             profile.setFirstName(updated.getFirstName());
         if (updated.getLastName() != null)
@@ -221,6 +226,10 @@ public class UserService {
         if (user.getRole() == User.Role.worker) {
             WorkerProfile p = workerProfileRepository.findByUser_UserId(user.getUserId())
                     .orElseThrow(() -> new RuntimeException("Worker profile not found"));
+            if (updated.getHourlyRateMin() != null && updated.getHourlyRateMax() != null
+                    && updated.getHourlyRateMax().compareTo(updated.getHourlyRateMin()) <= 0) {
+                throw new IllegalArgumentException("Hourly rate max must be greater than hourly rate min.");
+            }
             if (updated.getFirstName() != null)
                 p.setFirstName(updated.getFirstName());
             if (updated.getLastName() != null)

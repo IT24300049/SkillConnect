@@ -1,0 +1,32 @@
+erDiagram
+    JOB_CATEGORIES {
+        INT category_id PK
+        VARCHAR category_name
+    }
+
+    JOBS {
+        INT job_id PK
+        INT customer_id FK
+        INT category_id FK
+        VARCHAR job_status
+    }
+
+    JOB_APPLICATIONS {
+        INT application_id PK
+        INT job_id FK
+        INT worker_id FK
+        DECIMAL bid_amount
+    }
+
+    CUSTOMER_PROFILES {
+        INT customer_id PK
+    }
+
+    WORKER_PROFILES {
+        INT worker_id PK
+    }
+
+    JOB_CATEGORIES ||--o{ JOBS : "categorizes"
+    CUSTOMER_PROFILES ||--o{ JOBS : "posts"
+    JOBS ||--o{ JOB_APPLICATIONS : "receives"
+    WORKER_PROFILES ||--o{ JOB_APPLICATIONS : "applies"

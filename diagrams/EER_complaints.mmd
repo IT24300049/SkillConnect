@@ -1,0 +1,37 @@
+erDiagram
+    COMPLAINTS {
+        INT complaint_id PK
+        INT user_id FK
+        INT target_user_id FK
+        INT booking_id FK
+        INT review_id FK
+        VARCHAR complaint_status
+    }
+
+    COMPLAINT_IMAGES {
+        INT complaint_image_id PK
+        INT complaint_id FK
+        VARCHAR image_url
+    }
+
+    REVIEWS {
+        INT review_id PK
+        INT booking_id FK
+        INT reviewer_id FK
+        INT reviewee_id FK
+    }
+
+    USERS {
+        INT user_id PK
+        VARCHAR email
+    }
+
+    BOOKINGS {
+        INT booking_id PK
+    }
+
+    COMPLAINTS ||--o{ COMPLAINT_IMAGES : "contains"
+    USERS ||--o{ COMPLAINTS : "files"
+    USERS ||--o{ COMPLAINTS : "targets"
+    BOOKINGS ||--o{ COMPLAINTS : "related to"
+    REVIEWS ||--o{ COMPLAINTS : "related to"

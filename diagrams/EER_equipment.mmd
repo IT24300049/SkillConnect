@@ -1,0 +1,33 @@
+erDiagram
+    EQUIPMENT_CATEGORIES {
+        INT equipment_category_id PK
+        VARCHAR category_name
+    }
+
+    EQUIPMENT_INVENTORY {
+        INT equipment_id PK
+        INT supplier_id FK
+        INT equipment_category_id FK
+        VARCHAR equipment_name
+    }
+
+    EQUIPMENT_BOOKINGS {
+        INT equipment_booking_id PK
+        INT equipment_id FK
+        INT customer_id FK
+        DATE rental_start_date
+        DATE rental_end_date
+    }
+
+    SUPPLIER_PROFILES {
+        INT supplier_id PK
+    }
+
+    CUSTOMER_PROFILES {
+        INT customer_id PK
+    }
+
+    SUPPLIER_PROFILES ||--o{ EQUIPMENT_INVENTORY : "supplies"
+    EQUIPMENT_CATEGORIES ||--o{ EQUIPMENT_INVENTORY : "classifies"
+    EQUIPMENT_INVENTORY ||--o{ EQUIPMENT_BOOKINGS : "is booked"
+    CUSTOMER_PROFILES ||--o{ EQUIPMENT_BOOKINGS : "books"

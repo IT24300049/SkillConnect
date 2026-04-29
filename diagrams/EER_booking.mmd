@@ -1,0 +1,36 @@
+erDiagram
+    JOBS {
+        INT job_id PK
+        INT customer_id FK
+        INT category_id FK
+    }
+
+    JOB_APPLICATIONS {
+        INT application_id PK
+        INT job_id FK
+        INT worker_id FK
+        VARCHAR application_status
+    }
+
+    BOOKINGS {
+        INT booking_id PK
+        INT job_id FK
+        INT worker_id FK
+        INT customer_id FK
+        VARCHAR booking_status
+    }
+
+    WORKER_PROFILES {
+        INT worker_id PK
+    }
+
+    CUSTOMER_PROFILES {
+        INT customer_id PK
+    }
+
+    JOBS ||--o{ JOB_APPLICATIONS : "receives"
+    WORKER_PROFILES ||--o{ JOB_APPLICATIONS : "applies"
+
+    JOBS ||--o{ BOOKINGS : "may generate"
+    WORKER_PROFILES ||--o{ BOOKINGS : "performs"
+    CUSTOMER_PROFILES ||--o{ BOOKINGS : "requests"

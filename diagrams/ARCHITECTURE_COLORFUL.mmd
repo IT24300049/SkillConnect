@@ -1,0 +1,65 @@
+%%{init: {"theme":"base","themeVariables":{"fontFamily":"Inter, Segoe UI, Arial","primaryColor":"#E8F1FF","primaryTextColor":"#12324A","primaryBorderColor":"#4A90E2","lineColor":"#5A6B7A","secondaryColor":"#EAF7EF","tertiaryColor":"#FFF3D6","background":"#FFFFFF"}}}%%
+flowchart LR
+  classDef user fill:#E8F1FF,stroke:#4A90E2,stroke-width:2px,color:#12324A;
+  classDef ui fill:#FFF3D6,stroke:#D9A441,stroke-width:2px,color:#5B3B00;
+  classDef svc fill:#EAF7EF,stroke:#3FA46A,stroke-width:2px,color:#13472D;
+  classDef data fill:#F3ECFF,stroke:#8A63D2,stroke-width:2px,color:#3E256A;
+  classDef ext fill:#F5F7FA,stroke:#7A8A99,stroke-dasharray: 5 4,color:#27333D;
+
+  subgraph Actors[Users]
+    C([Customer]):::user
+    W([Worker]):::user
+    S([Supplier]):::user
+    A([Admin]):::user
+  end
+
+  subgraph Frontend[Presentation Layer]
+    FE["React Frontend\nDashboard, forms, search"]:::ui
+  end
+
+  subgraph Backend[Application Layer]
+    GW["REST API\nControllers & routing"]:::svc
+    AUTH["JWT Auth + RBAC\nsecure access"]:::svc
+    JOBS["Job Service\npost, apply, assign"]:::svc
+    BOOK["Booking Service\nschedule, approve, cancel"]:::svc
+    EQ["Equipment Service\nlist, reserve, rent"]:::svc
+    COM["Complaint Service\nfeedback and disputes"]:::svc
+    MSG["Messaging Service\nthreads and messages"]:::svc
+    ADM["Admin Service\nmoderation and reports"]:::svc
+  end
+
+  subgraph Data[Data Layer]
+    DB[(MySQL Database)]:::data
+    FS[(File Storage\nuploads, images)]:::data
+  end
+
+  subgraph External[External Dependencies]
+    JWT["JWT Provider / Token Layer"]:::ext
+    NOTIF["Email / Notification Service"]:::ext
+  end
+
+  C --> FE
+  W --> FE
+  S --> FE
+  A --> FE
+
+  FE --> GW
+  GW --> AUTH
+  GW --> JOBS
+  GW --> BOOK
+  GW --> EQ
+  GW --> COM
+  GW --> MSG
+  GW --> ADM
+
+  AUTH --> JWT
+  AUTH --> DB
+  JOBS --> DB
+  BOOK --> DB
+  EQ --> DB
+  COM --> DB
+  MSG --> DB
+  ADM --> DB
+
+  FE --> FS
+  ADM --> NOTIF

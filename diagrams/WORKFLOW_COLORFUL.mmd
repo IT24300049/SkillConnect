@@ -1,0 +1,39 @@
+%%{init: {"theme":"base","themeVariables":{"fontFamily":"Inter, Segoe UI, Arial","primaryColor":"#E8F1FF","primaryTextColor":"#12324A","primaryBorderColor":"#4A90E2","lineColor":"#5A6B7A","background":"#FFFFFF"}}}%%
+flowchart TD
+  classDef start fill:#1D9A6C,stroke:#15724E,color:#FFFFFF,stroke-width:2px;
+  classDef action fill:#E8F1FF,stroke:#4A90E2,color:#12324A,stroke-width:2px;
+  classDef decision fill:#FFF3D6,stroke:#D9A441,color:#5B3B00,stroke-width:2px;
+  classDef success fill:#EAF7EF,stroke:#3FA46A,color:#13472D,stroke-width:2px;
+  classDef warning fill:#FDECEC,stroke:#D9534F,color:#7A1F1B,stroke-width:2px;
+  classDef admin fill:#F3ECFF,stroke:#8A63D2,color:#3E256A,stroke-width:2px;
+
+  A([Start]):::start --> B[User logs in or registers]:::action
+  B --> C{Role detected}:::decision
+
+  C -->|Customer| D[Create job post or booking request]:::action
+  C -->|Worker| E[Browse jobs and submit application]:::action
+  C -->|Supplier| F[List equipment and manage rentals]:::action
+  C -->|Admin| G[Monitor system and handle disputes]:::admin
+
+  D --> H[Validate data and save record]:::action
+  E --> H
+  F --> H
+
+  H --> I{Workflow type}:::decision
+  I -->|Job| J[Job published to workers]:::success
+  I -->|Booking| K[Booking request created]:::success
+  I -->|Equipment| L[Availability checked]:::success
+
+  J --> M[Worker applies or customer reviews bids]:::action
+  K --> N[Worker accepts or rejects booking]:::action
+  L --> O[Equipment reserved or rented]:::action
+
+  M --> P[Assignment and status tracking]:::success
+  N --> P
+  O --> P
+
+  P --> Q[In-app messaging and notifications]:::action
+  Q --> R[Task completed]:::success
+  R --> S[Review submitted or complaint raised]:::warning
+  S --> T[Admin investigates and resolves]:::admin
+  T --> U([End]):::start

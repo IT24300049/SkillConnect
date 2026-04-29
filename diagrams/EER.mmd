@@ -1,0 +1,132 @@
+erDiagram
+    USERS {
+        INT user_id PK
+        VARCHAR email
+        VARCHAR role
+    }
+
+    CUSTOMER_PROFILES {
+        INT customer_id PK
+        INT user_id FK
+    }
+
+    WORKER_PROFILES {
+        INT worker_id PK
+        INT user_id FK
+    }
+
+    SUPPLIER_PROFILES {
+        INT supplier_id PK
+        INT user_id FK
+    }
+
+    JOB_CATEGORIES {
+        INT category_id PK
+        VARCHAR category_name
+    }
+
+    JOBS {
+        INT job_id PK
+        INT customer_id FK
+        INT category_id FK
+        VARCHAR job_status
+    }
+
+    JOB_APPLICATIONS {
+        INT application_id PK
+        INT job_id FK
+        INT worker_id FK
+    }
+
+    BOOKINGS {
+        INT booking_id PK
+        INT job_id FK
+        INT worker_id FK
+        INT customer_id FK
+        VARCHAR booking_status
+    }
+
+    EQUIPMENT_CATEGORIES {
+        INT equipment_category_id PK
+        VARCHAR category_name
+    }
+
+    EQUIPMENT_INVENTORY {
+        INT equipment_id PK
+        INT supplier_id FK
+        INT equipment_category_id FK
+    }
+
+    EQUIPMENT_BOOKINGS {
+        INT equipment_booking_id PK
+        INT equipment_id FK
+        INT customer_id FK
+    }
+
+    MESSAGE_THREADS {
+        INT thread_id PK
+        INT booking_id FK
+        INT participant1_id FK
+        INT participant2_id FK
+    }
+
+    MESSAGES {
+        INT message_id PK
+        INT thread_id FK
+        INT sender_id FK
+    }
+
+    REVIEWS {
+        INT review_id PK
+        INT booking_id FK
+        INT job_id FK
+        INT reviewer_id FK
+        INT reviewee_id FK
+    }
+
+    COMPLAINTS {
+        INT complaint_id PK
+        INT user_id FK
+        INT target_user_id FK
+        INT job_id FK
+        INT review_id FK
+    }
+
+    COMPLAINT_IMAGES {
+        INT complaint_image_id PK
+        INT complaint_id FK
+    }
+
+    %% Relationships
+    USERS ||--|| CUSTOMER_PROFILES : "has profile"
+    USERS ||--|| WORKER_PROFILES : "has profile"
+    USERS ||--|| SUPPLIER_PROFILES : "has profile"
+
+    CUSTOMER_PROFILES ||--o{ JOBS : "posts"
+    JOB_CATEGORIES ||--o{ JOBS : "categorizes"
+    JOBS ||--o{ JOB_APPLICATIONS : "receives"
+    WORKER_PROFILES ||--o{ JOB_APPLICATIONS : "applies"
+
+    CUSTOMER_PROFILES ||--o{ BOOKINGS : "requests"
+    WORKER_PROFILES ||--o{ BOOKINGS : "performs"
+    JOBS ||--o{ BOOKINGS : "may generate"
+
+    SUPPLIER_PROFILES ||--o{ EQUIPMENT_INVENTORY : "supplies"
+    EQUIPMENT_CATEGORIES ||--o{ EQUIPMENT_INVENTORY : "classifies"
+    EQUIPMENT_INVENTORY ||--o{ EQUIPMENT_BOOKINGS : "is booked"
+    CUSTOMER_PROFILES ||--o{ EQUIPMENT_BOOKINGS : "books"
+
+    BOOKINGS ||--o{ MESSAGE_THREADS : "may have"
+    USERS ||--o{ MESSAGE_THREADS : "participates"
+    MESSAGE_THREADS ||--o{ MESSAGES : "contains"
+    USERS ||--o{ MESSAGES : "sends"
+
+    BOOKINGS ||--o{ REVIEWS : "may have"
+    JOBS ||--o{ REVIEWS : "may have"
+    USERS ||--o{ REVIEWS : "writes/receives"
+
+    USERS ||--o{ COMPLAINTS : "files"
+    USERS ||--o{ COMPLAINTS : "targets"
+    JOBS ||--o{ COMPLAINTS : "related to"
+    REVIEWS ||--o{ COMPLAINTS : "related to"
+    COMPLAINTS ||--o{ COMPLAINT_IMAGES : "contains"

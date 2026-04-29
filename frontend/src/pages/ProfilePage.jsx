@@ -81,12 +81,30 @@ export default function ProfilePage() {
 
     const handleSaveProfile = async (e) => {
         e.preventDefault();
+        const parsedHourlyRateMin = editForm.hourlyRateMin !== '' && editForm.hourlyRateMin !== null && editForm.hourlyRateMin !== undefined
+            ? parseFloat(editForm.hourlyRateMin)
+            : null;
+        const parsedHourlyRateMax = editForm.hourlyRateMax !== '' && editForm.hourlyRateMax !== null && editForm.hourlyRateMax !== undefined
+            ? parseFloat(editForm.hourlyRateMax)
+            : null;
+
+        if (
+            parsedHourlyRateMin !== null &&
+            parsedHourlyRateMax !== null &&
+            !Number.isNaN(parsedHourlyRateMin) &&
+            !Number.isNaN(parsedHourlyRateMax) &&
+            parsedHourlyRateMax <= parsedHourlyRateMin
+        ) {
+            setMsg({ type: 'error', text: 'Hourly rate max must be greater than hourly rate min.' });
+            return;
+        }
+
         setSaving(true); setMsg({ type: '', text: '' });
         try {
             await workerAPI.updateMe({
                 ...editForm,
-                hourlyRateMin: editForm.hourlyRateMin ? parseFloat(editForm.hourlyRateMin) : null,
-                hourlyRateMax: editForm.hourlyRateMax ? parseFloat(editForm.hourlyRateMax) : null,
+                hourlyRateMin: parsedHourlyRateMin,
+                hourlyRateMax: parsedHourlyRateMax,
             });
             setMsg({ type: 'success', text: 'Profile updated successfully!' });
         } catch (err) {
@@ -263,11 +281,11 @@ export default function ProfilePage() {
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                                 <div>
                                     <label className="hm-label">Hourly Rate Min (LKR)</label>
-                                    <input className="hm-input" type="number" value={editForm.hourlyRateMin} onChange={e => setEditForm({ ...editForm, hourlyRateMin: e.target.value })} />
+                                    <input className="hm-input" type="number" min="0" value={editForm.hourlyRateMin} onChange={e => setEditForm({ ...editForm, hourlyRateMin: e.target.value })} />
                                 </div>
                                 <div>
                                     <label className="hm-label">Hourly Rate Max (LKR)</label>
-                                    <input className="hm-input" type="number" value={editForm.hourlyRateMax} onChange={e => setEditForm({ ...editForm, hourlyRateMax: e.target.value })} />
+                                    <input className="hm-input" type="number" min="0" value={editForm.hourlyRateMax} onChange={e => setEditForm({ ...editForm, hourlyRateMax: e.target.value })} />
                                 </div>
                             </div>
                             {msg.text && <div className={msg.type === 'success' ? 'alert-success' : 'alert-error'}>{msg.text}</div>}
